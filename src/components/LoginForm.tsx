@@ -57,20 +57,22 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <FormField
-        id="username"
-        label="Username"
-        placeholder="Enter your username"
-        register={register("username")}
-        error={errors.username}
-      />
-      <PasswordField
-        id="password"
-        label="Password"
-        placeholder="Enter your password"
-        register={register("password")}
-        error={errors.password}
-      />
+      <div className="grid grid-cols-1 gap-4">
+        <FormField
+          id="username"
+          label="Username"
+          placeholder="Enter your username"
+          register={register("username")}
+          error={errors.username}
+        />
+        <PasswordField
+          id="password"
+          label="Password"
+          placeholder="Enter your password"
+          register={register("password")}
+          error={errors.password}
+        />
+      </div>
       <div className="flex items-center">
         <input
           type="checkbox"
