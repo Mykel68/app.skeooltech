@@ -1,0 +1,102 @@
+"use client";
+
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/FormField";
+import { PasswordField } from "@/components/PasswordField";
+import { loginSchema, LoginFormData } from "@/schema/loginSchema";
+import { loginUser } from "@/services/httpClient";
+import { useRouter } from "next/navigation";
+import { useUserStore } from "@/stores/userStore";
+
+export function LoginForm({ schoolCode }: { schoolCode: string }) {
+  const router = useRouter();
+  const setUser = useUserStore((state) => state.setUser);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+      agreeToTerms: false,
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: (data: LoginFormData) => loginUser({ ...data, schoolCode }),
+    onSuccess: (data) => {
+      console.log("[LoginForm] Login mutation success:", data);
+      setUser({
+        userId: data.decoded.userId,
+        username: data.decoded.username,
+        role: data.decoded.role,
+        schoolId: data.decoded.schoolId,
+      });
+      toast.success("Login successful!");
+      router.push("/dashboard");
+    },
+    onError: (error: Error) => {
+      console.error("[LoginForm] Login mutation error:", error);
+      toast.error(error.message || "Login failed. Please try again.");
+    },
+  });
+
+  const onSubmit = (data: LoginFormData) => {
+    console.log("[LoginForm] Form submitted with data:", {
+      ...data,
+      schoolCode,
+    });
+    mutation.mutate(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <FormField
+        id="username"
+        label="Username"
+        placeholder="Enter your username"
+        register={register("username")}
+        error={errors.username}
+      />
+      <PasswordField
+        id="password"
+        label="Password"
+        placeholder="Enter your password"
+        register={register("password")}
+        error={errors.password}
+      />
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          id="agreeToTerms"
+          {...register("agreeToTerms")}
+          className="h-4 w-4 rounded border-gray-300 text-green-500 focus:ring-green-500"
+        />
+        <label
+          htmlFor="agreeToTerms"
+          className="ml-2 block text-sm text-gray-700"
+        >
+          I agree to the terms & policy
+        </label>
+        {errors.agreeToTerms && (
+          <p className="ml-2 text-red-500 text-sm">
+            {errors.agreeToTerms.message}
+          </p>
+        )}
+      </div>
+      <Button
+        type="submit"
+        className="w-full bg-green-500 hover:bg-green-600"
+        disabled={mutation.isPending}
+      >
+        {mutation.isPending ? "Logging in..." : "Login"}
+      </Button>
+    </form>
+  );
+}
