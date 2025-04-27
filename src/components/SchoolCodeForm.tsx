@@ -11,6 +11,7 @@ import {
   SchoolCodeFormData,
 } from "@/schema/schoolCodeSchema";
 import { httpClient } from "@/services/httpClient";
+import Link from "next/link";
 
 export function SchoolCodeForm() {
   const router = useRouter();
@@ -40,17 +41,40 @@ export function SchoolCodeForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <FormField
-        id="schoolCode"
-        label="School Code"
-        placeholder="Enter your school code (e.g., ABC123)"
-        register={register("schoolCode")}
-        error={errors.schoolCode}
-      />
-      <Button type="submit" className="w-full bg-green-500 hover:bg-green-600">
-        Continue
-      </Button>
-    </form>
+    <div className="space-y-6">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="grid grid-cols-1 gap-4"
+      >
+        <FormField
+          id="schoolCode"
+          label="School Code"
+          placeholder="Enter your school code (e.g., ABC123)"
+          register={register("schoolCode")}
+          error={errors.schoolCode}
+        />
+        <Button
+          type="submit"
+          className="w-full bg-green-500 hover:bg-green-600"
+        >
+          Continue
+        </Button>
+      </form>
+      <div className="space-y-2">
+        <div className="relative flex items-center">
+          <div className="flex-grow border-t border-gray-300"></div>
+          <span className="mx-4 text-sm text-gray-500">
+            Don&apos;t have an account{" "}
+          </span>
+          <div className="flex-grow border-t border-gray-300"></div>
+        </div>
+        <Link
+          href={"#"}
+          className="text-sm flex items-center justify-center hover:underline-offset-3 hover:underline"
+        >
+          Register Here
+        </Link>
+      </div>
+    </div>
   );
 }

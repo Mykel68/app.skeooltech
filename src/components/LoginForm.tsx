@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { loginSchema, LoginFormData } from "@/schema/loginSchema";
 import { loginUser } from "@/services/httpClient";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/stores/userStore";
+import axios from "axios";
 
 export function LoginForm({ schoolCode }: { schoolCode: string }) {
   const router = useRouter();
@@ -26,6 +27,24 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
       password: "",
       agreeToTerms: false,
     },
+  });
+
+  // const { data, isLoading } = useQuery({
+  //   queryKey: ["schoolCode", schoolCode],
+  //   queryFn: async () => {
+  //     const { data } = await axios.get(`/api/school/get-profile/${schoolCode}`);
+  //     return data.data;
+  //   },
+  //   enabled: !!schoolCode,
+  // });
+
+  const { data } = useQuery({
+    queryKey: ["schoolCode", schoolCode],
+    queryFn: async () => {
+      const { data } = await axios.get(`/api/school/get-profile/${schoolCode}`);
+      return data;
+    },
+    enabled: !!schoolCode,
   });
 
   const mutation = useMutation({

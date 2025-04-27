@@ -1,18 +1,26 @@
 "use client";
 
 import { LoginForm } from "@/components/LoginForm";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 
 export default function LoginModal() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const schoolCode = searchParams.get("school_code");
 
+  // if (!schoolCode) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gray-100">
+  //       <p className="text-red-500">No school code provided.</p>
+  //     </div>
+  //   );
+  // }
+
   if (!schoolCode) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p className="text-red-500">No school code provided.</p>
-      </div>
-    );
+    toast.error("Provide School code to login");
+    router.push("/");
+    return;
   }
 
   return (
