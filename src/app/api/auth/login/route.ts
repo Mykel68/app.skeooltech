@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     }
 
     const response = await axios.post(
-      `${backendUrl}/api/auth/login`,
+      `${backendUrl}/api/auth/teacher-student/login`,
       validatedData
     );
     const { token } = response.data;

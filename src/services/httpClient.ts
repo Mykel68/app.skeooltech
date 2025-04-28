@@ -30,7 +30,7 @@ export class HttpClient {
       const response = await this.client.post("/auth/login", {
         username: data.username,
         password: data.password,
-        schoolCode: data.schoolCode,
+        school_code: data.schoolCode,
         agreeToTerms: undefined,
       });
       console.log("[HttpClient] Login API response:", response.data);

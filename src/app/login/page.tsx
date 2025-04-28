@@ -3,37 +3,29 @@
 import { LoginForm } from "@/components/LoginForm";
 import { useSchoolStore } from "@/store/schoolStore";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
 export default function LoginPage() {
-  // const searchParams = useSearchParams();
-  // const router = useRouter();
-  // const schoolCode = searchParams.get("school_code");
-
-  // if (!schoolCode) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-  //       <p className="text-red-500">No school code provided.</p>
-  //     </div>
-  //   );
-  // }
-
   const router = useRouter();
   const searchParams = useSearchParams();
   const { schoolDetails } = useSchoolStore();
 
+  const schoolCode = useMemo(() => {
+    return searchParams.get("school_code") || schoolDetails?.schoolCode || null;
+  }, [searchParams, schoolDetails?.schoolCode]);
+
   useEffect(() => {
-    const urlSchoolCode = searchParams.get("school_code");
-
-    if (!urlSchoolCode && !schoolDetails?.schoolCode) {
+    if (!schoolCode) {
       toast.error("School code missing. Redirecting...");
-      router.replace("/");
+      router.push("/");
     }
-  }, [searchParams, schoolDetails?.schoolCode, router]);
+  }, [schoolCode, router]);
 
-  const activeSchoolCode =
-    searchParams.get("school_code") || schoolDetails?.schoolCode;
+  if (!schoolCode) {
+    return null; // Or you can show a spinner while redirecting
+  }
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen md:h-screen p-3">
       {/* Form Section - 35% on large screens */}

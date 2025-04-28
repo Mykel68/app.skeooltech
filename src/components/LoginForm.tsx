@@ -29,15 +29,6 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
     },
   });
 
-  // const { data, isLoading } = useQuery({
-  //   queryKey: ["schoolCode", schoolCode],
-  //   queryFn: async () => {
-  //     const { data } = await axios.get(`/api/school/get-profile/${schoolCode}`);
-  //     return data.data;
-  //   },
-  //   enabled: !!schoolCode,
-  // });
-
   const { data } = useQuery({
     queryKey: ["schoolCode", schoolCode],
     queryFn: async () => {
@@ -48,7 +39,8 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
   });
 
   const mutation = useMutation({
-    mutationFn: (data: LoginFormData) => loginUser({ ...data, schoolCode }),
+    mutationFn: (data: LoginFormData) =>
+      loginUser({ ...data, school_code: schoolCode }),
     onSuccess: (data) => {
       console.log("[LoginForm] Login mutation success:", data);
       setUser({
@@ -66,12 +58,12 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
     },
   });
 
-  const onSubmit = (data: LoginFormData) => {
+  const onSubmit = (formData: LoginFormData) => {
     console.log("[LoginForm] Form submitted with data:", {
-      ...data,
+      ...formData,
       schoolCode,
     });
-    mutation.mutate(data);
+    mutation.mutate({ ...formData, school_code: schoolCode }); // <-- now send schoolCode here too
   };
 
   return (
