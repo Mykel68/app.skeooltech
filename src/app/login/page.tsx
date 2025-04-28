@@ -1,13 +1,15 @@
 "use client";
 
 import { LoginForm } from "@/components/LoginForm";
+import { useSchoolStore } from "@/store/schoolStore";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
 export default function LoginPage() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const schoolCode = searchParams.get("school_code");
+  // const searchParams = useSearchParams();
+  // const router = useRouter();
+  // const schoolCode = searchParams.get("school_code");
 
   // if (!schoolCode) {
   //   return (
@@ -17,12 +19,21 @@ export default function LoginPage() {
   //   );
   // }
 
-  // if (!schoolCode) {
-  //   toast.error("Provide School code to login");
-  //   router.push("/");
-  //   return;
-  // }
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { schoolDetails } = useSchoolStore();
 
+  useEffect(() => {
+    const urlSchoolCode = searchParams.get("school_code");
+
+    if (!urlSchoolCode && !schoolDetails?.schoolCode) {
+      toast.error("School code missing. Redirecting...");
+      router.replace("/");
+    }
+  }, [searchParams, schoolDetails?.schoolCode, router]);
+
+  const activeSchoolCode =
+    searchParams.get("school_code") || schoolDetails?.schoolCode;
   return (
     <div className="flex flex-col lg:flex-row min-h-screen md:h-screen p-3">
       {/* Form Section - 35% on large screens */}
