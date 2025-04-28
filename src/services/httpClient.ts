@@ -12,7 +12,7 @@ interface DecodedToken {
 }
 
 export class HttpClient {
-  private client: AxiosInstance;
+  public client: AxiosInstance;
 
   constructor() {
     this.client = axios.create({

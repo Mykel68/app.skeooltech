@@ -19,7 +19,7 @@ export function SchoolCodeForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setSchoolDetails, schoolDetails } = useSchoolStore();
-  const [openDialog, setOpenDialog] = useState(false);
+  const [openDialog, setOpenDialog] = useState(true);
 
   const {
     register,
