@@ -33,6 +33,8 @@ export function SchoolCodeForm() {
       // await httpClient.client.get(
       //   `/school/validate?school_code=${data.schoolCode}`
       // );
+      await httpClient.client.get(`/school/get-code/${data.schoolCode}`);
+      toast.success("School code validated successfully!");
       router.push(`/login?school_code=${data.schoolCode}`);
     } catch (error) {
       console.error("[SchoolCodeForm] Error:", error);

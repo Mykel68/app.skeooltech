@@ -10,7 +10,7 @@ import { PasswordField } from "@/components/PasswordField";
 import { loginSchema, LoginFormData } from "@/schema/loginSchema";
 import { loginUser } from "@/services/httpClient";
 import { useRouter } from "next/navigation";
-import { useUserStore } from "@/stores/userStore";
+import { useUserStore } from "@/store/userStore";
 import axios from "axios";
 
 export function LoginForm({ schoolCode }: { schoolCode: string }) {

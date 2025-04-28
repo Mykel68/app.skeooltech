@@ -1,33 +1,105 @@
 "use client";
 
-import { LoginForm } from "@/components/LoginForm";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/FormField";
+import {
+  schoolCodeSchema,
+  SchoolCodeFormData,
+} from "@/schema/schoolCodeSchema";
+import { httpClient } from "@/services/httpClient";
+import Link from "next/link";
+import { useSchoolStore } from "@/store/schoolStore";
 
-export default function LoginModal() {
-  const searchParams = useSearchParams();
+export function SchoolCodeForm() {
   const router = useRouter();
-  const schoolCode = searchParams.get("school_code");
+  const setSchoolDetails = useSchoolStore((s) => s.setSchoolDetails);
 
-  // if (!schoolCode) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-  //       <p className="text-red-500">No school code provided.</p>
-  //     </div>
-  //   );
-  // }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SchoolCodeFormData>({
+    resolver: zodResolver(schoolCodeSchema),
+    defaultValues: { schoolCode: "" },
+  });
 
   if (!schoolCode) {
-    toast.error("Provide School code to login");
-    router.push("/");
-    return;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <p className="text-red-500">No school code provided.</p>
+      </div>
+    );
   }
 
+  const onSubmit = async (data: SchoolCodeFormData) => {
+    try {
+      console.log("[SchoolCodeForm] Submitting school code:", data.schoolCode);
+      const resp = await httpClient.client.get(
+        `/school/get-code/${data.schoolCode}`
+      );
+      // API returns { data: { school_id, name, address, school_image, phone_number, school_code } }
+      const payload = resp.data.data;
+
+      const details = {
+        schoolId: payload.school_id,
+        schoolCode: payload.school_code,
+        name: payload.name,
+        schoolImage: payload.school_image,
+      };
+
+      // Persist in store
+      setSchoolDetails(details);
+
+      toast.success("School code validated successfully!");
+      // Use replace to avoid keeping the form mounted in intercepting routes
+      router.replace(`/login?school_code=${payload.school_code}`, {
+        forceOptimisticNavigation: false,
+      });
+    } catch (error) {
+      console.error("[SchoolCodeForm] Error:", error);
+      toast.error("Invalid school code. Please try again.");
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-        <h2 className="text-xl font-bold mb-6 text-center">Login</h2>
-        <LoginForm schoolCode={schoolCode} />
+    <div className="space-y-6">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="grid grid-cols-1 gap-4"
+      >
+        <FormField
+          id="schoolCode"
+          label="School Code"
+          placeholder="Enter your school code (e.g., ABC123)"
+          register={register("schoolCode")}
+          error={errors.schoolCode}
+        />
+        <Button
+          type="submit"
+          className="w-full bg-green-500 hover:bg-green-600"
+        >
+          Continue
+        </Button>
+      </form>
+
+      <div className="space-y-2">
+        <div className="relative flex items-center">
+          <div className="flex-grow border-t border-gray-300" />
+          <span className="mx-4 text-sm text-gray-500">
+            Don&apos;t have an account?
+          </span>
+          <div className="flex-grow border-t border-gray-300" />
+        </div>
+        <Link
+          href="#"
+          className="text-sm flex items-center justify-center hover:underline hover:underline-offset-3"
+        >
+          Register Here
+        </Link>
       </div>
     </div>
   );
