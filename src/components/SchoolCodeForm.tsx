@@ -11,7 +11,7 @@ import {
   schoolCodeSchema,
   SchoolCodeFormData,
 } from "@/schema/schoolCodeSchema";
-import { httpClient } from "@/services/httpClient";
+import { AuthService } from "@/services/httpClient";
 import { useSchoolStore } from "@/store/schoolStore";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 
@@ -47,12 +47,12 @@ export function SchoolCodeForm() {
 
   const onSubmit = async (data: SchoolCodeFormData) => {
     try {
-      const response = await httpClient.client.get(
+      const authService = new AuthService();
+      const response = await authService.client.get(
         `/school/get-code/${data.schoolCode}`
       );
       const schoolData = response.data;
 
-      // Save to Zustand store
       setSchoolDetails({
         schoolId: schoolData.school_id,
         schoolCode: schoolData.school_code,

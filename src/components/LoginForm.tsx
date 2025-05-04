@@ -35,10 +35,15 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
       const data = await loginUser(formData);
       console.log("[LoginForm] response", data);
       setUser({
-        userId: data.decoded.userId,
+        userId: data.decoded.user_id,
         username: data.decoded.username,
         role: data.decoded.role,
-        schoolId: data.decoded.schoolId,
+        schoolId: data.decoded.school_id,
+        firstName: data.decoded.first_name,
+        lastName: data.decoded.last_name,
+        email: data.decoded.email,
+        schoolName: data.decoded.school_name,
+        schoolImage: data.decoded.school_image,
       });
       toast.success("Login successful!");
       router.push("/dashboard");
