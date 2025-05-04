@@ -11,11 +11,11 @@ import { loginSchema, LoginFormData } from "@/schema/loginSchema";
 import { loginUser } from "@/services/httpClient";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
-import axios from "axios";
 
 export function LoginForm({ schoolCode }: { schoolCode: string }) {
   const router = useRouter();
   const setUser = useUserStore((state) => state.setUser);
+
   const {
     register,
     handleSubmit,
@@ -29,20 +29,10 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
     },
   });
 
-  const { data } = useQuery({
-    queryKey: ["schoolCode", schoolCode],
-    queryFn: async () => {
-      const { data } = await axios.get(`/api/school/get-profile/${schoolCode}`);
-      return data;
-    },
-    enabled: !!schoolCode,
-  });
-
   const mutation = useMutation({
     mutationFn: (data: LoginFormData) =>
       loginUser({ ...data, school_code: schoolCode }),
     onSuccess: (data) => {
-      console.log("[LoginForm] Login mutation success:", data);
       setUser({
         userId: data.decoded.userId,
         username: data.decoded.username,
@@ -63,7 +53,7 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
       ...formData,
       schoolCode,
     });
-    mutation.mutate({ ...formData, school_code: schoolCode }); // <-- now send schoolCode here too
+    mutation.mutate({ ...formData, school_code: schoolCode });
   };
 
   return (

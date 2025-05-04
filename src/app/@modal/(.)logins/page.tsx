@@ -14,7 +14,7 @@ import { httpClient } from "@/services/httpClient";
 import Link from "next/link";
 import { useSchoolStore } from "@/store/schoolStore";
 
-export function SchoolCodeForm() {
+export default function SchoolCodeForm() {
   const router = useRouter();
   const setSchoolDetails = useSchoolStore((s) => s.setSchoolDetails);
 
@@ -27,7 +27,7 @@ export function SchoolCodeForm() {
     defaultValues: { schoolCode: "" },
   });
 
-  if (!schoolCode) {
+  if (!schoolCode && !schoolDetails?.schoolCode) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <p className="text-red-500">No school code provided.</p>
@@ -56,9 +56,7 @@ export function SchoolCodeForm() {
 
       toast.success("School code validated successfully!");
       // Use replace to avoid keeping the form mounted in intercepting routes
-      router.replace(`/login?school_code=${payload.school_code}`, {
-        forceOptimisticNavigation: false,
-      });
+      router.replace(`/login?school_code=${payload.school_code}`);
     } catch (error) {
       console.error("[SchoolCodeForm] Error:", error);
       toast.error("Invalid school code. Please try again.");
@@ -78,11 +76,20 @@ export function SchoolCodeForm() {
           register={register("schoolCode")}
           error={errors.schoolCode}
         />
+
+        <FormField
+          id="schoolCode"
+          label="School Code"
+          placeholder="Enter your school code (e.g., ABC123)"
+          register={register("schoolCode")}
+          error={errors.schoolCode}
+        />
+
         <Button
           type="submit"
           className="w-full bg-green-500 hover:bg-green-600"
         >
-          Continue
+          Login
         </Button>
       </form>
 

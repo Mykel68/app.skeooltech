@@ -5,15 +5,36 @@ import { useSchoolStore } from "@/store/schoolStore";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { schoolDetails } = useSchoolStore();
+  const { schoolDetails, setSchoolDetails } = useSchoolStore();
 
   const schoolCode = useMemo(() => {
     return searchParams.get("school_code") || schoolDetails?.schoolCode || null;
   }, [searchParams, schoolDetails?.schoolCode]);
+
+  // Fetch school details if not in store
+  const { data: school, isLoading } = useQuery({
+    queryKey: ["school", schoolCode],
+    queryFn: async () => {
+      if (!schoolCode) throw new Error("No school code");
+      const { data } = await axios.get(`/api/school/get-code/${schoolCode}`);
+      // populate store
+      setSchoolDetails({
+        schoolId: data.school_id,
+        schoolCode: data.school_code,
+        name: data.name,
+        schoolImage: data.school_image,
+      });
+      return data;
+    },
+    enabled: !!schoolCode,
+    initialData: schoolDetails,
+  });
 
   useEffect(() => {
     if (!schoolCode) {
@@ -22,8 +43,8 @@ export default function LoginPage() {
     }
   }, [schoolCode, router]);
 
-  if (!schoolCode) {
-    return null; // Or you can show a spinner while redirecting
+  if (!schoolCode || isLoading) {
+    return null; // or a spinner
   }
 
   return (
@@ -32,13 +53,14 @@ export default function LoginPage() {
       <div className="w-full lg:w-[35%] p-8 flex flex-col justify-center">
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-8">
-            <div className="h-8 w-8 rounded-md bg-green-500 flex items-center justify-center text-white font-bold">
-              H
-            </div>
-            <div className="font-bold uppercase">
-              <div>Hope for</div>
-              <div>Humanity</div>
-            </div>
+            {school?.school_image && (
+              <img
+                src={school.school_image}
+                alt={school.name}
+                className="h-8 w-8 rounded-full"
+              />
+            )}
+            <div className="font-bold uppercase text-lg">{school?.name}</div>
           </div>
 
           <h1 className="text-2xl font-bold mb-1">Login to your account</h1>

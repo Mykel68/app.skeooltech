@@ -19,7 +19,7 @@ export function SchoolCodeForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setSchoolDetails, schoolDetails } = useSchoolStore();
-  const [openDialog, setOpenDialog] = useState(true);
+  const [openDialog, setOpenDialog] = useState(false);
 
   const {
     register,
@@ -103,10 +103,7 @@ export function SchoolCodeForm() {
           register={register("schoolCode")}
           error={errors.schoolCode}
         />
-        <Button
-          type="submit"
-          className="w-full bg-green-500 hover:bg-green-600"
-        >
+        <Button type="submit" className="w-full ">
           Continue
         </Button>
       </form>
@@ -114,7 +111,20 @@ export function SchoolCodeForm() {
       {/* Modal/Dialog */}
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent>
-          <DialogHeader>What do you want to do?</DialogHeader>
+          {/* School details header */}
+          <div className="flex items-center gap-4 mb-4">
+            {schoolDetails?.schoolImage && (
+              <img
+                src={schoolDetails.schoolImage}
+                alt={schoolDetails.name}
+                className="w-12 h-12 rounded-full"
+              />
+            )}
+            <h3 className="text-lg font-semibold">{schoolDetails?.name}</h3>
+          </div>
+
+          <DialogHeader>How would you like to proceed?</DialogHeader>
+
           <div className="flex flex-col gap-4 p-4">
             <Button onClick={handleLogin} className="w-full">
               Login

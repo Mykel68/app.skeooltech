@@ -26,11 +26,12 @@ export class HttpClient {
   async loginUser(
     data: LoginFormData
   ): Promise<{ token: string; decoded: DecodedToken }> {
+    console.log("[HttpClient] Login data:", data);
     try {
       const response = await this.client.post("/auth/login", {
         username: data.username,
         password: data.password,
-        school_code: data.schoolCode,
+        school_code: data.school_code,
         agreeToTerms: undefined,
       });
       console.log("[HttpClient] Login API response:", response.data);
