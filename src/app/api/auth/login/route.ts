@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validatedData = loginSchema
       .omit({ agreeToTerms: true })
-      .extend({ schoolCode: z.string().min(3) })
+      .extend({ school_code: z.string().min(3) })
       .parse(body);
 
     const backendUrl = process.env.MAIN_BACKEND_URL;
@@ -20,14 +20,10 @@ export async function POST(request: Request) {
       `${backendUrl}/api/auth/teacher-student/login`,
       validatedData
     );
-    const { token } = response.data;
+    const { token } = response.data.data;
     console.log("[API Route] Login response:", { token });
 
-    if (!token) {
-      throw new Error("No token received from backend");
-    }
-
-    const cookie = `token=${token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Strict; Secure`;
+    const cookie = `sid=${token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Strict; Secure`;
     return new NextResponse(JSON.stringify({ token }), {
       status: 200,
       headers: {

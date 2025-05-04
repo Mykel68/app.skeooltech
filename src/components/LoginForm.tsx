@@ -1,6 +1,5 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -19,20 +18,22 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       username: "",
       password: "",
+      school_code: schoolCode,
       agreeToTerms: false,
     },
   });
 
-  const mutation = useMutation({
-    mutationFn: (data: LoginFormData) =>
-      loginUser({ ...data, school_code: schoolCode }),
-    onSuccess: (data) => {
+  const onSubmit = async (formData: LoginFormData) => {
+    console.log("[LoginForm] submitting", formData);
+    try {
+      const data = await loginUser(formData);
+      console.log("[LoginForm] response", data);
       setUser({
         userId: data.decoded.userId,
         username: data.decoded.username,
@@ -41,23 +42,21 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
       });
       toast.success("Login successful!");
       router.push("/dashboard");
-    },
-    onError: (error: Error) => {
-      console.error("[LoginForm] Login mutation error:", error);
-      toast.error(error.message || "Login failed. Please try again.");
-    },
-  });
-
-  const onSubmit = (formData: LoginFormData) => {
-    console.log("[LoginForm] Form submitted with data:", {
-      ...formData,
-      schoolCode,
-    });
-    mutation.mutate({ ...formData, school_code: schoolCode });
+    } catch (error: any) {
+      console.error("[LoginForm] Error:", error);
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Login failed. Please try again."
+      );
+    }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Hidden school code field */}
+      <input type="hidden" value={schoolCode} {...register("school_code")} />
+
       <div className="grid grid-cols-1 gap-4">
         <FormField
           id="username"
@@ -74,6 +73,7 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
           error={errors.password}
         />
       </div>
+
       <div className="flex items-center">
         <input
           type="checkbox"
@@ -87,18 +87,17 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
         >
           I agree to the terms & policy
         </label>
-        {errors.agreeToTerms && (
-          <p className="ml-2 text-red-500 text-sm">
-            {errors.agreeToTerms.message}
-          </p>
-        )}
       </div>
+      {errors.agreeToTerms && (
+        <p className="text-red-500 text-sm">{errors.agreeToTerms.message}</p>
+      )}
+
       <Button
         type="submit"
         className="w-full bg-green-500 hover:bg-green-600"
-        disabled={mutation.isPending}
+        disabled={isSubmitting}
       >
-        {mutation.isPending ? "Logging in..." : "Login"}
+        {isSubmitting ? "Logging in..." : "Login"}
       </Button>
     </form>
   );

@@ -9,6 +9,4 @@ export const loginSchema = z.object({
   }),
 });
 
-export type LoginFormData = z.infer<typeof loginSchema> & {
-  school_code?: string;
-};
+export type LoginFormData = z.infer<typeof loginSchema>;
