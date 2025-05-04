@@ -88,6 +88,7 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
           I agree to the terms & policy
         </label>
       </div>
+
       {errors.agreeToTerms && (
         <p className="text-red-500 text-sm">{errors.agreeToTerms.message}</p>
       )}
