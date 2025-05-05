@@ -10,12 +10,14 @@ export function restoreUserFromCookie() {
 
   try {
     const decoded = jwtDecode<DecodedToken>(token);
-    // check expiration
+
+    // If token expired, remove and bail
     if (decoded.exp * 1000 < Date.now()) {
       Cookies.remove("s_id");
       return;
     }
 
+    // Hydrate Zustand store
     useUserStore.getState().setUser({
       userId: decoded.user_id,
       username: decoded.username,
@@ -27,7 +29,8 @@ export function restoreUserFromCookie() {
       schoolName: decoded.school_name,
       schoolImage: decoded.school_image,
     });
-  } catch {
+  } catch (err) {
+    console.error("[restoreAuth] Failed to decode token:", err);
     Cookies.remove("s_id");
   }
 }
