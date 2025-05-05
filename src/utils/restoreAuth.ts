@@ -1,4 +1,3 @@
-// utils/restoreAuth.ts
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import { DecodedToken } from "@/types/auth";
