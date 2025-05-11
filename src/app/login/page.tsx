@@ -48,7 +48,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen md:h-screen p-3">
+    <div className="flex flex-col lg:flex-row min-h-screen md:h-screen p-1">
       {/* Form Section - 35% on large screens */}
       <div className="w-full lg:w-[35%] p-8 flex flex-col justify-center">
         <div className="mb-8">

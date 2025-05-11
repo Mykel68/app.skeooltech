@@ -10,6 +10,7 @@ import { loginSchema, LoginFormData } from "@/schema/loginSchema";
 import { loginUser } from "@/services/httpClient";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
+import Link from "next/link";
 
 export function LoginForm({ schoolCode }: { schoolCode: string }) {
   const router = useRouter();
@@ -105,6 +106,10 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
       >
         {isSubmitting ? "Logging in..." : "Login"}
       </Button>
+      <p className="text-sm">
+        No account yet?{" "}
+        <Link href={`/register?school_code=${schoolCode}`}>Create</Link>
+      </p>
     </form>
   );
 }

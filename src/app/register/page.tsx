@@ -42,6 +42,10 @@ export default function RegistrationPage() {
   const activeSchoolCode =
     searchParams.get("school_code") || schoolDetails?.schoolCode;
   const schoolId = useSchoolStore((state) => state.schoolDetails?.schoolId);
+  const schoolName = useSchoolStore((state) => state.schoolDetails?.name);
+  const schoolImage = useSchoolStore(
+    (state) => state.schoolDetails?.schoolImage
+  );
 
   const {
     register,
@@ -98,11 +102,18 @@ export default function RegistrationPage() {
       <div className="relative z-20 flex items-center justify-center min-h-screen p-4">
         <Card className="w-full max-w-md shadow-xl bg-white/90 backdrop-blur-lg">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">
-              Create an account
+            <div className="flex  item-center justify-center">
+              <img
+                src={schoolImage}
+                alt={schoolName}
+                className="w-12 h-12 rounded-full "
+              />
+            </div>
+            <CardTitle className="text-2xl font-semibold uppercase text-center">
+              {schoolName}
             </CardTitle>
-            <CardDescription className="text-center">
-              Enter your information to register
+            <CardDescription className="text-center text-lg">
+              Enter your information to create an account
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -114,7 +125,6 @@ export default function RegistrationPage() {
                   register={register("username")}
                   error={errors.username}
                 />
-                <UserPlus className="absolute left-3 top-9 h-5 w-5 text-gray-400" />
               </div>
 
               <div className="relative">
@@ -125,7 +135,6 @@ export default function RegistrationPage() {
                   register={register("email")}
                   error={errors.email}
                 />
-                <Mail className="absolute left-3 top-9 h-5 w-5 text-gray-400" />
               </div>
 
               <div className="relative">
@@ -136,7 +145,6 @@ export default function RegistrationPage() {
                   register={register("password")}
                   error={errors.password}
                 />
-                <Lock className="absolute left-3 top-9 h-5 w-5 text-gray-400" />
               </div>
 
               <div className="relative">
@@ -156,7 +164,6 @@ export default function RegistrationPage() {
                     <option value="Student">Student</option>
                     <option value="Teacher">Teacher</option>
                   </select>
-                  <Users className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 </div>
                 {errors.role && (
                   <p className="text-sm text-red-600 mt-1">
@@ -173,7 +180,6 @@ export default function RegistrationPage() {
                     register={register("first_name")}
                     error={errors.first_name}
                   />
-                  <User className="absolute left-3 top-9 h-5 w-5 text-gray-400" />
                 </div>
                 <div className="relative">
                   <FormField
@@ -182,7 +188,6 @@ export default function RegistrationPage() {
                     register={register("last_name")}
                     error={errors.last_name}
                   />
-                  <User className="absolute left-3 top-9 h-5 w-5 text-gray-400" />
                 </div>
               </div>
 
