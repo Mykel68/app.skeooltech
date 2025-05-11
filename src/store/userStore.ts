@@ -30,6 +30,8 @@ interface UserState {
   email: string | null;
   schoolName: string | null;
   schoolImage: string | null;
+  is_approved: boolean | null;
+  schoolCode: string | null;
   setUser: (user: {
     userId: string;
     username: string;
@@ -40,6 +42,8 @@ interface UserState {
     email: string;
     schoolName: string;
     schoolImage: string;
+    is_approved: boolean;
+    schoolCode: string;
   }) => void;
   clearUser: () => void;
 }
@@ -56,6 +60,8 @@ export const useUserStore = create<UserState>()(
       email: null,
       schoolName: null,
       schoolImage: null,
+      is_approved: null,
+      schoolCode: null,
       setUser: (user) => {
         console.log("[UserStore] Updating user store:", user);
         set({ ...user });
@@ -72,6 +78,8 @@ export const useUserStore = create<UserState>()(
           email: null,
           schoolName: null,
           schoolImage: null,
+          is_approved: null,
+          schoolCode: null,
         });
       },
     }),

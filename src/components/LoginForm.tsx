@@ -11,10 +11,15 @@ import { loginUser } from "@/services/httpClient";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import Link from "next/link";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+import Cookies from "js-cookie";
+import { DecodedToken } from "@/types/auth";
 
 export function LoginForm({ schoolCode }: { schoolCode: string }) {
   const router = useRouter();
   const setUser = useUserStore((state) => state.setUser);
+  const schoolId = useUserStore((state) => state.schoolId);
 
   const {
     register,
@@ -30,24 +35,102 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
     },
   });
 
+  // const onSubmit = async (formData: LoginFormData) => {
+  //   console.log("[LoginForm] submitting", formData);
+  //   try {
+  //     const response = await axios.post(`/api/auth/login`, formData);
+  //     console.log("[LoginForm] response", response.data);
+
+  //     if (response.status === 200) {
+  //       const token = response.data.token;
+
+  //       // ✅ Save token to cookie
+  //       Cookies.set("token", token, { expires: 7 }); // expires in 7 days
+
+  //       const decoded = jwtDecode<DecodedToken>(token);
+  //       console.log("[LoginForm] Decoded token:", decoded);
+
+  //       setUser({
+  //         userId: decoded.user_id,
+  //         username: decoded.username,
+  //         role: decoded.role,
+  //         schoolId: decoded.school_id,
+  //         firstName: decoded.first_name,
+  //         lastName: decoded.last_name,
+  //         email: decoded.email,
+  //         schoolName: decoded.school_name,
+  //         schoolImage: decoded.school_image,
+  //         is_approved: decoded.is_approved,
+  //         schoolCode: decoded.school_code,
+  //       });
+
+  //       const { role, is_approved } = decoded;
+
+  //       if (role === "Teacher") {
+  //         router.push(is_approved ? "/home" : "/awaiting");
+  //       } else if (role === "Student") {
+  //         router.push(is_approved ? "/dashboard" : "/awaiting");
+  //       }
+
+  //       toast.success("Login successful!");
+  //     } else {
+  //       toast.error("Login failed. Please try again.");
+  //     }
+  //   } catch (error: any) {
+  //     console.error("[LoginForm] Error:", error);
+  //     toast.error(
+  //       error.response?.data?.message ||
+  //         error.message ||
+  //         "Login failed. Please try again."
+  //     );
+  //   }
+  // };
+
   const onSubmit = async (formData: LoginFormData) => {
     console.log("[LoginForm] submitting", formData);
     try {
-      const data = await loginUser(formData);
-      console.log("[LoginForm] response", data);
-      setUser({
-        userId: data.decoded.user_id,
-        username: data.decoded.username,
-        role: data.decoded.role,
-        schoolId: data.decoded.school_id,
-        firstName: data.decoded.first_name,
-        lastName: data.decoded.last_name,
-        email: data.decoded.email,
-        schoolName: data.decoded.school_name,
-        schoolImage: data.decoded.school_image,
-      });
-      toast.success("Login successful!");
-      router.push("/dashboard");
+      const response = await axios.post(`/api/auth/login`, formData);
+      console.log("[LoginForm] response", response.data);
+
+      console.log("Response status", response.status);
+
+      if (response.status === 200) {
+        const token = response.data.token;
+        const decoded = jwtDecode<DecodedToken>(token);
+        console.log("[LoginForm] Decoded token:", decoded);
+
+        setUser({
+          userId: decoded.user_id,
+          username: decoded.username,
+          role: decoded.role,
+          schoolId: decoded.school_id,
+          firstName: decoded.first_name,
+          lastName: decoded.last_name,
+          email: decoded.email,
+          schoolName: decoded.school_name,
+          schoolImage: decoded.school_image,
+          is_approved: decoded.is_approved,
+          schoolCode: decoded.school_code,
+        });
+
+        const { role, is_approved } = decoded;
+
+        if (role === "Teacher") {
+          router.push(is_approved ? "/home" : "/awaiting");
+        } else if (role === "Student") {
+          router.push(is_approved ? "/dashboard" : "/awaiting");
+        } else if (role === "Admin") {
+          toast.error("You are an Admin. Login on your admin portal.");
+          return; // 🔒 prevent further execution
+        } else {
+          toast.error("Unknown role. Contact support.");
+          return;
+        }
+
+        toast.success("Login successful!");
+      } else {
+        toast.error("Login failed. Please try again.");
+      }
     } catch (error: any) {
       console.error("[LoginForm] Error:", error);
       toast.error(

@@ -1,4 +1,3 @@
-// types/auth.ts
 export interface DecodedToken {
   user_id: string;
   school_id: string;
@@ -10,6 +9,7 @@ export interface DecodedToken {
   email: string;
   school_name: string;
   school_image: string;
+  is_approved: boolean;
   iat: number;
   exp: number;
 }

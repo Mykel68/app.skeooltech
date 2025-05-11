@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     const { token } = response.data.data;
     console.log("[API Route] Login response:", { token });
 
-    const cookie = `sid=${token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Strict; Secure`;
+    const cookie = `s_id=${token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Strict; Secure`;
     return new NextResponse(JSON.stringify({ token }), {
       status: 200,
       headers: {
