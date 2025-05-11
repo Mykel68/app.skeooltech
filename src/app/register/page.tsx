@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/FormField";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { httpClient } from "@/services/httpClient";
 import {
   Card,
   CardContent,
@@ -25,6 +24,7 @@ import Link from "next/link";
 // Import your store
 import { useSchoolStore } from "@/store/schoolStore"; // adjust path if needed
 import { useEffect } from "react";
+import axios from "axios";
 
 export default function RegistrationPage() {
   const router = useRouter();
@@ -69,9 +69,13 @@ export default function RegistrationPage() {
         return;
       }
 
-      await httpClient.client.post(`/auth/register/${schoolId}`, data);
-      toast.success("Registration successful!");
-      router.push(`/login`);
+      const response = await axios.post(`/api/auth/register/${schoolId}`, data);
+      console.log("Response", response);
+
+      if (response.status === 200) {
+        toast.success("Registration successful!");
+        router.push(`/login`);
+      }
     } catch (err: any) {
       console.error(err);
       toast.error(err.response?.data?.message || "Registration failed.");

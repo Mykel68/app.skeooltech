@@ -9,7 +9,7 @@ export async function POST(
 ) {
   try {
     // Wait for the params to be available before using them
-    const { school_id } = context.params;
+    const { school_id } = await context.params;
 
     // Ensure school_id is valid
     if (!school_id) {
