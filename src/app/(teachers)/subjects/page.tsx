@@ -7,7 +7,7 @@ import { useUserStore } from "@/store/userStore";
 import { ClassCard } from "@/components/cards/classCard";
 
 type SchoolClass = {
-  id: string;
+  class_id: string;
   name: string;
   grade_level: string;
 };
@@ -38,8 +38,8 @@ export default function SubjectsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {classes?.map((cls) => (
           <ClassCard
-            key={cls.id}
-            id={cls.id}
+            key={cls.class_id}
+            id={cls.class_id}
             name={cls.name}
             grade_level={cls.grade_level}
           />

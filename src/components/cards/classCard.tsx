@@ -21,7 +21,7 @@ import { toast } from "sonner";
 // Zod schema for subject
 const subjectSchema = z.object({
   name: z.string().min(2, "Subject name is required"),
-  code: z.string().min(1, "Subject code is required"),
+  // code: z.string().min(1, "Subject code is required"),
 });
 
 type SubjectForm = z.infer<typeof subjectSchema>;
@@ -49,7 +49,7 @@ export function ClassCard({
 
   const createSubject = useMutation({
     mutationFn: (data: SubjectForm) =>
-      axios.post(`/api/subject/create/${classId}`, data),
+      axios.post(`/api/subject/create-new/${classId}`, data),
     onSuccess: () => {
       toast.success("Subject created");
       queryClient.invalidateQueries(["subjects", classId]);
@@ -83,10 +83,10 @@ export function ClassCard({
               <p className="text-xs text-red-500">{errors.name.message}</p>
             )}
 
-            <Input placeholder="Subject Code" {...register("code")} />
+            {/* <Input placeholder="Subject Code" {...register("code")} />
             {errors.code && (
               <p className="text-xs text-red-500">{errors.code.message}</p>
-            )}
+            )} */}
 
             <DialogFooter>
               <Button
