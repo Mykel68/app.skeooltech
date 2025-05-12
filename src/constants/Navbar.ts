@@ -24,12 +24,12 @@ export const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/home",
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
-      url: "#",
+      title: "Subjects",
+      url: "/subjects",
       icon: IconListDetails,
     },
     {
