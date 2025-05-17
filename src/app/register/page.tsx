@@ -82,10 +82,17 @@ export default function RegistrationPage() {
         return;
       }
 
+      // Create a payload copy and remove `class_id` if role is Teacher
+      const payload = { ...data };
+      if (payload.role === "Teacher") {
+        delete payload.class_id;
+      }
+
       const response = await axios.post(
         `/api/auth/register-teacher-student/${schoolId}`,
-        data
+        payload
       );
+
       if (response.status === 200) {
         toast.success("Registration successful!");
         router.push(`/login`);
