@@ -82,7 +82,10 @@ export default function RegistrationPage() {
         return;
       }
 
-      const response = await axios.post(`/api/auth/register/${schoolId}`, data);
+      const response = await axios.post(
+        `/api/auth/register-teacher-student/${schoolId}`,
+        data
+      );
       if (response.status === 200) {
         toast.success("Registration successful!");
         router.push(`/login`);
