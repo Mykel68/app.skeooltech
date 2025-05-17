@@ -66,7 +66,7 @@ export default function RegistrationPage() {
   useEffect(() => {
     if (selectedRole === "Student" && schoolId) {
       axios
-        .get(`/api/class/get-all-class/${schoolId}`)
+        .get(`/api/school/get-class-no-auth/${schoolId}`)
         .then((res) => {
           console.log("Classes", res.data.data);
           setClasses(res.data.data); // Ensure backend sends { class_id, name }
