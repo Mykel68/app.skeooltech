@@ -69,7 +69,7 @@ export default function RegistrationPage() {
         .get(`/api/school/get-class-no-auth/${schoolId}`)
         .then((res) => {
           console.log("Classes", res.data.data);
-          setClasses(res.data.data); // Ensure backend sends { class_id, name }
+          setClasses(res.data.data.classes); // Ensure backend sends { class_id, name }
         })
         .catch(() => toast.error("Failed to fetch classes"));
     }
