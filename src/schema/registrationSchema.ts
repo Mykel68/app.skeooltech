@@ -21,6 +21,7 @@ export const registrationSchema = z.object({
     .string()
     .max(50, { message: "Last name must be at most 50 characters" })
     .optional(),
+  class_id: z.string().optional(),
 });
 
 export type RegistrationFormData = z.infer<typeof registrationSchema>;
