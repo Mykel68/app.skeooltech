@@ -39,7 +39,7 @@ import { Trash2 } from "lucide-react";
 const subjectSchema = z.object({
   class_id: z.string().min(1, "Class is required"),
   name: z.string().min(2, "Subject name is required"),
-  code: z.string().min(1, "Subject code is required"),
+  short: z.string().min(1, "Subject code is required"),
 });
 type SubjectFormValues = z.infer<typeof subjectSchema>;
 
@@ -77,9 +77,9 @@ async function fetchSubjects(
 async function createSubject(
   payload: SubjectFormValues & { schoolId: string }
 ) {
-  await axios.post(`/api/subject/create/${payload.class_id}`, {
+  await axios.post(`/api/subject/create-new/${payload.class_id}`, {
     name: payload.name,
-    code: payload.code,
+    short: payload.short,
   });
 }
 
@@ -167,9 +167,9 @@ export default function SubjectTable() {
                 <p className="text-sm text-red-500">{errors.name.message}</p>
               )}
 
-              <Input placeholder="Subject Code" {...register("code")} />
-              {errors.code && (
-                <p className="text-sm text-red-500">{errors.code.message}</p>
+              <Input placeholder="Subject Code" {...register("short")} />
+              {errors.short && (
+                <p className="text-sm text-red-500">{errors.short.message}</p>
               )}
 
               <DialogFooter>
