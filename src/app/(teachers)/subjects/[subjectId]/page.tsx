@@ -1,11 +1,13 @@
 import SubjectStudentsClient from "./SubjectStudentsClient";
 
-interface Params {
-  params: {
-    subjectId: string;
-  };
-}
+export default async function SubjectStudentsPage({
+  params,
+}: {
+  params: { subjectId: string };
+}) {
+  // Make this function async
+  // await params before destructuring
+  const { subjectId } = await params;
 
-export default function SubjectStudentsPage({ params }: Params) {
-  return <SubjectStudentsClient subjectId={params.subjectId} />;
+  return <SubjectStudentsClient subjectId={subjectId} />;
 }
