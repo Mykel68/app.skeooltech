@@ -215,7 +215,13 @@ export default function SubjectTable() {
               <TableRow
                 key={subj.subject_id}
                 className="cursor-pointer hover:bg-muted"
-                onClick={() => router.push(`/subjects/${subj.class_id}`)}
+                onClick={() =>
+                  router.push(
+                    `/subjects/${
+                      subj.class_id
+                    }?subjectName=${encodeURIComponent(subj.name)}`
+                  )
+                }
               >
                 <TableCell>{subj.class_name}</TableCell>
                 <TableCell>{subj.grade_level}</TableCell>
