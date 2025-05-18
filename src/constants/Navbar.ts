@@ -28,7 +28,7 @@ export const data = {
       icon: IconDashboard,
     },
     {
-      title: "Subjects",
+      title: "Class",
       url: "/subjects",
       icon: IconListDetails,
     },

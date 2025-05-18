@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { useUserStore } from "@/store/userStore";
 import { Badge } from "@/components/ui/badge";
 import { Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // Zod schema
 const subjectSchema = z.object({
@@ -84,6 +85,7 @@ async function createSubject(
 }
 
 export default function SubjectTable() {
+  const router = useRouter();
   const schoolId = useUserStore((s) => s.schoolId)!;
   const userId = useUserStore((s) => s.userId)!;
   const queryClient = useQueryClient();
@@ -208,7 +210,11 @@ export default function SubjectTable() {
           </TableHeader>
           <TableBody>
             {subjects.map((subj) => (
-              <TableRow key={subj.subject_id}>
+              <TableRow
+                key={subj.subject_id}
+                className="cursor-pointer hover:bg-muted"
+                onClick={() => router.push(`/subjects/${subj.subject_id}`)}
+              >
                 <TableCell>{subj.class_name}</TableCell>
                 <TableCell>{subj.grade_level}</TableCell>
                 <TableCell>{subj.name}</TableCell>
