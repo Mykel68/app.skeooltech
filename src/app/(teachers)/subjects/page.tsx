@@ -54,6 +54,7 @@ type SchoolClass = {
 type Subject = {
   subject_id: string;
   name: string;
+  class_id: string;
   class_name: string;
   grade_level: string;
   teacher_name: string;
@@ -72,6 +73,7 @@ async function fetchSubjects(
   userId: string
 ): Promise<Subject[]> {
   const { data } = await axios.get(`/api/subject/by-teacher/${userId}`);
+  console.log("subjects", data.data);
   return data.data;
 }
 
@@ -213,7 +215,7 @@ export default function SubjectTable() {
               <TableRow
                 key={subj.subject_id}
                 className="cursor-pointer hover:bg-muted"
-                onClick={() => router.push(`/subjects/${subj.subject_id}`)}
+                onClick={() => router.push(`/subjects/${subj.class_id}`)}
               >
                 <TableCell>{subj.class_name}</TableCell>
                 <TableCell>{subj.grade_level}</TableCell>
