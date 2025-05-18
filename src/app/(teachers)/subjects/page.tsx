@@ -137,7 +137,7 @@ export default function SubjectTable() {
   return (
     <div className="w-full mx-auto p-4 space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">Subjects</h2>
+        <h2 className="text-xl font-bold">Classes</h2>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>Create Subject</Button>
