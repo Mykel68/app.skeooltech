@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useUserStore } from "@/store/userStore";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 
 interface Props {
   subjectId: string;
@@ -14,6 +15,7 @@ type FormValues = Record<string, Record<string, number | string>>;
 
 export default function SubjectStudentsClient({ subjectId }: Props) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const subjectName = searchParams.get("subjectName") || "Unknown Subject";
 
   const schoolId = useUserStore((s) => s.schoolId);
@@ -21,18 +23,20 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
   const [gradingComponents, setGradingComponents] = useState<
     { name: string; weight: number }[]
   >([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   const {
     register,
     control,
+    handleSubmit,
     formState: { errors },
   } = useForm<FormValues>({
     mode: "onChange",
   });
 
-  // Watch all inputs for all students & components
   const watchedValues = useWatch({ control });
 
+  // First fetch students
   useEffect(() => {
     if (schoolId && subjectId) {
       axios
@@ -41,18 +45,53 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
           setStudents(res.data?.data ?? []);
         })
         .catch(() => setStudents([]));
-
-      axios
-        .get(`/api/grade_setting/get-grade-setting/${schoolId}/${subjectId}`)
-        .then((res) => {
-          const data = res.data.data.data;
-          setGradingComponents(data?.components || []);
-        })
-        .catch(() => {
-          setGradingComponents([]);
-        });
     }
   }, [schoolId, subjectId]);
+
+  // Then fetch grade settings after students have loaded
+  useEffect(() => {
+    if (!students || students.length === 0) return;
+
+    axios
+      .get(`/api/grade_setting/get-grade-setting/${schoolId}/${subjectId}`)
+      .then((res) => {
+        const data = res.data?.data?.data;
+        const components = data?.components || [];
+        setGradingComponents(components);
+      })
+      .catch(() => {
+        setGradingComponents([]);
+        toast.warning("No grading components set. Redirecting to settings...");
+
+        const firstStudent = students[0];
+        const classId = firstStudent?.class?.class_id;
+        const gradeLevel = firstStudent?.class?.grade_level;
+
+        router.push(
+          `/subjects/settings?class=${classId}&subjectName=${encodeURIComponent(
+            subjectName
+          )}&gradeLevel=${encodeURIComponent(gradeLevel || "")}`
+        );
+      });
+  }, [students]);
+
+  const onSubmit = async (data: FormValues) => {
+    setIsSaving(true);
+    try {
+      const payload = Object.entries(data).map(([studentId, scores]) => ({
+        studentId,
+        subjectId,
+        scores,
+      }));
+
+      await axios.post("/api/scores", { schoolId, subjectId, scores: payload });
+      toast.success("Scores saved successfully.");
+    } catch (err) {
+      toast.error("Failed to save scores.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="p-6">
@@ -66,7 +105,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
       ) : students.length === 0 ? (
         <p>No students found for this subject.</p>
       ) : (
-        <form>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white border rounded shadow">
               <thead>
@@ -83,7 +122,6 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
               </thead>
               <tbody>
                 {students.map((student) => {
-                  // Calculate total weighted score for this student
                   const total = gradingComponents.reduce((sum, comp) => {
                     const val =
                       watchedValues?.[student.user_id]?.[comp.name] ?? 0;
@@ -121,7 +159,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
                           {errors?.[student.user_id]?.[comp.name] && (
                             <p className="text-red-500 text-xs mt-1">
                               {
-                                errors[student.user_id][comp.name]
+                                errors[student.user_id!][comp.name]
                                   ?.message as string
                               }
                             </p>
@@ -134,6 +172,16 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
                 })}
               </tbody>
             </table>
+          </div>
+
+          <div className="mt-4">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded disabled:opacity-50"
+            >
+              {isSaving ? "Saving..." : "Save Scores"}
+            </button>
           </div>
         </form>
       )}
