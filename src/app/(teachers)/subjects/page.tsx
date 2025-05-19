@@ -352,7 +352,9 @@ export default function SubjectTable() {
                       <DropdownMenuItem
                         onClick={() => {
                           router.push(
-                            `/subjects/settings?class=${Math.random()}&subjectName=${encodeURIComponent(
+                            `/subjects/settings?class=${
+                              s.class_id
+                            }&subjectName=${encodeURIComponent(
                               s.name
                             )}&gradeLevel=${encodeURIComponent(s.grade_level)}`
                           );

@@ -38,10 +38,11 @@ type FormType = z.infer<typeof FormSchema>;
 
 export default function AssessmentSettings() {
   const schoolId = useUserStore((s) => s.schoolId)!;
-  const classId = "some_class_id"; // Replace or derive dynamically
+  // const classId = "some_class_id"; // Replace or derive dynamically
   const searchParams = useSearchParams();
   const subjectName = searchParams.get("subjectName");
-  const gradeLevel = searchParams.get("gradeLevel") || " ";
+  const class_id = searchParams.get("class");
+  const gradeLevel = searchParams.get("gradeLevel");
 
   const {
     control,
@@ -66,8 +67,9 @@ export default function AssessmentSettings() {
 
   const mutation = useMutation({
     mutationFn: async (data: FormType["components"]) => {
+      console.log("data component", data);
       const res = await axios.post(
-        `/api/grade_setting/${schoolId}/${classId}`,
+        `/api/grade_setting/${schoolId}/${class_id}`,
         { components: data }
       );
       return res.data;
@@ -105,7 +107,7 @@ export default function AssessmentSettings() {
           {fields.map((field, index) => (
             <div
               key={field.id}
-              className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end p-4 rounded-xl"
+              className="grid grid-cols-1 sm:grid-cols-12 gap-4 gap-y-2 items-end p-4 rounded-xl"
             >
               <div className="sm:col-span-5 space-y-2">
                 <Label htmlFor={`name-${index}`}>Name</Label>
