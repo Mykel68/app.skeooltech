@@ -311,7 +311,17 @@ export default function SubjectTable() {
         </TableHeader>
         <TableBody>
           {subjects.map((s) => (
-            <TableRow key={s.subject_id}>
+            <TableRow
+              key={s.subject_id}
+              onClick={() => {
+                router.push(
+                  `/subjects/${s.class_id}?subjectName=${encodeURIComponent(
+                    s.name
+                  )}`
+                );
+              }}
+              className="cursor-pointer"
+            >
               <TableCell>{s.class_name}</TableCell>
               <TableCell>{s.grade_level}</TableCell>
               <TableCell>{s.name}</TableCell>
@@ -342,7 +352,7 @@ export default function SubjectTable() {
                       <DropdownMenuItem
                         onClick={() =>
                           router.push(
-                            `/subject/${settingsSubject.subject_id}/settings`
+                            `/subjects/${s.subject_id}/settings?class=${s.class_id}`
                           )
                         }
                       >
