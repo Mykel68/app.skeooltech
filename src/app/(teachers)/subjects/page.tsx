@@ -35,6 +35,13 @@ import { useUserStore } from "@/store/userStore";
 import { Badge } from "@/components/ui/badge";
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical } from "lucide-react";
 
 // Zod schema
 const subjectSchema = z.object({
@@ -208,6 +215,7 @@ export default function SubjectTable() {
               <TableHead>Grade Level</TableHead>
               <TableHead>Subject Name</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -215,18 +223,49 @@ export default function SubjectTable() {
               <TableRow
                 key={subj.subject_id}
                 className="cursor-pointer hover:bg-muted"
-                onClick={() =>
-                  router.push(
-                    `/subjects/${
-                      subj.class_id
-                    }?subjectName=${encodeURIComponent(subj.name)}`
-                  )
-                }
               >
-                <TableCell>{subj.class_name}</TableCell>
-                <TableCell>{subj.grade_level}</TableCell>
-                <TableCell>{subj.name}</TableCell>
-                <TableCell>
+                <TableCell
+                  onClick={() =>
+                    router.push(
+                      `/subjects/${
+                        subj.class_id
+                      }?subjectName=${encodeURIComponent(subj.name)}`
+                    )
+                  }
+                >
+                  {subj.class_name}
+                </TableCell>
+                <TableCell
+                  onClick={() =>
+                    router.push(
+                      `/subjects/${
+                        subj.class_id
+                      }?subjectName=${encodeURIComponent(subj.name)}`
+                    )
+                  }
+                >
+                  {subj.grade_level}
+                </TableCell>
+                <TableCell
+                  onClick={() =>
+                    router.push(
+                      `/subjects/${
+                        subj.class_id
+                      }?subjectName=${encodeURIComponent(subj.name)}`
+                    )
+                  }
+                >
+                  {subj.name}
+                </TableCell>
+                <TableCell
+                  onClick={() =>
+                    router.push(
+                      `/subjects/${
+                        subj.class_id
+                      }?subjectName=${encodeURIComponent(subj.name)}`
+                    )
+                  }
+                >
                   <Badge
                     variant={subj.is_approved ? "default" : "secondary"}
                     className={
@@ -237,6 +276,34 @@ export default function SubjectTable() {
                   >
                     {subj.is_approved ? "Approved" : "Pending"}
                   </Badge>
+                </TableCell>
+
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => toast("Edit clicked")}>
+                        Edit
+                      </DropdownMenuItem>
+                      {subj.is_approved && (
+                        <DropdownMenuItem
+                          onClick={() => toast("Settings clicked")}
+                        >
+                          Settings
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem
+                        onClick={() => toast("Delete clicked")}
+                        className="text-red-500"
+                      >
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
