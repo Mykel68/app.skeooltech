@@ -215,7 +215,7 @@ export default function SubjectTable() {
               <TableHead>Grade Level</TableHead>
               <TableHead>Subject Name</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead> </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
