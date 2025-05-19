@@ -20,6 +20,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useUserStore } from "@/store/userStore";
+import { useSearchParams } from "next/navigation";
 
 const ComponentSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -38,6 +39,9 @@ type FormType = z.infer<typeof FormSchema>;
 export default function AssessmentSettings() {
   const schoolId = useUserStore((s) => s.schoolId)!;
   const classId = "some_class_id"; // Replace or derive dynamically
+  const searchParams = useSearchParams();
+  const subjectName = searchParams.get("subjectName");
+  const gradeLevel = searchParams.get("gradeLevel") || " ";
 
   const {
     control,
@@ -89,7 +93,9 @@ export default function AssessmentSettings() {
     <div className="max-w-4xl mx-auto mt-12 px-4">
       <Card className="shadow-xl border-none w-full">
         <CardHeader>
-          <h2 className="text-2xl font-bold text-center">Assessment Setup</h2>
+          <h2 className="text-2xl font-bold text-center">
+            Assessment Setup for {subjectName} - {gradeLevel}
+          </h2>
           <p className="text-sm text-muted-foreground text-center">
             Define grading components like Exam, Test, Assignment, etc.
           </p>

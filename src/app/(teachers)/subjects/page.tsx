@@ -311,18 +311,18 @@ export default function SubjectTable() {
         </TableHeader>
         <TableBody>
           {subjects.map((s) => (
-            <TableRow
-              key={s.subject_id}
-              onClick={() => {
-                router.push(
-                  `/subjects/${s.class_id}?subjectName=${encodeURIComponent(
-                    s.name
-                  )}`
-                );
-              }}
-              className="cursor-pointer"
-            >
-              <TableCell>{s.class_name}</TableCell>
+            <TableRow key={s.subject_id} className="cursor-pointer">
+              <TableCell
+                onClick={() => {
+                  router.push(
+                    `/subjects/${s.class_id}?subjectName=${encodeURIComponent(
+                      s.name
+                    )}`
+                  );
+                }}
+              >
+                {s.class_name}
+              </TableCell>
               <TableCell>{s.grade_level}</TableCell>
               <TableCell>{s.name}</TableCell>
               <TableCell>
@@ -350,11 +350,15 @@ export default function SubjectTable() {
                     </DropdownMenuItem>
                     {s.is_approved && (
                       <DropdownMenuItem
-                        onClick={() =>
+                        onClick={() => {
                           router.push(
-                            `/subjects/${s.subject_id}/settings?class=${s.class_id}`
-                          )
-                        }
+                            `/subjects/settings?class=${Math.random()}&${
+                              s.class_id
+                            }&subjectName=${encodeURIComponent(
+                              s.name
+                            )}&gradeLevel=${encodeURIComponent(s.grade_level)}`
+                          );
+                        }}
                       >
                         Settings
                       </DropdownMenuItem>
