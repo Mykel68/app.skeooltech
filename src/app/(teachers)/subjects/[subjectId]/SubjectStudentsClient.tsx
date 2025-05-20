@@ -35,7 +35,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
 
   const watchedValues = useWatch({ control });
 
-  // 1. Fetch scores first
+  // Fetch scores or fallback
   useEffect(() => {
     if (schoolId && subjectId) {
       axios
@@ -43,30 +43,34 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
         .then((res) => {
           const scoreData = res.data?.data?.data;
           if (scoreData?.length > 0) {
-            // Set students from score list
             const extractedStudents = scoreData.map((entry: any) => ({
               ...entry.student,
-              class: { short: "N/A" }, // You can adjust this as needed
+              class: {
+                short: entry.class?.[0]?.name || "N/A",
+                class_id: entry.class?.[0]?.class_id,
+                grade_level: entry.class?.[0]?.grade_level,
+              },
             }));
             setStudents(extractedStudents);
 
-            // Extract grading component names
             const first = scoreData[0];
             const components = first.scores.map((s: any) => ({
               name: s.component_name,
-              weight: 100, // default; adjust if you have weights
+              weight: 100, // Or fetch the real weight if stored
             }));
             setGradingComponents(components);
 
-            // Set form default values
-            scoreData.forEach((entry: any) => {
-              entry.scores.forEach((score: any) => {
-                setValue(
-                  `${entry.student.user_id}.${score.component_name}`,
-                  score.score
-                );
+            // Set values after slight delay to ensure inputs are mounted
+            setTimeout(() => {
+              scoreData.forEach((entry: any) => {
+                entry.scores.forEach((score: any) => {
+                  setValue(
+                    `${entry.student.user_id}.${score.component_name}`,
+                    score.score
+                  );
+                });
               });
-            });
+            }, 100);
           } else {
             fetchStudentsAndComponents();
           }
@@ -77,7 +81,6 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
     }
   }, [schoolId, subjectId]);
 
-  // 2. If no scores, fallback to normal student and grading component fetch
   const fetchStudentsAndComponents = () => {
     axios
       .get(`/api/student/${schoolId}/${subjectId}`)
