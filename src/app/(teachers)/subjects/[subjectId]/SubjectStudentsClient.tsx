@@ -36,7 +36,6 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
 
   const watchedValues = useWatch({ control });
 
-  // First fetch students
   useEffect(() => {
     if (schoolId && subjectId) {
       axios
@@ -48,7 +47,6 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
     }
   }, [schoolId, subjectId]);
 
-  // Then fetch grade settings after students have loaded
   useEffect(() => {
     if (!students || students.length === 0) return;
 
@@ -77,14 +75,28 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
 
   const onSubmit = async (data: FormValues) => {
     setIsSaving(true);
-    try {
-      const payload = Object.entries(data).map(([studentId, scores]) => ({
-        studentId,
-        subjectId,
-        scores,
-      }));
 
-      await axios.post("/api/scores", { schoolId, subjectId, scores: payload });
+    try {
+      const payload = Object.entries(data).map(
+        ([user_id, componentScores]) => ({
+          user_id,
+          scores: Object.entries(componentScores).map(
+            ([component_name, score]) => ({
+              component_name,
+              score: Number(score),
+            })
+          ),
+        })
+      );
+
+      const classId = students?.[0]?.class?.class_id;
+
+      if (!classId) throw new Error("Missing class ID");
+
+      await axios.post(`/api/student/scores/assign/${schoolId}/${classId}`, {
+        scores: payload,
+      });
+
       toast.success("Scores saved successfully.");
     } catch (err) {
       toast.error("Failed to save scores.");
