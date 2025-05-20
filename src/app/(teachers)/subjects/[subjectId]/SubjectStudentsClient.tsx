@@ -29,49 +29,92 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
     register,
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
-  } = useForm<FormValues>({
-    mode: "onChange",
-  });
+  } = useForm<FormValues>({ mode: "onChange" });
 
   const watchedValues = useWatch({ control });
 
+  // 1. Fetch scores first
   useEffect(() => {
     if (schoolId && subjectId) {
       axios
-        .get(`/api/student/${schoolId}/${subjectId}`)
+        .get(`/api/student/scores/score-list/${schoolId}/${subjectId}`)
         .then((res) => {
-          setStudents(res.data?.data ?? []);
+          const scoreData = res.data?.data?.data;
+          if (scoreData?.length > 0) {
+            // Set students from score list
+            const extractedStudents = scoreData.map((entry: any) => ({
+              ...entry.student,
+              class: { short: "N/A" }, // You can adjust this as needed
+            }));
+            setStudents(extractedStudents);
+
+            // Extract grading component names
+            const first = scoreData[0];
+            const components = first.scores.map((s: any) => ({
+              name: s.component_name,
+              weight: 100, // default; adjust if you have weights
+            }));
+            setGradingComponents(components);
+
+            // Set form default values
+            scoreData.forEach((entry: any) => {
+              entry.scores.forEach((score: any) => {
+                setValue(
+                  `${entry.student.user_id}.${score.component_name}`,
+                  score.score
+                );
+              });
+            });
+          } else {
+            fetchStudentsAndComponents();
+          }
         })
-        .catch(() => setStudents([]));
+        .catch(() => {
+          fetchStudentsAndComponents();
+        });
     }
   }, [schoolId, subjectId]);
 
-  useEffect(() => {
-    if (!students || students.length === 0) return;
-
+  // 2. If no scores, fallback to normal student and grading component fetch
+  const fetchStudentsAndComponents = () => {
     axios
-      .get(`/api/grade_setting/get-grade-setting/${schoolId}/${subjectId}`)
+      .get(`/api/student/${schoolId}/${subjectId}`)
       .then((res) => {
-        const data = res.data?.data?.data;
-        const components = data?.components || [];
-        setGradingComponents(components);
+        const studentList = res.data?.data ?? [];
+        setStudents(studentList);
+
+        if (studentList.length === 0) return;
+
+        return axios
+          .get(`/api/grade_setting/get-grade-setting/${schoolId}/${subjectId}`)
+          .then((res) => {
+            const data = res.data?.data?.data;
+            const components = data?.components || [];
+            setGradingComponents(components);
+          })
+          .catch(() => {
+            setGradingComponents([]);
+            toast.warning(
+              "No grading components set. Redirecting to settings..."
+            );
+
+            const firstStudent = studentList[0];
+            const classId = firstStudent?.class?.class_id;
+            const gradeLevel = firstStudent?.class?.grade_level;
+
+            router.push(
+              `/subjects/settings?class=${classId}&subjectName=${encodeURIComponent(
+                subjectName
+              )}&gradeLevel=${encodeURIComponent(gradeLevel || "")}`
+            );
+          });
       })
       .catch(() => {
-        setGradingComponents([]);
-        toast.warning("No grading components set. Redirecting to settings...");
-
-        const firstStudent = students[0];
-        const classId = firstStudent?.class?.class_id;
-        const gradeLevel = firstStudent?.class?.grade_level;
-
-        router.push(
-          `/subjects/settings?class=${classId}&subjectName=${encodeURIComponent(
-            subjectName
-          )}&gradeLevel=${encodeURIComponent(gradeLevel || "")}`
-        );
+        setStudents([]);
       });
-  }, [students]);
+  };
 
   const onSubmit = async (data: FormValues) => {
     setIsSaving(true);
