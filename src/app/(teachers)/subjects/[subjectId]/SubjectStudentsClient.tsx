@@ -56,8 +56,9 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
             const first = scoreData[0];
             const components = first.scores.map((s: any) => ({
               name: s.component_name,
-              weight: 100, // Or fetch the real weight if stored
+              weight: s.weight, // Or fetch the real weight if stored
             }));
+            console.log(components);
             setGradingComponents(components);
 
             // Set values after slight delay to ensure inputs are mounted
@@ -172,7 +173,8 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
                   <th className="p-3 border-b">Last Name</th>
                   {gradingComponents.map((comp) => (
                     <th key={comp.name} className="p-3 border-b capitalize">
-                      {comp.name} ({comp.weight}%)
+                      {comp.name}
+                      {/* ({comp.weight}%) */}
                     </th>
                   ))}
                   <th className="p-3 border-b">Total</th>
