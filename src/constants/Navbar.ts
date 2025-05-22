@@ -1,3 +1,4 @@
+// constants/Navbar.ts
 import {
   IconCamera,
   IconChartBar,
@@ -15,119 +16,39 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 
-export const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+export const navData = {
+  student: {
+    navMain: [
+      { title: "Dashboard", url: "/home", icon: IconDashboard },
+      { title: "Subjects", url: "/subjects", icon: IconListDetails },
+      { title: "Reports", url: "/reports", icon: IconReport },
+    ],
+    documents: [],
+    navSecondary: [
+      { title: "Settings", url: "#", icon: IconSettings },
+      { title: "Get Help", url: "#", icon: IconHelp },
+    ],
   },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/home",
-      icon: IconDashboard,
-    },
-    {
-      title: "Class",
-      url: "/subjects",
-      icon: IconListDetails,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: IconChartBar,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: IconFolder,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: IconUsers,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: IconSettings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: IconDatabase,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: IconReport,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: IconFileWord,
-    },
-  ],
+  teacher: {
+    navMain: [
+      { title: "Dashboard", url: "/home", icon: IconDashboard },
+      { title: "Class", url: "/subjects", icon: IconListDetails },
+      { title: "Analytics", url: "/analytics", icon: IconChartBar },
+      { title: "Team", url: "/team", icon: IconUsers },
+    ],
+    documents: [{ name: "Reports", url: "/reports", icon: IconReport }],
+    navSecondary: [
+      { title: "Settings", url: "#", icon: IconSettings },
+      { title: "Search", url: "#", icon: IconSearch },
+    ],
+  },
+  parent: {
+    navMain: [
+      { title: "Dashboard", url: "/home", icon: IconDashboard },
+      { title: "My Children", url: "/children", icon: IconUsers },
+      { title: "Performance", url: "/performance", icon: IconChartBar },
+    ],
+    documents: [],
+    navSecondary: [{ title: "Get Help", url: "#", icon: IconHelp }],
+  },
 };

@@ -18,16 +18,22 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { data } from "@/constants/Navbar";
 import { useUserStore } from "@/store/userStore";
+import { navData } from "@/constants/Navbar";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
+  const [role, setRole] = useState<string>("teacher");
+  const userRole = useUserStore((s) => s.role)!;
   const [hydrated, setHydrated] = useState(false);
   const user = useUserStore((s) => s);
+
+  const { navMain, documents, navSecondary } =
+    navData[role] || navData["teacher"];
 
   // On mount, restore user from cookie
   useEffect(() => {
     try {
+      setRole(userRole);
       restoreUserFromCookie();
     } catch (e) {
       console.error(e);
@@ -68,9 +74,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navMain} />
+        <NavDocuments items={documents} />
+        <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
 
       <SidebarFooter>
