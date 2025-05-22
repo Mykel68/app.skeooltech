@@ -71,9 +71,9 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
       const user_id = selectedStudent.user_id;
       // const score_id = selectedStudent.score_id; // make sure this exists
 
-      console.log("selectedStudent:", selectedStudent);
-      console.log("→ classId:", classId);
-      console.log("→ user_id:", user_id);
+      // console.log("selectedStudent:", selectedStudent);
+      // console.log("→ classId:", classId);
+      // console.log("→ user_id:", user_id);
       // console.log("→ score_id:", score_id);
       if (!classId || !user_id) {
         throw new Error("Missing IDs for updating score");
@@ -135,9 +135,9 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
                 weight: matchedGrading ? matchedGrading.weight : 0,
               };
             });
-            console.log("components", components);
+            // console.log("components", components);
             setGradingComponents(components);
-            console.log("setGradingComponents", gradingComponents);
+            // console.log("setGradingComponents", gradingComponents);
 
             setTimeout(() => {
               scoreData.forEach((entry: any) => {
@@ -217,11 +217,28 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
 
       if (!classId) throw new Error("Missing class ID");
 
-      await axios.post(`/api/student/scores/assign/${schoolId}/${classId}`, {
-        scores: payload,
-      });
+      // Here, decide if you PATCH or POST based on existing data:
+      // For example, if students have some flag or score exists, PATCH:
+      const hasScoresInForm = Object.values(data).some((componentScores) =>
+        Object.values(componentScores).some(
+          (score) => score !== undefined && score !== null && score !== ""
+        )
+      );
 
-      toast.success("Scores saved successfully.");
+      if (hasScoresInForm) {
+        // PATCH - update existing scores
+        await axios.patch(
+          `/api/student/scores/editBulk-student-scores/${schoolId}/${classId}`,
+          { scores: payload }
+        );
+        toast.success("Scores updated successfully.");
+      } else {
+        // POST - new assignment
+        await axios.post(`/api/student/scores/assign/${schoolId}/${classId}`, {
+          scores: payload,
+        });
+        toast.success("Scores saved successfully.");
+      }
     } catch (err) {
       toast.error("Failed to save scores.");
     } finally {
