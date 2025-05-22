@@ -8,13 +8,11 @@ export async function PATCH(
     params: Promise<{
       school_id: string;
       class_id: string;
-      student_id: string;
     }>;
   }
 ) {
   const { school_id } = await context.params;
   const { class_id } = await context.params;
-  const { student_id } = await context.params;
   const backendUrl = process.env.MAIN_BACKEND_URL;
   if (!backendUrl) throw new Error("MAIN_BACKEND_URL is not set");
 
