@@ -32,13 +32,16 @@ export const StudentScoreRow = ({
   return (
     <TableRow
       className="cursor-pointer hover:bg-muted"
-      onClick={() => onClick && onClick(student)}
       tabIndex={0}
       role="button"
       aria-pressed="false"
     >
-      <TableCell>{student.first_name}</TableCell>
-      <TableCell>{student.last_name}</TableCell>
+      <TableCell onClick={() => onClick && onClick(student)}>
+        {student.first_name}
+      </TableCell>
+      <TableCell onClick={() => onClick && onClick(student)}>
+        {student.last_name}
+      </TableCell>
       {gradingComponents.map((comp) => (
         <TableCell key={comp.name}>
           <ScoreInput

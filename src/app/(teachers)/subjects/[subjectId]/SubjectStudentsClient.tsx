@@ -94,7 +94,10 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
         ],
       };
 
-      await axios.patch(`/student/scores/edit/${schoolId}/${classId}`, payload);
+      await axios.patch(
+        `/api/student/scores/edit-student-scores/${schoolId}/${classId}`,
+        payload
+      );
 
       toast.success("Scores updated.");
       setIsSheetOpen(false);
