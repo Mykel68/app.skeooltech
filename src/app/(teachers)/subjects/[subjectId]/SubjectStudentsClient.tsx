@@ -123,11 +123,18 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
             setStudents(extractedStudents);
 
             const first = scoreData[0];
-            const components = first.scores.map((s: any) => ({
-              name: s.component_name,
-              weight: s.weight,
-            }));
+            const components = first.scores.map((s: any) => {
+              const matchedGrading = first.grading.find(
+                (g: any) => g.name === s.component_name
+              );
+              return {
+                name: s.component_name,
+                weight: matchedGrading ? matchedGrading.weight : 0,
+              };
+            });
+            console.log("components", components);
             setGradingComponents(components);
+            console.log("setGradingComponents", gradingComponents);
 
             setTimeout(() => {
               scoreData.forEach((entry: any) => {

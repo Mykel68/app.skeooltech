@@ -47,7 +47,9 @@ export const GradingTable = ({
             <TableCell>First Name</TableCell>
             <TableCell>Last Name</TableCell>
             {gradingComponents.map((comp) => (
-              <TableCell key={comp.name}>{comp.name}</TableCell>
+              <TableCell key={comp.name}>
+                {comp.name} ({comp.weight}%)
+              </TableCell>
             ))}
             <TableCell>Total</TableCell>
           </TableRow>
