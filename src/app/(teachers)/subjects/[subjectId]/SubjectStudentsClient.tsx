@@ -6,6 +6,9 @@ import { useUserStore } from "@/store/userStore";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { GradingTable } from "./GradingTable";
 
 interface Props {
   subjectId: string;
@@ -153,98 +156,36 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-1">{subjectName}</h2>
-      <p className="text-gray-600 mb-4">
-        Class: {students?.[0]?.class?.short || "N/A"}
-      </p>
+    <Card className="p-6">
+      <CardHeader>
+        <h2 className="text-xl font-bold">{subjectName}</h2>
+        <p className="text-muted-foreground">
+          Class: {students?.[0]?.class?.short || "N/A"}
+        </p>
+      </CardHeader>
+      <CardContent>
+        {!students ? (
+          <p>Loading students...</p>
+        ) : students.length === 0 ? (
+          <p>No students found for this subject.</p>
+        ) : (
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <GradingTable
+              students={students}
+              gradingComponents={gradingComponents}
+              register={register}
+              errors={errors}
+              control={control}
+            />
 
-      {!students ? (
-        <p>Loading students...</p>
-      ) : students.length === 0 ? (
-        <p>No students found for this subject.</p>
-      ) : (
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border rounded shadow">
-              <thead>
-                <tr className="bg-gray-100 text-left">
-                  <th className="p-3 border-b">First Name</th>
-                  <th className="p-3 border-b">Last Name</th>
-                  {gradingComponents.map((comp) => (
-                    <th key={comp.name} className="p-3 border-b capitalize">
-                      {comp.name}
-                      {/* ({comp.weight}%) */}
-                    </th>
-                  ))}
-                  <th className="p-3 border-b">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map((student) => {
-                  const total = gradingComponents.reduce((sum, comp) => {
-                    const val =
-                      watchedValues?.[student.user_id]?.[comp.name] ?? 0;
-                    const num = Number(val) || 0;
-                    return sum + (num > comp.weight ? comp.weight : num);
-                  }, 0);
-
-                  return (
-                    <tr key={student.user_id} className="border-t">
-                      <td className="p-3">{student.first_name}</td>
-                      <td className="p-3">{student.last_name}</td>
-                      {gradingComponents.map((comp) => (
-                        <td key={comp.name} className="p-3">
-                          <input
-                            type="number"
-                            min={0}
-                            max={comp.weight}
-                            className={`border p-1 rounded w-24 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
-                              errors?.[student.user_id]?.[comp.name]
-                                ? "border-red-500"
-                                : ""
-                            }`}
-                            {...register(`${student.user_id}.${comp.name}`, {
-                              valueAsNumber: true,
-                              min: {
-                                value: 0,
-                                message: `${comp.name} cannot be less than 0`,
-                              },
-                              max: {
-                                value: comp.weight,
-                                message: `${comp.name} cannot exceed ${comp.weight}`,
-                              },
-                            })}
-                          />
-                          {errors?.[student.user_id]?.[comp.name] && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {
-                                errors[student.user_id!][comp.name]
-                                  ?.message as string
-                              }
-                            </p>
-                          )}
-                        </td>
-                      ))}
-                      <td className="p-3 font-semibold">{total}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-4">
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded disabled:opacity-50"
-            >
-              {isSaving ? "Saving..." : "Save Scores"}
-            </button>
-          </div>
-        </form>
-      )}
-    </div>
+            <div className="mt-4">
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Scores"}
+              </Button>
+            </div>
+          </form>
+        )}
+      </CardContent>
+    </Card>
   );
 }
