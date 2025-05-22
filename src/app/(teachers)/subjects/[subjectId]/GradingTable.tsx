@@ -1,4 +1,5 @@
 "use client";
+
 import {
   Table,
   TableHeader,
@@ -7,13 +8,27 @@ import {
   TableBody,
 } from "@/components/ui/table";
 import { StudentScoreRow } from "./StudentScoreRow";
+import { Control, FieldErrors, UseFormRegister } from "react-hook-form";
+
+interface GradingComponent {
+  name: string;
+  weight: number;
+}
+
+interface Student {
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  scores?: { component_name: string; score: number }[];
+}
 
 interface Props {
-  students: any[];
-  gradingComponents: { name: string; weight: number }[];
-  register: any;
-  errors: any;
-  control: any;
+  students: Student[];
+  gradingComponents: GradingComponent[];
+  register: UseFormRegister<any>;
+  errors: FieldErrors<any>;
+  control: Control<any>;
+  onStudentClick?: (student: Student) => void;
 }
 
 export const GradingTable = ({
@@ -22,6 +37,7 @@ export const GradingTable = ({
   register,
   errors,
   control,
+  onStudentClick,
 }: Props) => {
   return (
     <div className="overflow-x-auto">
@@ -45,6 +61,7 @@ export const GradingTable = ({
               register={register}
               errors={errors}
               control={control}
+              onClick={() => onStudentClick?.(student)}
             />
           ))}
         </TableBody>

@@ -1,6 +1,8 @@
 "use client";
+
 import { useWatch } from "react-hook-form";
 import { ScoreInput } from "@/components/ScoreInput";
+import { TableRow, TableCell } from "@/components/ui/table"; // adjust path as per your project structure
 
 interface Props {
   student: any;
@@ -8,6 +10,7 @@ interface Props {
   register: any;
   errors: any;
   control: any;
+  onClick?: (student: any) => void;
 }
 
 export const StudentScoreRow = ({
@@ -16,6 +19,7 @@ export const StudentScoreRow = ({
   register,
   errors,
   control,
+  onClick,
 }: Props) => {
   const watchedValues = useWatch({ control });
 
@@ -26,20 +30,26 @@ export const StudentScoreRow = ({
   }, 0);
 
   return (
-    <tr className="border-t">
-      <td className="p-3">{student.first_name}</td>
-      <td className="p-3">{student.last_name}</td>
+    <TableRow
+      className="cursor-pointer hover:bg-muted"
+      onClick={() => onClick && onClick(student)}
+      tabIndex={0}
+      role="button"
+      aria-pressed="false"
+    >
+      <TableCell>{student.first_name}</TableCell>
+      <TableCell>{student.last_name}</TableCell>
       {gradingComponents.map((comp) => (
-        <td key={comp.name} className="p-3">
+        <TableCell key={comp.name}>
           <ScoreInput
             name={`${student.user_id}.${comp.name}`}
             register={register}
             error={errors?.[student.user_id]?.[comp.name]}
             max={comp.weight}
           />
-        </td>
+        </TableCell>
       ))}
-      <td className="p-3 font-semibold">{total}</td>
-    </tr>
+      <TableCell className="font-semibold">{total}</TableCell>
+    </TableRow>
   );
 };

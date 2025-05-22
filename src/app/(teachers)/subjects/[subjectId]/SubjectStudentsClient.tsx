@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { GradingTable } from "./GradingTable";
+import { StudentScoreSheet } from "./StudentScoreSheet";
 
 interface Props {
   subjectId: string;
@@ -17,11 +18,14 @@ interface Props {
 type FormValues = Record<string, Record<string, number | string>>;
 
 export default function SubjectStudentsClient({ subjectId }: Props) {
+  const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   const searchParams = useSearchParams();
   const router = useRouter();
   const subjectName = searchParams.get("subjectName") || "Unknown Subject";
-
   const schoolId = useUserStore((s) => s.schoolId);
+
   const [students, setStudents] = useState<any[] | null>(null);
   const [gradingComponents, setGradingComponents] = useState<
     { name: string; weight: number }[]
@@ -38,7 +42,69 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
 
   const watchedValues = useWatch({ control });
 
-  // Fetch scores or fallback
+  const openStudentSheet = (student: any) => {
+    const currentScores = gradingComponents.map((comp) => ({
+      component_name: comp.name,
+      score:
+        watchedValues?.[student.user_id]?.[comp.name] ??
+        student[comp.name] ??
+        0,
+    }));
+
+    setSelectedStudent({ ...student, scores: currentScores });
+    setIsSheetOpen(true);
+  };
+
+  const updateStudentScores = async (newScores: Record<string, number>) => {
+    if (!selectedStudent) return;
+
+    try {
+      console.log("→ newScores:", newScores);
+      setIsSaving(true);
+
+      // Update form values locally
+      Object.entries(newScores).forEach(([comp, value]) => {
+        setValue(`${selectedStudent.user_id}.${comp}`, value);
+      });
+
+      const classId = selectedStudent.class?.class_id;
+      const user_id = selectedStudent.user_id;
+      // const score_id = selectedStudent.score_id; // make sure this exists
+
+      console.log("selectedStudent:", selectedStudent);
+      console.log("→ classId:", classId);
+      console.log("→ user_id:", user_id);
+      // console.log("→ score_id:", score_id);
+      if (!classId || !user_id) {
+        throw new Error("Missing IDs for updating score");
+      }
+
+      const payload = {
+        user_id,
+        scores: [
+          {
+            user_id,
+            scores: Object.entries(newScores).map(
+              ([component_name, score]) => ({
+                component_name,
+                score,
+              })
+            ),
+          },
+        ],
+      };
+
+      await axios.patch(`/student/scores/edit/${schoolId}/${classId}`, payload);
+
+      toast.success("Scores updated.");
+      setIsSheetOpen(false);
+    } catch (error) {
+      toast.error("Failed to update scores.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   useEffect(() => {
     if (schoolId && subjectId) {
       axios
@@ -59,12 +125,10 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
             const first = scoreData[0];
             const components = first.scores.map((s: any) => ({
               name: s.component_name,
-              weight: s.weight, // Or fetch the real weight if stored
+              weight: s.weight,
             }));
-            console.log(components);
             setGradingComponents(components);
 
-            // Set values after slight delay to ensure inputs are mounted
             setTimeout(() => {
               scoreData.forEach((entry: any) => {
                 entry.scores.forEach((score: any) => {
@@ -156,36 +220,49 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
   };
 
   return (
-    <Card className="p-6">
-      <CardHeader>
-        <h2 className="text-xl font-bold">{subjectName}</h2>
-        <p className="text-muted-foreground">
-          Class: {students?.[0]?.class?.short || "N/A"}
-        </p>
-      </CardHeader>
-      <CardContent>
-        {!students ? (
-          <p>Loading students...</p>
-        ) : students.length === 0 ? (
-          <p>No students found for this subject.</p>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <GradingTable
-              students={students}
-              gradingComponents={gradingComponents}
-              register={register}
-              errors={errors}
-              control={control}
-            />
+    <>
+      <Card className="p-6">
+        <CardHeader>
+          <h2 className="text-xl font-bold">{subjectName}</h2>
+          <p className="text-muted-foreground">
+            Class: {students?.[0]?.class?.short || "N/A"}
+          </p>
+        </CardHeader>
+        <CardContent>
+          {!students ? (
+            <p>Loading students...</p>
+          ) : students.length === 0 ? (
+            <p>No students found for this subject.</p>
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <GradingTable
+                students={students}
+                gradingComponents={gradingComponents}
+                register={register}
+                errors={errors}
+                control={control}
+                onStudentClick={openStudentSheet}
+              />
 
-            <div className="mt-4">
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? "Saving..." : "Save Scores"}
-              </Button>
-            </div>
-          </form>
-        )}
-      </CardContent>
-    </Card>
+              <div className="mt-4">
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving ? "Saving..." : "Save Scores"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+
+      {selectedStudent && (
+        <StudentScoreSheet
+          isOpen={isSheetOpen}
+          onClose={() => setIsSheetOpen(false)}
+          student={selectedStudent}
+          components={gradingComponents}
+          updateScores={updateStudentScores}
+        />
+      )}
+    </>
   );
 }
