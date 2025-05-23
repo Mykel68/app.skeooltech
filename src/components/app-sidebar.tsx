@@ -22,18 +22,19 @@ import { useUserStore } from "@/store/userStore";
 import { navData } from "@/constants/Navbar";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
-  const [role, setRole] = useState<string>("teacher");
+  const [role, setRole] = useState<string | null>(null);
   const userRole = useUserStore((s) => s.role)!;
   const [hydrated, setHydrated] = useState(false);
   const user = useUserStore((s) => s);
 
   const { navMain, documents, navSecondary } =
-    navData[role] || navData["teacher"];
+    navData[role] || navData["student"];
 
   // On mount, restore user from cookie
   useEffect(() => {
     try {
       setRole(userRole);
+      console.log("role", role);
       restoreUserFromCookie();
     } catch (e) {
       console.error(e);
