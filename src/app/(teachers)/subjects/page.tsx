@@ -43,6 +43,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 // Schema & Types
 const subjectSchema = z.object({
   class_id: z.string().min(1, "Class is required"),
@@ -203,180 +205,173 @@ export default function SubjectTable() {
   };
 
   return (
-    <div className="w-full p-4 space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">Subjects</h2>
-        <Dialog
-          open={open}
-          onOpenChange={(val) => {
-            setOpen(val);
-            if (!val) {
-              reset();
-              setEditMode(false);
-              setEditingSubject(null);
-            }
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button>{editMode ? "Edit Subject" : "Create Subject"}</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <div className="p-4">
+      <Card className="w-full">
+        <CardHeader className="flex justify-between items-center">
+          <CardTitle>Subjects</CardTitle>
+          <Dialog
+            open={open}
+            onOpenChange={(val) => {
+              setOpen(val);
+              if (!val) {
+                reset();
+                setEditMode(false);
+                setEditingSubject(null);
+              }
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button>{editMode ? "Edit Subject" : "Create Subject"}</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editMode ? "Edit Subject" : "Create Subject"}
+                  </DialogTitle>
+                </DialogHeader>
+                <Select
+                  onValueChange={(value) => setValue("class_id", value)}
+                  defaultValue={editingSubject?.class_id}
+                >
+                  <SelectTrigger className="w-full" disabled={!classes.length}>
+                    <SelectValue placeholder="Select Class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {classes.map((c) => (
+                      <SelectItem key={c.class_id} value={c.class_id}>
+                        {c.name} ({c.grade_level})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.class_id && (
+                  <p className="text-sm text-red-500">
+                    {errors.class_id.message}
+                  </p>
+                )}
+                <Input placeholder="Subject Name" {...register("name")} />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name.message}</p>
+                )}
+                <Input placeholder="Subject Code" {...register("short")} />
+                {errors.short && (
+                  <p className="text-sm text-red-500">{errors.short.message}</p>
+                )}
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {editMode ? "Update" : "Create"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </CardHeader>
+
+        <CardContent>
+          {/* Settings Dialog */}
+          <Dialog
+            open={settingsOpen}
+            onOpenChange={(val) => {
+              setSettingsOpen(val);
+              if (!val) setSettingsSubject(null);
+            }}
+          >
+            <DialogContent>
               <DialogHeader>
-                <DialogTitle>
-                  {editMode ? "Edit Subject" : "Create Subject"}
-                </DialogTitle>
+                <DialogTitle>Settings for {settingsSubject?.name}</DialogTitle>
               </DialogHeader>
-              <Select
-                onValueChange={(value) => setValue("class_id", value)}
-                defaultValue={editingSubject?.class_id}
-              >
-                <SelectTrigger className="w-full" disabled={!classes.length}>
-                  <SelectValue placeholder="Select Class" />
-                </SelectTrigger>
-                <SelectContent>
-                  {classes.map((c) => (
-                    <SelectItem key={c.class_id} value={c.class_id}>
-                      {c.name} ({c.grade_level})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.class_id && (
-                <p className="text-sm text-red-500">
-                  {errors.class_id.message}
+              <div className="space-y-4">
+                <p className="text-muted-foreground text-sm">
+                  Settings options coming soon…
                 </p>
-              )}
-              <Input placeholder="Subject Name" {...register("name")} />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name.message}</p>
-              )}
-              <Input placeholder="Subject Code" {...register("short")} />
-              {errors.short && (
-                <p className="text-sm text-red-500">{errors.short.message}</p>
-              )}
+              </div>
               <DialogFooter>
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setOpen(false)}
+                  onClick={() => setSettingsOpen(false)}
                 >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {editMode ? "Update" : "Create"}
+                  Close
                 </Button>
               </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </DialogContent>
+          </Dialog>
 
-      <Dialog
-        open={settingsOpen}
-        onOpenChange={(val) => {
-          setSettingsOpen(val);
-          if (!val) setSettingsSubject(null);
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Settings for {settingsSubject?.name}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-muted-foreground text-sm">
-              Settings options coming soon…
-            </p>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setSettingsOpen(false)}
-            >
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Class</TableHead>
-            <TableHead>Grade Level</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {subjects.map((s) => (
-            <TableRow key={s.subject_id} className="cursor-pointer">
-              <TableCell
-                onClick={() => {
-                  router.push(
-                    `/subjects/${s.class_id}?subjectName=${encodeURIComponent(
-                      s.name
-                    )}`
-                  );
-                }}
-              >
-                {s.class_name}
-              </TableCell>
-              <TableCell>{s.grade_level}</TableCell>
-              <TableCell>{s.name}</TableCell>
-              <TableCell>
-                <Badge
-                  variant={s.is_approved ? "default" : "secondary"}
-                  className={
-                    s.is_approved
-                      ? "bg-green-600 text-white"
-                      : "bg-red-300 text-black"
-                  }
-                >
-                  {s.is_approved ? "Approved" : "Pending"}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="icon" variant="ghost">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => handleEdit(s)}>
-                      Edit
-                    </DropdownMenuItem>
-                    {s.is_approved && (
-                      <DropdownMenuItem
-                        onClick={() => {
-                          router.push(
-                            `/subjects/settings?class=${
-                              s.class_id
-                            }&subjectName=${encodeURIComponent(
-                              s.name
-                            )}&gradeLevel=${encodeURIComponent(s.grade_level)}`
-                          );
-                        }}
-                      >
-                        Settings
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem
-                      onClick={() => deleteMutation.mutate(s.subject_id)}
-                      className="text-red-600"
-                    >
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          {/* Table */}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Class</TableHead>
+                <TableHead>Grade Level</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {subjects.map((s) => (
+                <TableRow key={s.subject_id} className="cursor-pointer">
+                  <TableCell
+                    onClick={() => {
+                      router.push(
+                        `/subjects/${
+                          s.class_id
+                        }?subjectName=${encodeURIComponent(s.name)}`
+                      );
+                    }}
+                  >
+                    {s.class_name}
+                  </TableCell>
+                  <TableCell>{s.grade_level}</TableCell>
+                  <TableCell>{s.name}</TableCell>
+                  <TableCell>
+                    <Badge variant={s.is_approved ? "default" : "secondary"}>
+                      {s.is_approved ? "Approved" : "Pending"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {/* Action menu */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleEdit(s)}>
+                          <Pencil className="w-4 h-4 mr-2" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSettingsOpen(true);
+                            setSettingsSubject(s);
+                          }}
+                        >
+                          <Settings className="w-4 h-4 mr-2" /> Settings
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => deleteMutation.mutate(s.subject_id)}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }
