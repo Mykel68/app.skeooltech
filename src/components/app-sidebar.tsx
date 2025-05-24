@@ -63,7 +63,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5 cursor-pointer"
+              className="data-[slot=sidebar-menu-button]:!p-1.5 "
             >
               <div className="flex items-center gap-2">
                 <img
@@ -86,7 +86,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
       <SidebarContent>
         <NavMain items={navItems} activeUrl={pathname} />
-        <NavDocuments items={documents} activeUrl={pathname} />
+        <NavDocuments
+          items={documents}
+          activeUrl={pathname}
+          className="cursor-pointer"
+        />
         <NavSecondary
           items={navSecondary}
           activeUrl={pathname}

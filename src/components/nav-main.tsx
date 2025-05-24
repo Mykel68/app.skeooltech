@@ -41,8 +41,8 @@ export function NavMain({
                   size={"lg"}
                   className={
                     isActive(item.url)
-                      ? "bg-primary text-primary-foreground"
-                      : ""
+                      ? "bg-primary text-primary-foreground cursor-pointer"
+                      : "cursor-pointer"
                   }
                 >
                   {item.icon && <item.icon />}

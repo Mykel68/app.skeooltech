@@ -43,7 +43,7 @@ export const GradingTable = ({
     <div className="overflow-x-auto">
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="h-[1.1rem]">
             <TableCell>First Name</TableCell>
             <TableCell>Last Name</TableCell>
             {gradingComponents.map((comp) => (
