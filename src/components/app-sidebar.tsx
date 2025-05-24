@@ -1,9 +1,7 @@
-// components/AppSidebar.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import * as React from "react";
-import { IconInnerShadowTop } from "@tabler/icons-react";
 import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
@@ -19,32 +17,42 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useUserStore } from "@/store/userStore";
-import { navData } from "@/constants/Navbar";
+import {
+  studentNav,
+  teacherNav,
+  studentDocuments,
+  teacherDocuments,
+  studentNavSecondary,
+  teacherNavSecondary,
+} from "@/lib/navData";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
-  const [role, setRole] = useState<string | null>(null);
-  const userRole = useUserStore((s) => s.role)!;
   const [hydrated, setHydrated] = useState(false);
-  const user = useUserStore((s) => s);
+  const user = useUserStore();
+  const role = user?.role;
+  const navItems = role === "student" ? studentNav : teacherNav;
+  const navSecondary =
+    role === "student" ? studentNavSecondary : teacherNavSecondary;
+  const documents = role === "student" ? studentDocuments : teacherDocuments;
 
-  const { navMain, documents, navSecondary } =
-    navData[role] || navData["student"];
-
-  // On mount, restore user from cookie
   useEffect(() => {
-    try {
-      setRole(userRole);
-      console.log("role", role);
-      restoreUserFromCookie();
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setHydrated(true);
-    }
+    restoreUserFromCookie();
   }, []);
 
-  // While restoring, you can return null or a loader
-  if (!hydrated) return null;
+  useEffect(() => {
+    if (role) {
+      setHydrated(true);
+      // console.log("user", user);
+    }
+  }, [role]);
+
+  if (!hydrated) {
+    return (
+      <div className="p-4 text-center text-sm text-muted-foreground">
+        Loading sidebar...
+      </div>
+    );
+  }
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -75,7 +83,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain items={navMain} />
+        <NavMain items={navItems} />
         <NavDocuments items={documents} />
         <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>

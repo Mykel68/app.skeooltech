@@ -1,7 +1,9 @@
 // constants/Navbar.ts
 import {
+  IconBook,
   IconCamera,
   IconChartBar,
+  IconClipboardList,
   IconDashboard,
   IconDatabase,
   IconFileAi,
@@ -13,13 +15,22 @@ import {
   IconReport,
   IconSearch,
   IconSettings,
+  IconUser,
   IconUsers,
 } from "@tabler/icons-react";
+import { ForwardRefExoticComponent, RefAttributes } from "react";
+import { IconProps } from "@tabler/icons-react";
+
+export type NavItem = {
+  title: string;
+  url: string;
+  icon: ForwardRefExoticComponent<IconProps & RefAttributes<SVGSVGElement>>;
+};
 
 export const navData = {
   student: {
     navMain: [
-      { title: "Dashboard", url: "/home", icon: IconDashboard },
+      { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
       { title: "Subjects", url: "/subjects", icon: IconListDetails },
       { title: "Reports", url: "/reports", icon: IconReport },
     ],
