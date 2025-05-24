@@ -32,10 +32,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const [hydrated, setHydrated] = useState(false);
   const user = useUserStore();
   const role = user?.role;
-  const navItems = role === "student" ? studentNav : teacherNav;
+  const navItems = role === "Student" ? studentNav : teacherNav;
   const navSecondary =
-    role === "student" ? studentNavSecondary : teacherNavSecondary;
-  const documents = role === "student" ? studentDocuments : teacherDocuments;
+    role === "Student" ? studentNavSecondary : teacherNavSecondary;
+  const documents = role === "Student" ? studentDocuments : teacherDocuments;
 
   useEffect(() => {
     restoreUserFromCookie();
