@@ -25,8 +25,10 @@ import {
   studentNavSecondary,
   teacherNavSecondary,
 } from "@/lib/navData";
+import { usePathname } from "next/navigation";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
   const [hydrated, setHydrated] = useState(false);
   const user = useUserStore();
   const role = user?.role;
@@ -83,9 +85,13 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain items={navItems} />
-        <NavDocuments items={documents} />
-        <NavSecondary items={navSecondary} className="mt-auto" />
+        <NavMain items={navItems} activeUrl={pathname} />
+        <NavDocuments items={documents} activeUrl={pathname} />
+        <NavSecondary
+          items={navSecondary}
+          activeUrl={pathname}
+          className="mt-auto"
+        />
       </SidebarContent>
 
       <SidebarFooter>

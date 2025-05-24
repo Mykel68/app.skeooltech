@@ -29,7 +29,7 @@ export const studentNav: NavItem[] = [
 // Teacher main navigation
 export const teacherNav: NavItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
-  { title: "My Students", url: "/students", icon: IconUser },
+  { title: "Subjects", url: "/subjects", icon: IconUser },
   { title: "Gradebook", url: "/gradebook", icon: IconClipboardList },
 ];
 
