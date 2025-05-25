@@ -75,6 +75,7 @@ export default function StudentClassPage() {
     queryKey: ["studentSubjects", schoolId, classId],
     queryFn: async () => {
       const { data } = await axios.get(`/api/subject/by-student/${classId}`);
+      console.log("studentSubjects", subjectDetails);
       return data.data;
     },
     enabled: !!schoolId && !!classId,
