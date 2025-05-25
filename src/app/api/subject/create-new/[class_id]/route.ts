@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 
 const classSchemaa = z.object({
   name: z.string().min(2),
+  short: z.string().optional(),
   //   school_code: z.string().min(1),
 });
 
