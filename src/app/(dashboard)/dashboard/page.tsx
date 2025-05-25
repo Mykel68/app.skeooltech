@@ -1,4 +1,5 @@
 "use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import {
   GraduationCap,
   MessageSquare,
 } from "lucide-react";
+import { useState } from "react";
 
 type ClassDetails = {
   class_id: string;
@@ -52,51 +54,31 @@ export default function StudentClassPage() {
   const studentName = useUserStore((s) => s.firstName);
   const schoolId = useUserStore((s) => s.schoolId);
   const studentId = useUserStore((s) => s.userId);
+  const [classId, setClassId] = useState<string | null>(null);
 
-  const { data: classDetails, isLoading } = useQuery({
-    queryKey: ["studentClass", schoolId],
+  const { data: classDetails, isLoading: isClassLoading } =
+    useQuery<ClassDetails>({
+      queryKey: ["studentClassDetails", schoolId, studentId],
+      queryFn: async () => {
+        const { data } = await axios.get(
+          `/api/student/class/details/${schoolId}/${studentId}`
+        );
+        setClassId(data.data.class_id);
+        return data.data;
+      },
+      enabled: !!schoolId && !!studentId,
+    });
+
+  const { data: subjectDetails, isLoading: isSubjectsLoading } = useQuery<
+    Subject[]
+  >({
+    queryKey: ["studentSubjects", schoolId, classId],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `/api/student/class/details/${schoolId}/${studentId}`
-      );
+      const { data } = await axios.get(`/api/subject/by-student/${classId}`);
       return data.data;
     },
-    enabled: !!schoolId,
+    enabled: !!schoolId && !!classId,
   });
-
-  // Mock data for demonstration - replace with actual API calls
-  const mockSubjects: Subject[] = [
-    {
-      subject_id: "1",
-      name: "Mathematics",
-      short: "MATH",
-      teacher_name: "Mr. Johnson",
-    },
-    {
-      subject_id: "2",
-      name: "English Language",
-      short: "ENG",
-      teacher_name: "Mrs. Smith",
-    },
-    {
-      subject_id: "3",
-      name: "Physics",
-      short: "PHY",
-      teacher_name: "Dr. Brown",
-    },
-    {
-      subject_id: "4",
-      name: "Chemistry",
-      short: "CHEM",
-      teacher_name: "Ms. Davis",
-    },
-    {
-      subject_id: "5",
-      name: "Biology",
-      short: "BIO",
-      teacher_name: "Mr. Wilson",
-    },
-  ];
 
   const mockAssignments: Assignment[] = [
     {
@@ -140,10 +122,10 @@ export default function StudentClassPage() {
     },
   ];
 
-  const classmates = 28; // Mock data
-  const currentAttendance = 92; // Mock percentage
+  const classmates = 28;
+  const currentAttendance = 92;
 
-  if (isLoading) {
+  if (isClassLoading || isSubjectsLoading) {
     return <p className="p-4">Loading class information...</p>;
   }
 
@@ -206,7 +188,7 @@ export default function StudentClassPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {mockSubjects.map((subject) => (
+                {(subjectDetails ?? []).map((subject) => (
                   <div
                     key={subject.subject_id}
                     className="border rounded-lg p-3 hover:bg-muted/50 transition-colors"
@@ -306,85 +288,37 @@ export default function StudentClassPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                Class Announcements
+                Announcements
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {mockAnnouncements.map((announcement) => (
-                  <div
-                    key={announcement.id}
-                    className="border-l-4 border-primary pl-3 py-2"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-sm">
-                          {announcement.title}
-                        </h4>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {announcement.message}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={
-                          announcement.priority === "high"
-                            ? "destructive"
-                            : announcement.priority === "medium"
-                            ? "default"
-                            : "secondary"
-                        }
-                        className="ml-2 text-xs"
-                      >
-                        {announcement.priority}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {new Date(announcement.date).toLocaleDateString()}
-                    </p>
+            <CardContent className="space-y-3">
+              {mockAnnouncements.map((announcement) => (
+                <div
+                  key={announcement.id}
+                  className="border p-3 rounded-lg space-y-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">{announcement.title}</h4>
+                    <Badge
+                      variant={
+                        announcement.priority === "high"
+                          ? "destructive"
+                          : announcement.priority === "medium"
+                          ? "secondary"
+                          : "outline"
+                      }
+                    >
+                      {announcement.priority}
+                    </Badge>
                   </div>
-                ))}
-              </div>
-              <Button variant="outline" className="w-full mt-4">
-                View All Announcements
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Class Schedule Today */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Today's Schedule
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center py-2 border-b">
-                  <div>
-                    <p className="font-medium text-sm">Mathematics</p>
-                    <p className="text-xs text-muted-foreground">Mr. Johnson</p>
-                  </div>
-                  <span className="text-sm">9:00 AM</span>
+                  <p className="text-sm text-muted-foreground">
+                    {announcement.message}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(announcement.date).toLocaleDateString()}
+                  </p>
                 </div>
-                <div className="flex justify-between items-center py-2 border-b">
-                  <div>
-                    <p className="font-medium text-sm">Physics</p>
-                    <p className="text-xs text-muted-foreground">Dr. Brown</p>
-                  </div>
-                  <span className="text-sm">10:30 AM</span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b">
-                  <div>
-                    <p className="font-medium text-sm">English</p>
-                    <p className="text-xs text-muted-foreground">Mrs. Smith</p>
-                  </div>
-                  <span className="text-sm">1:00 PM</span>
-                </div>
-              </div>
-              <Button variant="outline" className="w-full mt-4">
-                View Full Timetable
-              </Button>
+              ))}
             </CardContent>
           </Card>
         </div>

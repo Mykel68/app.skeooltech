@@ -4,10 +4,9 @@ import { cookies } from "next/headers";
 
 export async function GET(
   request: Request,
-  context: { params: Promise<{ school_id: string; student_id: string }> }
+  context: { params: Promise<{ class_id: string }> }
 ) {
-  const { school_id } = await context.params;
-  const { student_id } = await context.params;
+  const { class_id } = await context.params;
   const backendUrl = process.env.MAIN_BACKEND_URL;
   if (!backendUrl) throw new Error("MAIN_BACKEND_URL is not set");
 
@@ -26,7 +25,7 @@ export async function GET(
 
   try {
     const response = await axios.get(
-      `${backendUrl}/api/classes/student/${school_id}/${student_id}`,
+      `${backendUrl}/api/subjects/class/${class_id}}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
