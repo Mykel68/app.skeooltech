@@ -322,7 +322,7 @@ export default function SubjectTable() {
                   <TableCell
                     onClick={() => {
                       router.push(
-                        `/subjects/${
+                        `/classes/${
                           s.class_id
                         }?subjectName=${encodeURIComponent(s.name)}`
                       );
