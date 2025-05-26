@@ -26,7 +26,7 @@ export default function DashboardLayout({
       <AppSidebar variant="sidebar" />
       <SidebarInset>
         <SiteHeader />
-        <main>{children}</main>
+        <main className="p-2">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );
