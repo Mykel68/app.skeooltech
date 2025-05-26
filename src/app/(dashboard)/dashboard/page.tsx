@@ -149,7 +149,7 @@ export default function StudentClassPage() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-6">
-            <div className="text-center">
+            <div className="text-left">
               <h3 className="text-xl font-semibold">{classDetails.name}</h3>
               <Badge variant="outline" className="mt-1">
                 {classDetails.grade_level}
