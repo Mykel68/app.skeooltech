@@ -21,9 +21,64 @@ import {
   GraduationCap,
 } from "lucide-react";
 
-// Mock data for different terms and sessions
+// Mock data for different terms and sessions with class information
 const allResultsData = {
+  "2022-2023": {
+    class: "Grade 10A",
+    "First Term": {
+      subjects: [
+        { name: "Mathematics", score: 78, grade: "B+" },
+        { name: "Physics", score: 75, grade: "B+" },
+        { name: "Chemistry", score: 72, grade: "B" },
+        { name: "Biology", score: 80, grade: "A" },
+        { name: "English", score: 77, grade: "B+" },
+        { name: "Computer Science", score: 85, grade: "A" },
+        { name: "Social Studies", score: 74, grade: "B+" },
+      ],
+      summary: {
+        averageScore: 77.3,
+        overallGrade: "B+",
+        classRank: 8,
+        passedSubjects: 7,
+      },
+    },
+    "Mid Term": {
+      subjects: [
+        { name: "Mathematics", score: 80, grade: "A" },
+        { name: "Physics", score: 78, grade: "B+" },
+        { name: "Chemistry", score: 75, grade: "B+" },
+        { name: "Biology", score: 82, grade: "A" },
+        { name: "English", score: 79, grade: "B+" },
+        { name: "Computer Science", score: 87, grade: "A" },
+        { name: "Social Studies", score: 76, grade: "B+" },
+      ],
+      summary: {
+        averageScore: 79.6,
+        overallGrade: "B+",
+        classRank: 7,
+        passedSubjects: 7,
+      },
+    },
+    "Final Term": {
+      subjects: [
+        { name: "Mathematics", score: 83, grade: "A" },
+        { name: "Physics", score: 80, grade: "A" },
+        { name: "Chemistry", score: 77, grade: "B+" },
+        { name: "Biology", score: 85, grade: "A" },
+        { name: "English", score: 81, grade: "A" },
+        { name: "Computer Science", score: 89, grade: "A" },
+        { name: "Social Studies", score: 78, grade: "B+" },
+      ],
+      summary: {
+        averageScore: 81.9,
+        overallGrade: "A",
+        classRank: 6,
+        passedSubjects: 7,
+      },
+    },
+  },
   "2023-2024": {
+    class: "Grade 11A",
     "First Term": {
       subjects: [
         { name: "Mathematics", score: 85, grade: "A" },
@@ -77,6 +132,7 @@ const allResultsData = {
     },
   },
   "2024-2025": {
+    class: "Grade 12A",
     "First Term": {
       subjects: [
         { name: "Mathematics", score: 94, grade: "A+" },
@@ -116,7 +172,6 @@ const allResultsData = {
 
 const studentInfo = {
   name: "Sarah Johnson",
-  class: "12A",
 };
 
 const getGradeColor = (grade) => {
@@ -152,8 +207,11 @@ export default function StudentResultsReport() {
   const [isLoading, setIsLoading] = useState(false);
 
   const availableSessions = Object.keys(allResultsData);
-  const availableTerms = Object.keys(allResultsData[selectedSession] || {});
+  const availableTerms = Object.keys(
+    allResultsData[selectedSession] || {}
+  ).filter((key) => key !== "class");
   const currentData = allResultsData[selectedSession]?.[selectedTerm];
+  const currentClass = allResultsData[selectedSession]?.class;
 
   // Get previous term data for comparison
   const getPreviousTermData = () => {
@@ -164,6 +222,15 @@ export default function StudentResultsReport() {
       const previousTerm = termOrder[currentTermIndex - 1];
       return allResultsData[selectedSession]?.[previousTerm];
     }
+    // If it's the first term of current session, try to get final term of previous session
+    if (currentTermIndex === 0) {
+      const sessionKeys = Object.keys(allResultsData);
+      const currentSessionIndex = sessionKeys.indexOf(selectedSession);
+      if (currentSessionIndex > 0) {
+        const previousSession = sessionKeys[currentSessionIndex - 1];
+        return allResultsData[previousSession]?.["Final Term"];
+      }
+    }
     return null;
   };
 
@@ -173,7 +240,10 @@ export default function StudentResultsReport() {
     setIsLoading(true);
     setSelectedSession(session);
     // Reset to first available term when session changes
-    const firstTerm = Object.keys(allResultsData[session])[0];
+    const sessionTerms = Object.keys(allResultsData[session]).filter(
+      (key) => key !== "class"
+    );
+    const firstTerm = sessionTerms[0];
     setSelectedTerm(firstTerm);
 
     setTimeout(() => setIsLoading(false), 500);
@@ -200,7 +270,7 @@ export default function StudentResultsReport() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Academic Results</h1>
           <p className="text-gray-600">
-            {studentInfo.name} • {studentInfo.class}
+            {studentInfo.name} • {currentClass}
           </p>
         </div>
 
@@ -214,7 +284,12 @@ export default function StudentResultsReport() {
               <SelectContent>
                 {availableSessions.map((session) => (
                   <SelectItem key={session} value={session}>
-                    {session}
+                    <div className="flex flex-col items-start">
+                      <span>{session}</span>
+                      <span className="text-xs text-gray-500">
+                        {allResultsData[session].class}
+                      </span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
