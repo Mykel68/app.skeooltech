@@ -159,14 +159,6 @@ export default function SubjectTable() {
     setEditingSubject(null);
   };
 
-  const handleView = (subject: Subject) => {
-    router.push(
-      `/classes/${subject.class_id}?subjectName=${encodeURIComponent(
-        subject.name
-      )}`
-    );
-  };
-
   const handleEdit = (subject: Subject) => {
     setEditingSubject(subject);
     setEditMode(true);
@@ -265,7 +257,6 @@ export default function SubjectTable() {
                   <SubjectTableRow
                     key={subject.subject_id}
                     subject={subject}
-                    OnView={handleView}
                     onEdit={handleEdit}
                     onSettings={handleSettings}
                     onDelete={handleDelete}

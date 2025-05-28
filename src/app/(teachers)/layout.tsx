@@ -1,3 +1,4 @@
+import AppBreadcrumb from "@/components/app-breadcrumb";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -26,7 +27,10 @@ export default function DashboardLayout({
       <AppSidebar variant="sidebar" />
       <SidebarInset>
         <SiteHeader />
-        <main className="p-2">{children}</main>
+        <main className="p-3">
+          {/* <AppBreadcrumb /> */}
+          <div className="mt-4">{children}</div>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );

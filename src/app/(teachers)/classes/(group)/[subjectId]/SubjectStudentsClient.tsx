@@ -186,7 +186,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
             const gradeLevel = firstStudent?.class?.grade_level;
 
             router.push(
-              `/subjects/settings?class=${classId}&subjectName=${encodeURIComponent(
+              `/classes/settings?class=${classId}&subjectName=${encodeURIComponent(
                 subjectName
               )}&gradeLevel=${encodeURIComponent(gradeLevel || "")}`
             );

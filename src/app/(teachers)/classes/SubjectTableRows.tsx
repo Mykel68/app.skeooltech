@@ -14,7 +14,6 @@ import { Subject } from "./SubjectForm";
 
 interface SubjectTableRowProps {
   subject: Subject;
-  onView: (subject: Subject) => void;
   onEdit: (subject: Subject) => void;
   onSettings: (subject: Subject) => void;
   onDelete: (subjectId: string) => void;
@@ -23,7 +22,6 @@ interface SubjectTableRowProps {
 
 export const SubjectTableRow: React.FC<SubjectTableRowProps> = ({
   subject,
-  onView,
   onEdit,
   onSettings,
   onDelete,
@@ -57,7 +55,7 @@ export const SubjectTableRow: React.FC<SubjectTableRowProps> = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onView(subject)}>
+            <DropdownMenuItem onClick={handleRowClick}>
               <Eye className="w-4 h-4 mr-2" /> View
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onEdit(subject)}>
