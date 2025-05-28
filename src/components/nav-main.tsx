@@ -41,7 +41,7 @@ export function NavMain({
                   size={"lg"}
                   className={
                     isActive(item.url)
-                      ? "bg-primary text-primary-foreground cursor-pointer"
+                      ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground cursor-pointer"
                       : "cursor-pointer"
                   }
                 >
