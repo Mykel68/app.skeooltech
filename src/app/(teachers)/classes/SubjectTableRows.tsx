@@ -9,11 +9,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Trash2, Pencil, MoreVertical, Settings } from "lucide-react";
+import { Trash2, Pencil, MoreVertical, Settings, Eye } from "lucide-react";
 import { Subject } from "./SubjectForm";
 
 interface SubjectTableRowProps {
   subject: Subject;
+  onView: (subject: Subject) => void;
   onEdit: (subject: Subject) => void;
   onSettings: (subject: Subject) => void;
   onDelete: (subjectId: string) => void;
@@ -22,6 +23,7 @@ interface SubjectTableRowProps {
 
 export const SubjectTableRow: React.FC<SubjectTableRowProps> = ({
   subject,
+  onView,
   onEdit,
   onSettings,
   onDelete,
@@ -54,7 +56,10 @@ export const SubjectTableRow: React.FC<SubjectTableRowProps> = ({
               <MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onView(subject)}>
+              <Eye className="w-4 h-4 mr-2" /> View
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onEdit(subject)}>
               <Pencil className="w-4 h-4 mr-2" /> Edit
             </DropdownMenuItem>

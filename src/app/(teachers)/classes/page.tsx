@@ -29,6 +29,7 @@ import {
 } from "./SubjectForm";
 import { SubjectSettingsDialog } from "./SubjectSettingsDialog";
 import { SubjectTableRow } from "./SubjectTableRows";
+import { useRouter } from "next/navigation";
 
 // API Functions
 const fetchClasses = async (schoolId: string): Promise<SchoolClass[]> => {
@@ -68,6 +69,7 @@ const deleteSubject = async (subject_id: string) => {
 };
 
 export default function SubjectTable() {
+  const router = useRouter();
   const schoolId = useUserStore((s) => s.schoolId)!;
   const userId = useUserStore((s) => s.userId)!;
   const queryClient = useQueryClient();
@@ -155,6 +157,14 @@ export default function SubjectTable() {
     setFormOpen(false);
     setEditMode(false);
     setEditingSubject(null);
+  };
+
+  const handleView = (subject: Subject) => {
+    router.push(
+      `/classes/${subject.class_id}?subjectName=${encodeURIComponent(
+        subject.name
+      )}`
+    );
   };
 
   const handleEdit = (subject: Subject) => {
@@ -255,6 +265,7 @@ export default function SubjectTable() {
                   <SubjectTableRow
                     key={subject.subject_id}
                     subject={subject}
+                    OnView={handleView}
                     onEdit={handleEdit}
                     onSettings={handleSettings}
                     onDelete={handleDelete}
