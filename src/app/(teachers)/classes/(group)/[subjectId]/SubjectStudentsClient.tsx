@@ -250,7 +250,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
     <>
       <Card className="p-6">
         <CardHeader>
-          <h2 className="text-xl font-bold">{subjectName}</h2>
+          <h2 className="text-xl font-bold">Grade scores for {subjectName}</h2>
           <p className="text-muted-foreground">
             Class: {students?.[0]?.class?.short || "N/A"}
           </p>

@@ -27,7 +27,7 @@ import {
   Subject,
   SchoolClass,
 } from "./SubjectForm";
-import { SubjectSettingsDialog } from "./SubjectSettingsDialog";
+import { AssessmentSettingsDialog } from "./SubjectSettingsDialog";
 import { SubjectTableRow } from "./SubjectTableRows";
 import { useRouter } from "next/navigation";
 
@@ -232,10 +232,16 @@ export default function SubjectTable() {
           />
 
           {/* Settings Dialog */}
-          <SubjectSettingsDialog
+          <AssessmentSettingsDialog
             open={settingsOpen}
             onOpenChange={setSettingsOpen}
-            subject={settingsSubject}
+            classId={
+              settingsSubject?.class_id ? settingsSubject?.class_id : " "
+            }
+            subjectName={settingsSubject?.name ? settingsSubject?.name : " "}
+            gradeLevel={
+              settingsSubject?.grade_level ? settingsSubject?.grade_level : " "
+            }
           />
 
           {/* Content */}

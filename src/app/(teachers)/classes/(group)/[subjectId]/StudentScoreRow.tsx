@@ -2,7 +2,7 @@
 
 import { useWatch } from "react-hook-form";
 import { ScoreInput } from "@/components/ScoreInput";
-import { TableRow, TableCell } from "@/components/ui/table"; // adjust path as per your project structure
+import { TableRow, TableCell } from "@/components/ui/table";
 
 interface Props {
   student: any;
@@ -21,10 +21,13 @@ export const StudentScoreRow = ({
   control,
   onClick,
 }: Props) => {
-  const watchedValues = useWatch({ control });
+  const watchedValues = useWatch({
+    control,
+    name: `students.${student.user_id}`,
+  });
 
   const total = gradingComponents.reduce((sum, comp) => {
-    const val = watchedValues?.[student.user_id]?.[comp.name] ?? 0;
+    const val = watchedValues?.[comp.name] ?? 0;
     const num = Number(val) || 0;
     return sum + (num > comp.weight ? comp.weight : num);
   }, 0);
@@ -36,22 +39,24 @@ export const StudentScoreRow = ({
       role="button"
       aria-pressed="false"
     >
-      <TableCell onClick={() => onClick && onClick(student)}>
+      <TableCell onClick={() => onClick?.(student)}>
         {student.first_name}
       </TableCell>
-      <TableCell onClick={() => onClick && onClick(student)}>
+      <TableCell onClick={() => onClick?.(student)}>
         {student.last_name}
       </TableCell>
+
       {gradingComponents.map((comp) => (
         <TableCell key={comp.name}>
           <ScoreInput
-            name={`${student.user_id}.${comp.name}`}
+            name={`students.${student.user_id}.${comp.name}`}
             register={register}
-            error={errors?.[student.user_id]?.[comp.name]}
+            error={errors?.students?.[student.user_id]?.[comp.name]}
             max={comp.weight}
           />
         </TableCell>
       ))}
+
       <TableCell className="font-semibold">{total}</TableCell>
     </TableRow>
   );

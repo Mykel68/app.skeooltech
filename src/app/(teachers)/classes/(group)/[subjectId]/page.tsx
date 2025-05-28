@@ -11,7 +11,6 @@ export default async function SubjectStudentsPage({
 
   return (
     <div className=" space-y-4 p-4">
-      <h1 className="text-2xl font-bold">Grade </h1>
       <SubjectStudentsClient subjectId={subjectId} />
     </div>
   );

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import axios from "axios";
 import { cookies } from "next/headers";
 
-export async function PATCH(
+export async function PUT(
   request: Request,
   context: { params: Promise<{ school_id: string; class_id: string }> }
 ) {
@@ -26,7 +26,7 @@ export async function PATCH(
   }
 
   try {
-    const response = await axios.patch(
+    const response = await axios.put(
       `${backendUrl}/api/grading-settings/${school_id}/${class_id}`,
       body,
       {
