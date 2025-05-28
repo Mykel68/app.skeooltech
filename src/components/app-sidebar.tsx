@@ -152,7 +152,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                       <select
                         value={currentSession?.session_id || ""}
                         onChange={handleSessionChange}
-                        className="text-xs bg-green-800 text-white rounded px-2 py-1 outline-none focus:ring-1 ring-white w-full"
+                        className="text-xs bg-popover text-black rounded px-2 py-1 outline-none focus:ring-1 ring-white w-full"
                       >
                         {sessions.map((session) => (
                           <option
@@ -168,7 +168,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                         <select
                           value={currentTerm?.term_id || ""}
                           onChange={handleTermChange}
-                          className="text-xs bg-green-800 text-white rounded px-2 py-1 outline-none focus:ring-1 ring-white w-full"
+                          className="text-xs bg-popover text-black rounded px-2 py-1 outline-none focus:ring-1 ring-white w-full"
                         >
                           {currentSession.terms.map((term: any) => (
                             <option key={term.term_id} value={term.term_id}>

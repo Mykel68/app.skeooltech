@@ -6,9 +6,11 @@ export default function GroupLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="p-4">
-      <AppBreadcrumb />
-      <div className="mt-4">{children}</div>
+    <div className="">
+      {/* <AppBreadcrumb /> */}
+      {/* <div className="mt-4"> */}
+      {children}
+      {/* </div> */}
     </div>
   );
 }
