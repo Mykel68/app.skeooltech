@@ -7,7 +7,7 @@ export default function GroupLayout({
 }) {
   return (
     <div className="">
-      {/* <AppBreadcrumb /> */}
+      <AppBreadcrumb />
       {/* <div className="mt-4"> */}
       {children}
       {/* </div> */}

@@ -31,7 +31,10 @@ import { useUserStore } from "@/store/userStore";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const ComponentSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .regex(/^[a-zA-Z\s-]+$/, "Only letters, spaces, and dashes allowed"),
   weight: z
     .number({ invalid_type_error: "Must be a number" })
     .min(1, "Min 1%")
