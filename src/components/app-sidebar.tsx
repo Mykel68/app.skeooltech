@@ -127,59 +127,59 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5 hover:!bg-transparent"
+              size="xl"
             >
-              <div className="flex flex-col items-start gap-2 w-full">
-                <div className="flex items-center gap-2 w-full">
-                  <img
-                    src={user.schoolImage || "/placeholder-logo.png"}
-                    alt={user.schoolName || "School logo"}
-                    className="w-8 h-8 rounded-full object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src =
-                        "/placeholder-logo.png";
-                    }}
-                  />
+              <div className="flex gap-1 w-full">
+                <img
+                  src={user.schoolImage || "/placeholder-logo.png"}
+                  alt={user.schoolName || "School logo"}
+                  className="w-12 h-12 rounded-full object-cover"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src =
+                      "/placeholder-logo.png";
+                  }}
+                />
+                <div className="">
                   <span className="text-base font-semibold">
                     {user.schoolName || "Loading..."}
                   </span>
-                </div>
-
-                {sessions.length <= 1 && currentSession ? (
-                  <p className="text-xs text-white mt-1">
-                    {currentSession.name} - {currentTerm?.name}
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-1 gap-1 w-full">
-                    <select
-                      value={currentSession?.session_id || ""}
-                      onChange={handleSessionChange}
-                      className="text-xs bg-green-800 text-white rounded px-2 py-1 outline-none focus:ring-1 ring-white w-full"
-                    >
-                      {sessions.map((session) => (
-                        <option
-                          key={session.session_id}
-                          value={session.session_id}
-                        >
-                          {session.name}
-                        </option>
-                      ))}
-                    </select>
-
-                    {currentSession?.terms?.length > 0 && (
+                  {sessions.length <= 1 && currentSession ? (
+                    <p className="text-xs text-white mt-1">
+                      {currentSession.name} - {currentTerm?.name}
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4 w-full">
                       <select
-                        value={currentTerm?.term_id || ""}
-                        onChange={handleTermChange}
+                        value={currentSession?.session_id || ""}
+                        onChange={handleSessionChange}
                         className="text-xs bg-green-800 text-white rounded px-2 py-1 outline-none focus:ring-1 ring-white w-full"
                       >
-                        {currentSession.terms.map((term: any) => (
-                          <option key={term.term_id} value={term.term_id}>
-                            {term.name}
+                        {sessions.map((session) => (
+                          <option
+                            key={session.session_id}
+                            value={session.session_id}
+                          >
+                            {session.name}
                           </option>
                         ))}
                       </select>
-                    )}
-                  </div>
-                )}
+
+                      {currentSession?.terms?.length > 0 && (
+                        <select
+                          value={currentTerm?.term_id || ""}
+                          onChange={handleTermChange}
+                          className="text-xs bg-green-800 text-white rounded px-2 py-1 outline-none focus:ring-1 ring-white w-full"
+                        >
+                          {currentSession.terms.map((term: any) => (
+                            <option key={term.term_id} value={term.term_id}>
+                              {term.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
