@@ -96,7 +96,7 @@ export default function AssessmentSettings() {
       const isUpdate = Boolean(data?.components && data.components.length > 0);
 
       const endpoint = isUpdate
-        ? `/api/grade_setting/edit-grade-setting/${schoolId}/${class_id}`
+        ? `/api/grade_setting/edit-class-grade-setting/${schoolId}/${class_id}`
         : `/api/grade_setting/${schoolId}/${class_id}`;
 
       const method = isUpdate ? "put" : "post";

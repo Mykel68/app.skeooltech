@@ -101,7 +101,7 @@ export const AssessmentSettingsDialog: React.FC<
     mutationFn: async (components: FormType["components"]) => {
       const isUpdate = Boolean(data?.components && data.components.length > 0);
       const endpoint = isUpdate
-        ? `/api/grade_setting/edit-grade-setting/${schoolId}/${classId}`
+        ? `/api/grade_setting/edit-class-grade-setting/${schoolId}/${classId}`
         : `/api/grade_setting/${schoolId}/${classId}`;
       const method = isUpdate ? "put" : "post";
       const res = await axios[method](endpoint, { components });
