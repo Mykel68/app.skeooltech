@@ -19,6 +19,7 @@ type FormValues = Record<string, Record<string, number | string>>;
 
 export default function SubjectStudentsClient({ subjectId }: Props) {
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
+  const [hasPreviousScores, setHasPreviousScores] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const searchParams = useSearchParams();
@@ -123,6 +124,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
                 grade_level: entry.class?.[0]?.grade_level,
               },
             }));
+            setHasPreviousScores(true);
             setStudents(extractedStudents);
 
             const first = scoreData[0];
@@ -201,42 +203,40 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
     setIsSaving(true);
 
     try {
-      const payload = Object.entries(data).map(
-        ([user_id, componentScores]) => ({
-          user_id,
-          scores: Object.entries(componentScores).map(
-            ([component_name, score]) => ({
-              component_name,
-              score: Number(score),
-            })
-          ),
-        })
-      );
-
+      console.log("student scores:", data);
       const classId = students?.[0]?.class?.class_id;
-
       if (!classId) throw new Error("Missing class ID");
 
-      // Here, decide if you PATCH or POST based on existing data:
-      // For example, if students have some flag or score exists, PATCH:
-      const hasScoresInForm = Object.values(data).some((componentScores) =>
-        Object.values(componentScores).some(
-          (score) => score !== undefined && score !== null && score !== ""
-        )
-      );
+      const payload = {
+        scores: students.map((student) => {
+          const user_id = student.user_id;
+          const componentScores = data.students?.[user_id] || {};
 
-      if (hasScoresInForm) {
-        // PATCH - update existing scores
+          return {
+            user_id,
+            scores: Object.entries(componentScores).map(
+              ([component_name, score]) => ({
+                component_name,
+                score: Number(score) || 0,
+              })
+            ),
+          };
+        }),
+      };
+
+      console.log("→ payload:", payload);
+
+      if (hasPreviousScores) {
         await axios.patch(
           `/api/student/scores/editBulk-student-scores/${schoolId}/${classId}`,
-          { scores: payload }
+          payload
         );
         toast.success("Scores updated successfully.");
       } else {
-        // POST - new assignment
-        await axios.post(`/api/student/scores/assign/${schoolId}/${classId}`, {
-          scores: payload,
-        });
+        await axios.post(
+          `/api/student/scores/assign/${schoolId}/${classId}`,
+          payload
+        );
         toast.success("Scores saved successfully.");
       }
     } catch (err) {

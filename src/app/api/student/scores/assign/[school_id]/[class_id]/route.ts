@@ -37,6 +37,7 @@ export async function POST(
 
     return NextResponse.json(response.data, { status: 200 });
   } catch (err) {
+    console.error(err);
     if (axios.isAxiosError(err)) {
       console.error("Backend error:", err.response?.data);
       return NextResponse.json(
@@ -46,7 +47,6 @@ export async function POST(
         { status: err.response?.status || 500 }
       );
     }
-    console.error(err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
