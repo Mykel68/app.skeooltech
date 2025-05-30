@@ -66,16 +66,14 @@ export const GradingTable = ({
               onClick={() => onStudentClick?.(student)}
             />
           ))}
-          {students.map((student) => (
+          {/* {students.map((student) => (
             <>
               <p>{student.user_id}</p>
               <p>{student.first_name}</p>
               <p>{student.last_name}</p>
-              {/* <p>{student.scores}</p> */}
-              {/* <p>{student.scores?.length}</p> */}
               <p>{student.scores?.map((s) => s.score)}</p>
             </>
-          ))}
+          ))} */}
         </TableBody>
       </Table>
     </div>
