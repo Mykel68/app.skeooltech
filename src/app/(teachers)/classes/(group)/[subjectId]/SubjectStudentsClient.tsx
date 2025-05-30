@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useUserStore } from "@/store/userStore";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -21,17 +21,16 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [hasPreviousScores, setHasPreviousScores] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const subjectName = searchParams.get("subjectName") || "Unknown Subject";
-  const schoolId = useUserStore((s) => s.schoolId);
-
   const [students, setStudents] = useState<any[] | null>(null);
   const [gradingComponents, setGradingComponents] = useState<
     { name: string; weight: number }[]
   >([]);
   const [isSaving, setIsSaving] = useState(false);
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const subjectName = searchParams.get("subjectName") || "Unknown Subject";
+  const schoolId = useUserStore((s) => s.schoolId);
 
   const {
     register,
@@ -60,25 +59,17 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
     if (!selectedStudent) return;
 
     try {
-      console.log("→ newScores:", newScores);
       setIsSaving(true);
 
-      // Update form values locally
       Object.entries(newScores).forEach(([comp, value]) => {
         setValue(`${selectedStudent.user_id}.${comp}`, value);
       });
 
       const classId = selectedStudent.class?.class_id;
       const user_id = selectedStudent.user_id;
-      // const score_id = selectedStudent.score_id; // make sure this exists
 
-      // console.log("selectedStudent:", selectedStudent);
-      // console.log("→ classId:", classId);
-      // console.log("→ user_id:", user_id);
-      // console.log("→ score_id:", score_id);
-      if (!classId || !user_id) {
+      if (!classId || !user_id)
         throw new Error("Missing IDs for updating score");
-      }
 
       const payload = {
         user_id,
@@ -109,14 +100,56 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
     }
   };
 
-  axios
-    .get(`/api/student/scores/score-list/${schoolId}/${subjectId}`)
-    .then((res) => {
-      const result = res.data?.data?.data?.[0];
-      console.log("→ result:", result);
+  const fetchStudentsAndComponents = useCallback(async () => {
+    try {
+      const studentRes = await axios.get(
+        `/api/student/${schoolId}/${subjectId}`
+      );
+      const studentList = studentRes.data?.data ?? [];
 
-      const scoreData = result?.students ?? [];
-      const grading = result?.grading ?? [];
+      setStudents(studentList);
+      if (studentList.length === 0) return;
+
+      try {
+        const gradeRes = await axios.get(
+          `/api/grade_setting/get-grade-setting/${schoolId}/${subjectId}`
+        );
+        const data = gradeRes.data?.data?.data;
+        const components = data?.components || [];
+        setGradingComponents(components);
+      } catch {
+        setGradingComponents([]);
+        toast.warning("No grading components set. Redirecting to settings...");
+
+        const firstStudent = studentList[0];
+        const classId = firstStudent?.class?.class_id;
+        const gradeLevel = firstStudent?.class?.grade_level;
+
+        router.push(
+          `/classes/settings?class=${classId}&subjectName=${encodeURIComponent(
+            subjectName
+          )}&gradeLevel=${encodeURIComponent(gradeLevel || "")}`
+        );
+      }
+    } catch {
+      setStudents([]);
+    }
+  }, [schoolId, subjectId, router, subjectName]);
+
+  const fetchScoreList = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `/api/student/scores/score-list/${schoolId}/${subjectId}`
+      );
+      const result = res.data?.data?.data?.[0];
+
+      if (!result) {
+        fetchStudentsAndComponents();
+        return;
+      }
+
+      const scoreData = result.students ?? [];
+      const grading = result.grading ?? [];
 
       if (scoreData.length > 0) {
         const extractedStudents = scoreData.map((entry: any) => ({
@@ -127,17 +160,16 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
             grade_level: result.class?.grade_level,
           },
         }));
+
         setHasPreviousScores(true);
         setStudents(extractedStudents);
 
-        // Use grading directly instead of first.scores.grading
         const components = grading.map((g: any) => ({
           name: g.name,
           weight: g.weight,
         }));
         setGradingComponents(components);
 
-        // Set form values
         setTimeout(() => {
           scoreData.forEach((entry: any) => {
             entry.student.scores.forEach((score: any) => {
@@ -151,61 +183,21 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
       } else {
         fetchStudentsAndComponents();
       }
-    })
-    .catch(() => {
+    } catch {
       fetchStudentsAndComponents();
-    });
-
-  const fetchStudentsAndComponents = () => {
-    axios
-      .get(`/api/student/${schoolId}/${subjectId}`)
-      .then((res) => {
-        const studentList = res.data?.data ?? [];
-        setStudents(studentList);
-
-        if (studentList.length === 0) return;
-
-        return axios
-          .get(`/api/grade_setting/get-grade-setting/${schoolId}/${subjectId}`)
-          .then((res) => {
-            const data = res.data?.data?.data;
-            const components = data?.components || [];
-            setGradingComponents(components);
-          })
-          .catch(() => {
-            setGradingComponents([]);
-            toast.warning(
-              "No grading components set. Redirecting to settings..."
-            );
-
-            const firstStudent = studentList[0];
-            const classId = firstStudent?.class?.class_id;
-            const gradeLevel = firstStudent?.class?.grade_level;
-
-            router.push(
-              `/classes/settings?class=${classId}&subjectName=${encodeURIComponent(
-                subjectName
-              )}&gradeLevel=${encodeURIComponent(gradeLevel || "")}`
-            );
-          });
-      })
-      .catch(() => {
-        setStudents([]);
-      });
-  };
+    }
+  }, [schoolId, subjectId, fetchStudentsAndComponents, setValue]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSaving(true);
-
     try {
-      console.log("student scores:", data);
       const classId = students?.[0]?.class?.class_id;
       if (!classId) throw new Error("Missing class ID");
 
       const payload = {
         scores: students.map((student) => {
           const user_id = student.user_id;
-          const componentScores = data.students?.[user_id] || {};
+          const componentScores = data[user_id] || {};
 
           return {
             user_id,
@@ -218,8 +210,6 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
           };
         }),
       };
-
-      console.log("→ payload:", payload);
 
       if (hasPreviousScores) {
         await axios.patch(
@@ -234,12 +224,18 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
         );
         toast.success("Scores saved successfully.");
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to save scores.");
     } finally {
       setIsSaving(false);
     }
   };
+
+  useEffect(() => {
+    if (schoolId && subjectId) {
+      fetchScoreList();
+    }
+  }, [schoolId, subjectId, fetchScoreList]);
 
   return (
     <>
@@ -260,12 +256,8 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
               <GradingTable
                 students={students}
                 gradingComponents={gradingComponents}
-                register={register}
-                errors={errors}
-                control={control}
                 onStudentClick={openStudentSheet}
               />
-
               <div className="mt-4">
                 <Button type="submit" disabled={isSaving}>
                   {isSaving ? "Saving..." : "Save Scores"}
