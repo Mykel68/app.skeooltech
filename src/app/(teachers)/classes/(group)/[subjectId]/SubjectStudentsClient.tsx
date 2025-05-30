@@ -119,7 +119,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
             const extractedStudents = scoreData.map((entry: any) => ({
               ...entry.student,
               class: {
-                short: entry.class?.[0]?.name || "N/A",
+                short: entry.class?.name || "N/A",
                 class_id: entry.class?.[0]?.class_id,
                 grade_level: entry.class?.[0]?.grade_level,
               },
