@@ -112,7 +112,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
   useEffect(() => {
     if (schoolId && subjectId) {
       axios
-        .get(`/api/student/scores/score-list/${schoolId}/${subjectId}`)
+        .get(`/api/student/scores/scorelist/${schoolId}/${subjectId}`)
         .then((res) => {
           const scoreData = res.data?.data?.data;
           if (scoreData?.length > 0) {

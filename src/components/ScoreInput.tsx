@@ -7,9 +7,16 @@ interface ScoreInputProps {
   error?: FieldError;
   register: any;
   max: number;
+  value?: number;
 }
 
-export const ScoreInput = ({ name, error, register, max }: ScoreInputProps) => (
+export const ScoreInput = ({
+  name,
+  error,
+  register,
+  max,
+  value,
+}: ScoreInputProps) => (
   <div>
     <Input
       type="number"
@@ -22,6 +29,7 @@ export const ScoreInput = ({ name, error, register, max }: ScoreInputProps) => (
         min: { value: 0, message: "Cannot be less than 0" },
         max: { value: max, message: `Cannot exceed ${max}` },
       })}
+      value={value}
     />
 
     {error && <p className="text-red-500 text-xs mt-1">{error.message}</p>}

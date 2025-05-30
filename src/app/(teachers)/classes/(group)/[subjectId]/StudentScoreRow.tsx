@@ -3,6 +3,7 @@
 import { useWatch } from "react-hook-form";
 import { ScoreInput } from "@/components/ScoreInput";
 import { TableRow, TableCell } from "@/components/ui/table";
+import { useEffect } from "react";
 
 interface Props {
   student: any;
@@ -26,6 +27,11 @@ export const StudentScoreRow = ({
     name: `students.${student.user_id}`,
   });
 
+  useEffect(() => {
+    console.log("Student data:", student);
+    // console.log("Watched values:", watchedValues);
+  }, [student, watchedValues]);
+
   const total = gradingComponents.reduce((sum, comp) => {
     const val = watchedValues?.[comp.name] ?? 0;
     const num = Number(val) || 0;
@@ -45,7 +51,6 @@ export const StudentScoreRow = ({
       <TableCell onClick={() => onClick?.(student)}>
         {student.last_name}
       </TableCell>
-
       {gradingComponents.map((comp) => (
         <TableCell key={comp.name}>
           <ScoreInput
@@ -53,10 +58,10 @@ export const StudentScoreRow = ({
             register={register}
             error={errors?.students?.[student.user_id]?.[comp.name]}
             max={comp.weight}
+            value={student.scores?.find((s) => s.component_name === comp.name)}
           />
         </TableCell>
       ))}
-
       <TableCell className="font-semibold">{total}</TableCell>
     </TableRow>
   );
