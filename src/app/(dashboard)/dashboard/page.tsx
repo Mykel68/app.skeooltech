@@ -25,6 +25,7 @@ type ClassDetails = {
   school_id: string;
   name: string;
   grade_level: string;
+  student_count: number;
 };
 
 type Subject = {
@@ -123,7 +124,7 @@ export default function StudentClassPage() {
     },
   ];
 
-  const classmates = 28;
+  // const classDetails.student_count = 28;
   const currentAttendance = 92;
 
   if (isClassLoading || isSubjectsLoading) {
@@ -162,7 +163,9 @@ export default function StudentClassPage() {
                   <Users className="h-4 w-4" />
                   <span>Classmates</span>
                 </div>
-                <p className="text-lg font-semibold">{classmates}</p>
+                <p className="text-lg font-semibold">
+                  {classDetails.student_count}
+                </p>
               </div>
               <div className="text-center">
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">

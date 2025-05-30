@@ -25,7 +25,7 @@ export async function GET(
 
   try {
     const response = await axios.get(
-      `${backendUrl}/api/subjects/class/${class_id}/student`,
+      `${backendUrl}/api/subjects/teacher-subject/${class_id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
