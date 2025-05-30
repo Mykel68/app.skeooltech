@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   Table,
   TableHeader,
@@ -8,74 +9,92 @@ import {
   TableBody,
 } from "@/components/ui/table";
 import { StudentScoreRow } from "./StudentScoreRow";
-import { Control, FieldErrors, UseFormRegister } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 
 interface GradingComponent {
   name: string;
   weight: number;
 }
 
+interface StudentScore {
+  component_name: string;
+  score: number;
+}
+
 interface Student {
   user_id: string;
   first_name: string;
   last_name: string;
-  scores?: { component_name: string; score: number }[];
+  scores?: StudentScore[];
 }
 
 interface Props {
   students: Student[];
   gradingComponents: GradingComponent[];
-  register: UseFormRegister<any>;
-  errors: FieldErrors<any>;
-  control: Control<any>;
   onStudentClick?: (student: Student) => void;
 }
 
 export const GradingTable = ({
   students,
   gradingComponents,
-  register,
-  errors,
-  control,
   onStudentClick,
 }: Props) => {
+  // Prepare defaultValues for all students and components
+  const defaultValues = {
+    students: students.reduce((acc, student) => {
+      acc[student.user_id] = gradingComponents.reduce((compAcc, comp) => {
+        const existingScore = student.scores?.find(
+          (s) => s.component_name.toLowerCase() === comp.name.toLowerCase()
+        );
+        compAcc[comp.name] = existingScore ? existingScore.score : 0;
+        return compAcc;
+      }, {} as Record<string, number>);
+      return acc;
+    }, {} as Record<string, Record<string, number>>),
+  };
+
+  const methods = useForm({ defaultValues });
+
+  const {
+    register,
+    control,
+    formState: { errors },
+    setValue,
+  } = methods;
+
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow className="h-[1.1rem]">
-            <TableCell>First Name</TableCell>
-            <TableCell>Last Name</TableCell>
-            {gradingComponents.map((comp) => (
-              <TableCell key={comp.name}>
-                {comp.name} ({comp.weight}%)
-              </TableCell>
-            ))}
-            <TableCell>Total</TableCell>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {students.map((student) => (
-            <StudentScoreRow
-              key={student.user_id}
-              student={student}
-              gradingComponents={gradingComponents}
-              register={register}
-              errors={errors}
-              control={control}
-              onClick={() => onStudentClick?.(student)}
-            />
-          ))}
-          {/* {students.map((student) => (
-            <>
-              <p>{student.user_id}</p>
-              <p>{student.first_name}</p>
-              <p>{student.last_name}</p>
-              <p>{student.scores?.map((s) => s.score)}</p>
-            </>
-          ))} */}
-        </TableBody>
-      </Table>
-    </div>
+    <FormProvider {...methods}>
+      <form>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="h-[1.1rem]">
+                <TableCell>First Name</TableCell>
+                <TableCell>Last Name</TableCell>
+                {gradingComponents.map((comp) => (
+                  <TableCell key={comp.name}>
+                    {comp.name} ({comp.weight}%)
+                  </TableCell>
+                ))}
+                <TableCell>Total</TableCell>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {students.map((student) => (
+                <StudentScoreRow
+                  key={student.user_id}
+                  student={student}
+                  gradingComponents={gradingComponents}
+                  register={register}
+                  errors={errors}
+                  control={control}
+                  onClick={() => onStudentClick?.(student)}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </form>
+    </FormProvider>
   );
 };

@@ -1,18 +1,37 @@
 "use client";
 
-import { useWatch } from "react-hook-form";
+import { useWatch, useFormContext } from "react-hook-form";
 import { ScoreInput } from "@/components/ScoreInput";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { useEffect } from "react";
 
+interface GradingComponent {
+  name: string;
+  weight: number;
+}
+
+interface StudentScore {
+  component_name: string;
+  score: number;
+}
+
+interface Student {
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  scores?: StudentScore[];
+}
+
 interface Props {
-  student: any;
-  gradingComponents: { name: string; weight: number }[];
+  student: Student;
+  gradingComponents: GradingComponent[];
   register: any;
   errors: any;
   control: any;
-  onClick?: (student: any) => void;
+  onClick?: (student: Student) => void;
 }
+
+const normalizeKey = (key: string) => key.toLowerCase().replace(/\s+/g, "_");
 
 export const StudentScoreRow = ({
   student,
@@ -22,19 +41,32 @@ export const StudentScoreRow = ({
   control,
   onClick,
 }: Props) => {
+  const { setValue } = useFormContext();
+
   const watchedValues = useWatch({
     control,
     name: `students.${student.user_id}`,
   });
 
   useEffect(() => {
-    console.log("Student data:", student);
-    // console.log("Watched values:", watchedValues);
-  }, [student, watchedValues]);
+    gradingComponents.forEach((comp) => {
+      const normalizedCompName = normalizeKey(comp.name);
+      const existingScore = student.scores?.find(
+        (s) => normalizeKey(s.component_name) === normalizedCompName
+      );
+      if (existingScore) {
+        setValue(
+          `students.${student.user_id}.${normalizedCompName}`,
+          existingScore.score
+        );
+      }
+    });
+  }, [gradingComponents, student, setValue]);
 
   const total = gradingComponents.reduce((sum, comp) => {
-    const val = watchedValues?.[comp.name] ?? 0;
-    const num = Number(val) || 0;
+    const normalizedCompName = normalizeKey(comp.name);
+    const val = watchedValues?.[normalizedCompName];
+    const num = typeof val === "number" ? val : parseFloat(val) || 0;
     return sum + (num > comp.weight ? comp.weight : num);
   }, 0);
 
@@ -51,17 +83,21 @@ export const StudentScoreRow = ({
       <TableCell onClick={() => onClick?.(student)}>
         {student.last_name}
       </TableCell>
-      {gradingComponents.map((comp) => (
-        <TableCell key={comp.name}>
-          <ScoreInput
-            name={`students.${student.user_id}.${comp.name}`}
-            register={register}
-            error={errors?.students?.[student.user_id]?.[comp.name]}
-            max={comp.weight}
-            value={student.scores?.find((s) => s.component_name === comp.name)}
-          />
-        </TableCell>
-      ))}
+
+      {gradingComponents.map((comp) => {
+        const normalizedCompName = normalizeKey(comp.name);
+        return (
+          <TableCell key={comp.name}>
+            <ScoreInput
+              name={`students.${student.user_id}.${normalizedCompName}`}
+              register={register}
+              error={errors?.students?.[student.user_id]?.[normalizedCompName]}
+              max={comp.weight}
+            />
+          </TableCell>
+        );
+      })}
+
       <TableCell className="font-semibold">{total}</TableCell>
     </TableRow>
   );
