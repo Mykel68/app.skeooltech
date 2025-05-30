@@ -34,19 +34,21 @@ interface Props {
   onStudentClick?: (student: Student) => void;
 }
 
+const normalizeKey = (key: string) => key.toLowerCase().replace(/\s+/g, "_");
+
 export const GradingTable = ({
   students,
   gradingComponents,
   onStudentClick,
 }: Props) => {
-  // Prepare defaultValues for all students and components
   const defaultValues = {
     students: students.reduce((acc, student) => {
       acc[student.user_id] = gradingComponents.reduce((compAcc, comp) => {
+        const key = normalizeKey(comp.name);
         const existingScore = student.scores?.find(
-          (s) => s.component_name.toLowerCase() === comp.name.toLowerCase()
+          (s) => normalizeKey(s.component_name) === key
         );
-        compAcc[comp.name] = existingScore ? existingScore.score : 0;
+        compAcc[key] = existingScore ? existingScore.score : 0;
         return compAcc;
       }, {} as Record<string, number>);
       return acc;
@@ -59,7 +61,6 @@ export const GradingTable = ({
     register,
     control,
     formState: { errors },
-    setValue,
   } = methods;
 
   return (

@@ -1,9 +1,8 @@
 "use client";
 
-import { useWatch, useFormContext } from "react-hook-form";
-import { ScoreInput } from "@/components/ScoreInput";
+import { useWatch } from "react-hook-form";
 import { TableRow, TableCell } from "@/components/ui/table";
-import { useEffect } from "react";
+import { Input } from "@/components/ui/input";
 
 interface GradingComponent {
   name: string;
@@ -41,31 +40,14 @@ export const StudentScoreRow = ({
   control,
   onClick,
 }: Props) => {
-  const { setValue } = useFormContext();
-
   const watchedValues = useWatch({
     control,
     name: `students.${student.user_id}`,
   });
 
-  useEffect(() => {
-    gradingComponents.forEach((comp) => {
-      const normalizedCompName = normalizeKey(comp.name);
-      const existingScore = student.scores?.find(
-        (s) => normalizeKey(s.component_name) === normalizedCompName
-      );
-      if (existingScore) {
-        setValue(
-          `students.${student.user_id}.${normalizedCompName}`,
-          existingScore.score
-        );
-      }
-    });
-  }, [gradingComponents, student, setValue]);
-
   const total = gradingComponents.reduce((sum, comp) => {
-    const normalizedCompName = normalizeKey(comp.name);
-    const val = watchedValues?.[normalizedCompName];
+    const key = normalizeKey(comp.name);
+    const val = watchedValues?.[key];
     const num = typeof val === "number" ? val : parseFloat(val) || 0;
     return sum + (num > comp.weight ? comp.weight : num);
   }, 0);
@@ -85,15 +67,30 @@ export const StudentScoreRow = ({
       </TableCell>
 
       {gradingComponents.map((comp) => {
-        const normalizedCompName = normalizeKey(comp.name);
+        const key = normalizeKey(comp.name);
+        const fieldName = `students.${student.user_id}.${key}`;
+        const error = errors?.students?.[student.user_id]?.[key];
+
         return (
           <TableCell key={comp.name}>
-            <ScoreInput
-              name={`students.${student.user_id}.${normalizedCompName}`}
-              register={register}
-              error={errors?.students?.[student.user_id]?.[normalizedCompName]}
-              max={comp.weight}
-            />
+            <div className="flex flex-col">
+              <Input
+                type="number"
+                min={0}
+                max={comp.weight}
+                className={error ? "border-red-500" : ""}
+                {...register(fieldName, {
+                  valueAsNumber: true,
+                  min: { value: 0, message: "Too low" },
+                  max: { value: comp.weight, message: `Max is ${comp.weight}` },
+                })}
+              />
+              {error && (
+                <span className="text-xs text-red-500 mt-1">
+                  {error.message}
+                </span>
+              )}
+            </div>
           </TableCell>
         );
       })}

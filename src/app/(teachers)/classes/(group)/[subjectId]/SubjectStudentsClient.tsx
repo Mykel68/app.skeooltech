@@ -109,57 +109,52 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
     }
   };
 
-  useEffect(() => {
-    if (schoolId && subjectId) {
-      axios
-        .get(`/api/student/scores/score-list/${schoolId}/${subjectId}`)
-        .then((res) => {
-          const scoreData = res.data?.data?.data;
-          if (scoreData?.length > 0) {
-            const extractedStudents = scoreData.map((entry: any) => ({
-              ...entry.student,
-              class: {
-                short: entry.class?.name || "N/A",
-                class_id: entry.class?.[0]?.class_id,
-                grade_level: entry.class?.[0]?.grade_level,
-              },
-            }));
-            setHasPreviousScores(true);
-            setStudents(extractedStudents);
+  axios
+    .get(`/api/student/scores/score-list/${schoolId}/${subjectId}`)
+    .then((res) => {
+      const result = res.data?.data?.data?.[0];
+      console.log("→ result:", result);
 
-            const first = scoreData[0];
-            const components = first.scores.map((s: any) => {
-              const matchedGrading = first.grading.find(
-                (g: any) => g.name === s.component_name
+      const scoreData = result?.students ?? [];
+      const grading = result?.grading ?? [];
+
+      if (scoreData.length > 0) {
+        const extractedStudents = scoreData.map((entry: any) => ({
+          ...entry.student,
+          class: {
+            short: result.class?.name || "N/A",
+            class_id: result.class?.class_id,
+            grade_level: result.class?.grade_level,
+          },
+        }));
+        setHasPreviousScores(true);
+        setStudents(extractedStudents);
+
+        // Use grading directly instead of first.scores.grading
+        const components = grading.map((g: any) => ({
+          name: g.name,
+          weight: g.weight,
+        }));
+        setGradingComponents(components);
+
+        // Set form values
+        setTimeout(() => {
+          scoreData.forEach((entry: any) => {
+            entry.student.scores.forEach((score: any) => {
+              setValue(
+                `${entry.student.user_id}.${score.component_name}`,
+                score.score
               );
-              return {
-                name: s.component_name,
-                weight: matchedGrading ? matchedGrading.weight : 0,
-              };
             });
-            // console.log("components", components);
-            setGradingComponents(components);
-            // console.log("setGradingComponents", gradingComponents);
-
-            setTimeout(() => {
-              scoreData.forEach((entry: any) => {
-                entry.scores.forEach((score: any) => {
-                  setValue(
-                    `${entry.student.user_id}.${score.component_name}`,
-                    score.score
-                  );
-                });
-              });
-            }, 100);
-          } else {
-            fetchStudentsAndComponents();
-          }
-        })
-        .catch(() => {
-          fetchStudentsAndComponents();
-        });
-    }
-  }, [schoolId, subjectId]);
+          });
+        }, 100);
+      } else {
+        fetchStudentsAndComponents();
+      }
+    })
+    .catch(() => {
+      fetchStudentsAndComponents();
+    });
 
   const fetchStudentsAndComponents = () => {
     axios
