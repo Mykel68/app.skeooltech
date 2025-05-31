@@ -35,19 +35,19 @@ interface UserState {
   session_id: string | null;
   term_id: string | null;
   setUser: (user: {
-    userId: string;
-    username: string;
-    role: string;
-    schoolId: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    schoolName: string;
-    schoolImage: string;
-    is_approved: boolean;
-    schoolCode: string;
-    session_id: string;
-    term_id: string;
+    userId?: string;
+    username?: string;
+    role?: string;
+    schoolId?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    schoolName?: string;
+    schoolImage?: string;
+    is_approved?: boolean;
+    schoolCode?: string;
+    session_id?: string;
+    term_id?: string;
   }) => void;
   clearUser: () => void;
 }

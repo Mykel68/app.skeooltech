@@ -18,7 +18,7 @@ export async function GET(
       `${backendUrl}/api/schools/code/${schoolCode}`
     );
 
-    // console.log("[API Route] Full response from backend:", response.data);
+    console.log("[API Route] Full response from backend:", response.data);
 
     const data = response.data;
 

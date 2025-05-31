@@ -23,6 +23,7 @@ export default function LoginPage() {
     queryFn: async () => {
       if (!schoolCode) throw new Error("No school code");
       const { data } = await axios.get(`/api/school/get-code/${schoolCode}`);
+      console.log("school", data);
       // populate store
       setSchoolDetails({
         schoolId: data.school_id,
@@ -30,7 +31,7 @@ export default function LoginPage() {
         name: data.name,
         schoolImage: data.school_image,
       });
-      return data;
+      return data.data;
     },
     enabled: !!schoolCode,
     initialData: schoolDetails,

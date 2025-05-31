@@ -37,13 +37,39 @@ export function SchoolCodeForm() {
 
   useEffect(() => {
     const schoolCodeFromUrl = searchParams.get("school_code");
+    const storedCode = localStorage.getItem("school_code");
 
-    // If no school code in store or url, redirect
-    if (!schoolDetails?.schoolCode && !schoolCodeFromUrl) {
+    const codeToUse = schoolCodeFromUrl || storedCode;
+
+    if (!schoolDetails?.schoolCode && codeToUse) {
+      const fetchData = async () => {
+        try {
+          const authService = new AuthService();
+          const response = await authService.client.get(
+            `/school/get-code/${codeToUse}`
+          );
+          const schoolData = response.data;
+
+          setSchoolDetails({
+            schoolId: schoolData.school_id,
+            schoolCode: schoolData.school_code,
+            name: schoolData.name,
+            schoolImage: schoolData.school_image,
+          });
+
+          localStorage.setItem("school_code", schoolData.school_code);
+        } catch (error) {
+          toast.error("Invalid or expired school code.");
+          router.push("/");
+        }
+      };
+
+      fetchData();
+    } else if (!schoolCodeFromUrl && !storedCode) {
       toast.error("School code is missing. Redirecting to home...");
       router.push("/");
     }
-  }, [schoolDetails, searchParams, router]);
+  }, [router, searchParams, schoolDetails?.schoolCode, setSchoolDetails]);
 
   const onSubmit = async (data: SchoolCodeFormData) => {
     try {
@@ -51,7 +77,8 @@ export function SchoolCodeForm() {
       const response = await authService.client.get(
         `/school/get-code/${data.schoolCode}`
       );
-      const schoolData = response.data;
+      const schoolData = response.data.data;
+      console.log("schoolData", schoolData);
 
       setSchoolDetails({
         schoolId: schoolData.school_id,
@@ -59,6 +86,8 @@ export function SchoolCodeForm() {
         name: schoolData.name,
         schoolImage: schoolData.school_image,
       });
+
+      localStorage.setItem("school_code", schoolData.school_code);
 
       toast.success("School code validated!");
       setOpenDialog(true);
@@ -103,7 +132,7 @@ export function SchoolCodeForm() {
           register={register("schoolCode")}
           error={errors.schoolCode}
         />
-        <Button type="submit" className="w-full ">
+        <Button type="submit" className="w-full">
           Continue
         </Button>
       </form>
