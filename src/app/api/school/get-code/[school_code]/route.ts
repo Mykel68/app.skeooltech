@@ -12,14 +12,16 @@ export async function GET(
       throw new Error("MAIN_BACKEND_URL is not set");
     }
 
+    const schoolCode = (await params).school_code;
+
     const response = await axios.get(
-      `${backendUrl}/api/schools/code/${(await params).school_code}`
+      `${backendUrl}/api/schools/code/${schoolCode}`
     );
 
-    // console.log("[API Route] Response from backend:", response.data);
+    // console.log("[API Route] Full response from backend:", response.data);
 
-    const { data } = response.data;
-    console.log("[API Route] Data from backend:", data);
+    const data = response.data;
+
     if (!data) {
       throw new Error("School not found");
     }
