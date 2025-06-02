@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { StudentScoreRow } from "./StudentScoreRow";
 import { useForm, FormProvider } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 
 interface GradingComponent {
   name: string;
@@ -32,6 +33,7 @@ interface Props {
   students: Student[];
   gradingComponents: GradingComponent[];
   onStudentClick?: (student: Student) => void;
+  register: ReturnType<typeof useForm>["register"];
 }
 
 const normalizeKey = (key: string) => key.toLowerCase().replace(/\s+/g, "_");
@@ -60,12 +62,18 @@ export const GradingTable = ({
   const {
     register,
     control,
+    handleSubmit,
     formState: { errors },
   } = methods;
 
+  const onSubmit = (data: any) => {
+    console.log("✅ Submitted scores:", data.students);
+    // send to backend or transform here
+  };
+
   return (
     <FormProvider {...methods}>
-      <form>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>

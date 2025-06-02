@@ -143,7 +143,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
       );
       const result = res.data?.data?.data?.[0];
 
-      if (!result) {
+      if (!result || result.students?.length === 0) {
         fetchStudentsAndComponents();
         return;
       }
@@ -253,6 +253,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
                 students={students}
                 gradingComponents={gradingComponents}
                 onStudentClick={openStudentSheet}
+                register={register}
               />
               <div className="mt-4">
                 <Button type="submit" disabled={isSaving}>
