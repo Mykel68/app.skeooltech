@@ -21,6 +21,7 @@ export async function PATCH(
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const body = await _request.json();
 
     const response = await axios.patch(
       `${backendUrl}/api/subjects/${(await params).school_id}/${
@@ -28,6 +29,7 @@ export async function PATCH(
           await params
         ).subject_id
       }`,
+      body,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -36,6 +38,7 @@ export async function PATCH(
     );
     return NextResponse.json(response.data, { status: 200 });
   } catch (error) {
+    console.log(error);
     if (axios.isAxiosError(error)) {
       return NextResponse.json(
         {
