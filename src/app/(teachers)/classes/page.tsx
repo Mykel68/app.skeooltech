@@ -55,17 +55,24 @@ const createSubject = async (
 };
 
 const updateSubject = async (
-  payload: SubjectFormValues & { subject_id: string }
+  payload: SubjectFormValues & { subject_id: string; schoolId: string }
 ) => {
-  await axios.patch(`/api/subject/update/${payload.subject_id}`, {
-    name: payload.name,
-    short: payload.short,
-    class_id: payload.class_id,
+  const { name, short, class_id, subject_id, schoolId } = payload;
+  await axios.patch(`/api/subject/update/${schoolId}/${subject_id}`, {
+    name,
+    short,
+    class_id,
   });
 };
 
-const deleteSubject = async (subject_id: string) => {
-  await axios.delete(`/api/subject/delete/${subject_id}`);
+const deleteSubject = async ({
+  subject_id,
+  schoolId,
+}: {
+  subject_id: string;
+  schoolId: string;
+}) => {
+  await axios.delete(`/api/subject/delete/${schoolId}/${subject_id}`);
 };
 
 export default function SubjectTable() {
@@ -133,12 +140,13 @@ export default function SubjectTable() {
   const deleteMutation = useMutation({
     mutationFn: deleteSubject,
     onSuccess: () => {
-      toast.success("Subject deleted");
+      toast.success("Subject deleted!");
       queryClient.invalidateQueries({
         queryKey: ["subjects", schoolId, userId],
       });
     },
-    onError: () => toast.error("Failed to delete subject"),
+    onError: (err: any) =>
+      toast.error(err.response?.data?.message || "Failed to delete subject"),
   });
 
   // Event handlers
@@ -146,6 +154,7 @@ export default function SubjectTable() {
     if (editMode && editingSubject) {
       updateMutation.mutate({
         ...values,
+        schoolId,
         subject_id: editingSubject.subject_id,
       });
     } else {
@@ -171,7 +180,7 @@ export default function SubjectTable() {
   };
 
   const handleDelete = (subjectId: string) => {
-    deleteMutation.mutate(subjectId);
+    deleteMutation.mutate({ subject_id: subjectId, schoolId });
   };
 
   const handleCreateClick = () => {
