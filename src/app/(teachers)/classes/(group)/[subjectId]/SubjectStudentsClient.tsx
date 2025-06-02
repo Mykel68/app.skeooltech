@@ -189,27 +189,23 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
   }, [schoolId, subjectId, fetchStudentsAndComponents, setValue]);
 
   const onSubmit = async (data: FormValues) => {
+    console.log("Form submit data:", data);
     setIsSaving(true);
     try {
       const classId = students?.[0]?.class?.class_id;
       if (!classId) throw new Error("Missing class ID");
 
-      const payload = {
-        scores: students.map((student) => {
-          const user_id = student.user_id;
-          const componentScores = data[user_id] || {};
+      const formattedScores = Object.entries(data).map(
+        ([userId, components]) => ({
+          user_id: userId,
+          scores: Object.entries(components).map(([component_name, score]) => ({
+            component_name,
+            score: Number(score),
+          })),
+        })
+      );
 
-          return {
-            user_id,
-            scores: Object.entries(componentScores).map(
-              ([component_name, score]) => ({
-                component_name,
-                score: Number(score) || 0,
-              })
-            ),
-          };
-        }),
-      };
+      const payload = { scores: formattedScores };
 
       if (hasPreviousScores) {
         await axios.patch(
@@ -224,7 +220,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
         );
         toast.success("Scores saved successfully.");
       }
-    } catch {
+    } catch (err) {
       toast.error("Failed to save scores.");
     } finally {
       setIsSaving(false);

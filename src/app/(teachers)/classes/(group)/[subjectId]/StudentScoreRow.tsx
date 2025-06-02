@@ -182,6 +182,42 @@ export const StudentScoreRow = ({
                   min={0}
                   max={comp.weight}
                   className={error ? "border-red-500" : ""}
+                  {...register(fieldName, {
+                    valueAsNumber: true,
+                    min: {
+                      value: 0,
+                      message: "Score must be at least 0",
+                    },
+                    max: {
+                      value: comp.weight,
+                      message: `Max score is ${comp.weight}`,
+                    },
+                    validate: (val: number | string) => {
+                      const numVal =
+                        typeof val === "string" ? parseFloat(val) : val;
+
+                      if (isNaN(numVal)) {
+                        return "Please enter a valid number";
+                      }
+
+                      if (numVal < 0) {
+                        return "Score cannot be negative";
+                      }
+
+                      if (numVal > comp.weight) {
+                        return `Score must not exceed ${comp.weight}`;
+                      }
+
+                      return true;
+                    },
+                  })}
+                />
+
+                {/* <Input
+                  type="number"
+                  min={0}
+                  max={comp.weight}
+                  className={error ? "border-red-500" : ""}
                   onInput={(e) => {
                     const target = e.target as HTMLInputElement;
                     // Remove any non-digit characters and limit length
@@ -291,7 +327,7 @@ export const StudentScoreRow = ({
                       return true;
                     },
                   })}
-                />
+                /> */}
                 <FieldError message={error?.message} />
               </div>
             </ScoreInputErrorBoundary>
