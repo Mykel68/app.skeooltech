@@ -12,7 +12,7 @@ import { GradingTable } from "./GradingTable";
 import { StudentScoreSheet } from "./StudentScoreSheet";
 
 interface Props {
-  subjectId: string;
+  classId: string;
 }
 
 type FormValues = {
@@ -28,7 +28,7 @@ type ScorePayload = {
   scores: { component_name: string; score: number }[];
 };
 
-export default function SubjectStudentsClient({ subjectId }: Props) {
+export default function SubjectStudentsClient({ classId }: Props) {
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [hasPreviousScores, setHasPreviousScores] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -40,6 +40,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
 
   const searchParams = useSearchParams();
   const router = useRouter();
+  const subjectId = searchParams.get("subjectId") || "";
   const subjectName = searchParams.get("subjectName") || "Unknown Subject";
   const schoolId = useUserStore((s) => s.schoolId);
 
@@ -111,9 +112,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
 
   const fetchStudentsAndComponents = useCallback(async () => {
     try {
-      const studentRes = await axios.get(
-        `/api/student/${schoolId}/${subjectId}`
-      );
+      const studentRes = await axios.get(`/api/student/${schoolId}/${classId}`);
       const studentList = studentRes.data?.data ?? [];
       setStudents(studentList);
 
@@ -121,7 +120,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
 
       try {
         const gradeRes = await axios.get(
-          `/api/grade_setting/get-grade-setting/${schoolId}/${subjectId}`
+          `/api/grade_setting/get-grade-setting/${schoolId}/${classId}`
         );
         const data = gradeRes.data?.data?.data;
         const components = data?.components || [];
@@ -141,12 +140,12 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
     } catch {
       setStudents([]);
     }
-  }, [schoolId, subjectId, router, subjectName]);
+  }, [schoolId, classId, router, subjectName]);
 
   const fetchScoreList = useCallback(async () => {
     try {
       const res = await axios.get(
-        `/api/student/scores/score-list/${schoolId}/${subjectId}`
+        `/api/student/scores/score-list/${schoolId}/${classId}`
       );
       const result = res.data?.data?.data?.[0];
 
@@ -214,7 +213,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
     } catch {
       fetchStudentsAndComponents();
     }
-  }, [schoolId, subjectId, fetchStudentsAndComponents, reset]);
+  }, [schoolId, classId, fetchStudentsAndComponents, reset]);
 
   // Whenever we get fresh students + components, recalc default values for a “blank slate” (no previous scores):
   useEffect(() => {
@@ -295,7 +294,7 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
       // Send PATCH for updates
       if (editPayload.length > 0) {
         await axios.patch(
-          `/api/student/scores/editBulk-student-scores/${schoolId}/${classId}`,
+          `/api/student/scores/editBulk-student-scores/${schoolId}/${classId}/${subjectId}`,
           { scores: editPayload }
         );
         toast.success("Scores updated successfully.");
@@ -324,10 +323,10 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
   };
   // Kick everything off:
   useEffect(() => {
-    if (schoolId && subjectId) {
+    if (schoolId && classId) {
       fetchScoreList();
     }
-  }, [schoolId, subjectId, fetchScoreList]);
+  }, [schoolId, classId, fetchScoreList]);
 
   return (
     <>
@@ -336,6 +335,12 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
           <h2 className="text-xl font-bold">Grade scores for {subjectName}</h2>
           <p className="text-muted-foreground">
             Class: {students?.[0]?.class?.short || "N/A"}
+            <br />
+            sch: {schoolId}
+            <br />
+            class: {classId}
+            <br />
+            sub:{subjectId}
           </p>
         </CardHeader>
         <CardContent>

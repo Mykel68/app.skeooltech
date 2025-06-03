@@ -31,9 +31,9 @@ export const SubjectTableRow: React.FC<SubjectTableRowProps> = ({
 
   const handleRowClick = () => {
     router.push(
-      `/classes/${subject.class_id}?subjectName=${encodeURIComponent(
+      `/classes/${subject.class_id}/students?subjectName=${encodeURIComponent(
         subject.name
-      )}`
+      )}&subjectId=${subject.subject_id}`
     );
   };
 
