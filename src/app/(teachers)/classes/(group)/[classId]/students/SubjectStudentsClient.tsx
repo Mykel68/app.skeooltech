@@ -16,8 +16,6 @@ interface Props {
 }
 
 type FormValues = {
-  // Top-level keys are student IDs,
-  // each mapping to an object whose keys are component names (normalized).
   [userId: string]: {
     [componentKey: string]: number;
   };
@@ -27,6 +25,9 @@ type ScorePayload = {
   user_id: string;
   scores: { component_name: string; score: number }[];
 };
+
+// (Utility for normalization, identical to StudentScoreRow’s normalizeKey)
+const normalizeKey = (key: string) => key.replace(/\s+/g, "_");
 
 export default function SubjectStudentsClient({ classId }: Props) {
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
@@ -44,7 +45,7 @@ export default function SubjectStudentsClient({ classId }: Props) {
   const subjectName = searchParams.get("subjectName") || "Unknown Subject";
   const schoolId = useUserStore((s) => s.schoolId);
 
-  // 1) Create a single form for everything:
+  // 1) Single form instance for all student scores:
   const {
     register,
     control,
@@ -54,14 +55,14 @@ export default function SubjectStudentsClient({ classId }: Props) {
     formState: { errors },
   } = useForm<FormValues>({ mode: "onChange", defaultValues: {} });
 
+  // We’ll use this to pull out “currently‐typed” values when opening the sheet:
   const watchedValues = useWatch({ control });
 
   const openStudentSheet = (student: any) => {
-    // We want to pass the currently watched values (if any)
-    // or fallback to 0. But: watchedValues keys must align with
-    // how we `reset(...)` them below.
+    // For each grading component, see if there’s already a watched value;
+    // otherwise default to 0. Keys must match exactly how we built defaultValues below.
     const currentScores = gradingComponents.map((comp) => {
-      const key = comp.name.replace(/\s+/g, "_");
+      const key = normalizeKey(comp.name);
       const existing = watchedValues?.[student.user_id]?.[key] ?? 0;
       return {
         component_name: comp.name,
@@ -80,8 +81,9 @@ export default function SubjectStudentsClient({ classId }: Props) {
       setIsSaving(true);
 
       // Write incoming newScores directly into the same form state
-      Object.entries(newScores).forEach(([compKey, value]) => {
-        setValue(`${selectedStudent.user_id}.${compKey}`, value);
+      Object.entries(newScores).forEach(([compName, value]) => {
+        const normalized = normalizeKey(compName);
+        setValue(`${selectedStudent.user_id}.${normalized}`, value);
       });
 
       const classId = selectedStudent.class?.class_id;
@@ -149,7 +151,7 @@ export default function SubjectStudentsClient({ classId }: Props) {
       );
       const result = res.data?.data?.data?.[0];
 
-      // If no existing scores for this subject, just fetch fresh students & components:
+      // If nothing saved yet, fallback to just students + components:
       if (!result || result.students?.length === 0) {
         fetchStudentsAndComponents();
         return;
@@ -159,6 +161,7 @@ export default function SubjectStudentsClient({ classId }: Props) {
       const grading = result.grading ?? [];
 
       if (scoreData.length > 0) {
+        // Build student objects
         const extractedStudents = scoreData.map((entry: any) => ({
           ...entry.student,
           class: {
@@ -170,14 +173,14 @@ export default function SubjectStudentsClient({ classId }: Props) {
         setHasPreviousScores(true);
         setStudents(extractedStudents);
 
+        // Build an array of { name, weight } for each component
         const components = grading.map((g: any) => ({
           name: g.name,
           weight: g.weight,
         }));
         setGradingComponents(components);
 
-        // After both students & gradingComponents are in state, we need to reset() the form:
-        // Build defaultValues: { [userId]: { [normalizedCompName]: score } }
+        // Now that we have both students & gradingComponents, we can build defaultValues
         setTimeout(() => {
           const defaults: FormValues = {};
 
@@ -186,19 +189,19 @@ export default function SubjectStudentsClient({ classId }: Props) {
             defaults[userId] = {};
 
             entry.student.scores.forEach((scoreObj: any) => {
-              // Normalize key exactly as we’ll use it in <StudentScoreRow>
-              const key = scoreObj.component_name.replace(/\s+/g, "_");
+              // Normalize to lowercase_with_underscores
+              const key = normalizeKey(scoreObj.component_name);
               defaults[userId][key] = scoreObj.score;
             });
           });
 
-          // It's possible some components are missing scores → fill them
+          // If any component is missing a saved score → fill with 0
           extractedStudents.forEach((stu: any) => {
             if (!defaults[stu.user_id]) {
               defaults[stu.user_id] = {};
             }
             grading.forEach((g: any) => {
-              const normalized = g.name.replace(/\s+/g, "_");
+              const normalized = normalizeKey(g.name);
               if (defaults[stu.user_id][normalized] == null) {
                 defaults[stu.user_id][normalized] = 0;
               }
@@ -215,7 +218,7 @@ export default function SubjectStudentsClient({ classId }: Props) {
     }
   }, [schoolId, classId, fetchStudentsAndComponents, reset]);
 
-  // Whenever we get fresh students + components, recalc default values for a “blank slate” (no previous scores):
+  // When we have students + components and there were no previous scores:
   useEffect(() => {
     if (
       students !== null &&
@@ -226,10 +229,9 @@ export default function SubjectStudentsClient({ classId }: Props) {
       students.forEach((stu) => {
         defaults[stu.user_id] = {};
         gradingComponents.forEach((comp) => {
-          const key = comp.name.replace(/\s+/g, "_");
-          // If the Student object has a `scores` array, use that; else default to 0
+          const key = normalizeKey(comp.name);
           const existingScoreObj = stu.scores?.find(
-            (s: any) => s.component_name.replace(/\s+/g, "_") === key
+            (s: any) => normalizeKey(s.component_name) === key
           );
           defaults[stu.user_id][key] = existingScoreObj
             ? existingScoreObj.score
@@ -251,7 +253,7 @@ export default function SubjectStudentsClient({ classId }: Props) {
       const editPayload: ScorePayload[] = [];
       const newPayload: ScorePayload[] = [];
 
-      // Process each student's scores
+      // For each student… figure out which scores already exist vs. new
       for (const [userId, comps] of Object.entries(data)) {
         const student = students.find((s) => s.user_id === userId);
         if (!student) continue;
@@ -261,7 +263,7 @@ export default function SubjectStudentsClient({ classId }: Props) {
 
         for (const [component_name, score] of Object.entries(comps)) {
           const alreadyExists = student.previousScores?.some(
-            (s: any) => s.component_name === component_name
+            (s: any) => normalizeKey(s.component_name) === component_name
           );
 
           const scoreEntry = {
@@ -282,7 +284,6 @@ export default function SubjectStudentsClient({ classId }: Props) {
             scores: existing,
           });
         }
-
         if (fresh.length) {
           newPayload.push({
             user_id: userId,
@@ -291,7 +292,7 @@ export default function SubjectStudentsClient({ classId }: Props) {
         }
       }
 
-      // Send PATCH for updates
+      // PATCH existing:
       if (editPayload.length > 0) {
         await axios.patch(
           `/api/student/scores/editBulk-student-scores/${schoolId}/${classId}/${subjectId}`,
@@ -300,7 +301,7 @@ export default function SubjectStudentsClient({ classId }: Props) {
         toast.success("Scores updated successfully.");
       }
 
-      // Send POST for new entries
+      // POST new:
       if (newPayload.length > 0) {
         await axios.post(
           `/api/student/scores/assign/${schoolId}/${classId}/${subjectId}`,
@@ -321,7 +322,8 @@ export default function SubjectStudentsClient({ classId }: Props) {
       setIsSaving(false);
     }
   };
-  // Kick everything off:
+
+  // Kick everything off once we have schoolId + classId
   useEffect(() => {
     if (schoolId && classId) {
       fetchScoreList();
@@ -343,7 +345,6 @@ export default function SubjectStudentsClient({ classId }: Props) {
           ) : students.length === 0 ? (
             <p>No students found for this subject.</p>
           ) : (
-            // 2) Only one <form>—the parent’s:
             <form onSubmit={handleSubmit(onSubmit)}>
               <GradingTable
                 students={students}

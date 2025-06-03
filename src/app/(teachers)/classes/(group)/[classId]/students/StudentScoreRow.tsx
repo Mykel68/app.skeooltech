@@ -4,7 +4,8 @@ import { TableRow, TableCell } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { useWatch } from "react-hook-form";
 
-const normalizeKey = (key: string) => key.toLowerCase().replace(/\s+/g, "_");
+// Exactly the same normalization logic as SubjectStudentsClient
+const normalizeKey = (key: string) => key.replace(/\s+/g, "_");
 
 export const StudentScoreRow = ({
   student,
@@ -21,13 +22,15 @@ export const StudentScoreRow = ({
   control: any;
   onClick?: (student: any) => void;
 }) => {
-  // Watch only this student’s slice of the form:
+  // Watch the entire student’s object by their user_id:
   const watchedValues = useWatch({
     control,
-    name: `students.${student.user_id}`,
+    name: student.user_id, // no “students.” prefix! Must match defaultValues’ keys.
   });
 
-  // Compute total based on whatever is currently typed:
+  console.log("watchedValues:", watchedValues); // for debugging
+
+  // Calculate total from whatever is currently in watchedValues:
   const total = gradingComponents.reduce((sum, comp) => {
     const key = normalizeKey(comp.name);
     const val = watchedValues?.[key];
@@ -46,7 +49,8 @@ export const StudentScoreRow = ({
 
       {gradingComponents.map((comp, index) => {
         const key = normalizeKey(comp.name);
-        const fieldName = `students.${student.user_id}.${key}`;
+        // Register at `${userId}.${lowercase_underscore_key}`
+        const fieldName = `${student.user_id}.${key}`;
         const error = errors?.[student.user_id]?.[key];
 
         return (
