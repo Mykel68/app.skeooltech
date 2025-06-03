@@ -23,6 +23,11 @@ type FormValues = {
   };
 };
 
+type ScorePayload = {
+  user_id: string;
+  scores: { component_name: string; score: number }[];
+};
+
 export default function SubjectStudentsClient({ subjectId }: Props) {
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [hasPreviousScores, setHasPreviousScores] = useState(false);
@@ -244,37 +249,76 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
       const classId = students?.[0]?.class?.class_id;
       if (!classId) throw new Error("Missing class ID");
 
-      // Transform into the API shape:
-      const formattedScores = Object.entries(data).map(([userId, comps]) => ({
-        user_id: userId,
-        scores: Object.entries(comps).map(([component_name, score]) => ({
-          component_name, // this key must match backend’s expected component_name
-          score: Number(score),
-        })),
-      }));
+      const editPayload: ScorePayload[] = [];
+      const newPayload: ScorePayload[] = [];
 
-      const payload = { scores: formattedScores };
+      // Process each student's scores
+      for (const [userId, comps] of Object.entries(data)) {
+        const student = students.find((s) => s.user_id === userId);
+        if (!student) continue;
 
-      if (hasPreviousScores) {
+        const existing: { component_name: string; score: number }[] = [];
+        const fresh: { component_name: string; score: number }[] = [];
+
+        for (const [component_name, score] of Object.entries(comps)) {
+          const alreadyExists = student.previousScores?.some(
+            (s: any) => s.component_name === component_name
+          );
+
+          const scoreEntry = {
+            component_name,
+            score: Number(score),
+          };
+
+          if (alreadyExists) {
+            existing.push(scoreEntry);
+          } else {
+            fresh.push(scoreEntry);
+          }
+        }
+
+        if (existing.length) {
+          editPayload.push({
+            user_id: userId,
+            scores: existing,
+          });
+        }
+
+        if (fresh.length) {
+          newPayload.push({
+            user_id: userId,
+            scores: fresh,
+          });
+        }
+      }
+
+      // Send PATCH for updates
+      if (editPayload.length > 0) {
         await axios.patch(
           `/api/student/scores/editBulk-student-scores/${schoolId}/${classId}`,
-          payload
+          { scores: editPayload }
         );
         toast.success("Scores updated successfully.");
-      } else {
-        await axios.post(
-          `/api/student/scores/assign/${schoolId}/${classId}`,
-          payload
-        );
-        toast.success("Scores saved successfully.");
+      }
+
+      // Send POST for new entries
+      if (newPayload.length > 0) {
+        await axios.post(`/api/student/scores/assign/${schoolId}/${classId}`, {
+          scores: newPayload,
+        });
+        toast.success("New scores saved successfully.");
+      }
+
+      if (!editPayload.length && !newPayload.length) {
+        toast.info("No changes to submit.");
       }
     } catch (err) {
+      console.error(err);
       toast.error("Failed to save scores.");
     } finally {
       setIsSaving(false);
     }
   };
-
   // Kick everything off:
   useEffect(() => {
     if (schoolId && subjectId) {
