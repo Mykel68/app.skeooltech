@@ -38,6 +38,7 @@ export default function SubjectStudentsClient({ classId }: Props) {
     { name: string; weight: number }[]
   >([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [initialValues, setInitialValues] = useState<FormValues>({});
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -243,7 +244,6 @@ export default function SubjectStudentsClient({ classId }: Props) {
   }, [students, gradingComponents, hasPreviousScores, reset]);
 
   const onSubmit = async (data: FormValues) => {
-    console.log("Form submit data:", data);
     setIsSaving(true);
 
     try {
@@ -251,72 +251,42 @@ export default function SubjectStudentsClient({ classId }: Props) {
       if (!classId) throw new Error("Missing class ID");
 
       const editPayload: ScorePayload[] = [];
-      const newPayload: ScorePayload[] = [];
 
-      // For each student… figure out which scores already exist vs. new
       for (const [userId, comps] of Object.entries(data)) {
         const student = students.find((s) => s.user_id === userId);
         if (!student) continue;
 
-        const existing: { component_name: string; score: number }[] = [];
-        const fresh: { component_name: string; score: number }[] = [];
+        const changedScores: { component_name: string; score: number }[] = [];
 
-        for (const [component_name, score] of Object.entries(comps)) {
-          const alreadyExists = student.previousScores?.some(
-            (s: any) => normalizeKey(s.component_name) === component_name
-          );
-
-          const scoreEntry = {
-            component_name,
-            score: Number(score),
-          };
-
-          if (alreadyExists) {
-            existing.push(scoreEntry);
-          } else {
-            fresh.push(scoreEntry);
+        for (const [componentKey, score] of Object.entries(comps)) {
+          const initialScore = initialValues?.[userId]?.[componentKey];
+          if (initialScore !== score) {
+            changedScores.push({
+              component_name: componentKey,
+              score: Number(score),
+            });
           }
         }
 
-        if (existing.length) {
+        if (changedScores.length > 0) {
           editPayload.push({
             user_id: userId,
-            scores: existing,
-          });
-        }
-        if (fresh.length) {
-          newPayload.push({
-            user_id: userId,
-            scores: fresh,
+            scores: changedScores,
           });
         }
       }
 
-      // PATCH existing:
       if (editPayload.length > 0) {
         await axios.patch(
-          `/api/student/scores/editBulk-student-scores/${schoolId}/${classId}/${subjectId}`,
-          { scores: editPayload }
+          `/api/student/scores/edit-student-scores/${schoolId}/${classId}`,
+          editPayload
         );
-        toast.success("Scores updated successfully.");
+        toast.success("Only changed scores updated.");
+        await fetchScoreList(); // refresh to sync
+      } else {
+        toast.info("No changes detected.");
       }
-
-      // POST new:
-      if (newPayload.length > 0) {
-        await axios.post(
-          `/api/student/scores/assign/${schoolId}/${classId}/${subjectId}`,
-          {
-            scores: newPayload,
-          }
-        );
-        toast.success("New scores saved successfully.");
-      }
-
-      if (!editPayload.length && !newPayload.length) {
-        toast.info("No changes to submit.");
-      }
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Failed to save scores.");
     } finally {
       setIsSaving(false);
