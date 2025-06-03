@@ -8,13 +8,13 @@ export async function PATCH(
     params: Promise<{
       school_id: string;
       class_id: string;
-      student_id: string;
+      subject_id: string;
     }>;
   }
 ) {
   const { school_id } = await context.params;
   const { class_id } = await context.params;
-  const { student_id } = await context.params;
+  const { subject_id } = await context.params;
   const backendUrl = process.env.MAIN_BACKEND_URL;
   if (!backendUrl) throw new Error("MAIN_BACKEND_URL is not set");
 
@@ -34,7 +34,7 @@ export async function PATCH(
 
   try {
     const response = await axios.patch(
-      `${backendUrl}/api/student-scores/bulk/${school_id}/${class_id}`,
+      `${backendUrl}/api/student-scores/${school_id}/${class_id}/${subject_id}`,
       body,
       {
         headers: {
