@@ -15,17 +15,19 @@ export const StudentScoreRow = ({
   onClick,
 }: {
   student: any;
-  gradingComponents: any[];
+  gradingComponents: { name: string; weight: number }[];
   register: any;
   errors: any;
   control: any;
   onClick?: (student: any) => void;
 }) => {
+  // Watch only this student’s slice of the form:
   const watchedValues = useWatch({
     control,
     name: `students.${student.user_id}`,
   });
 
+  // Compute total based on whatever is currently typed:
   const total = gradingComponents.reduce((sum, comp) => {
     const key = normalizeKey(comp.name);
     const val = watchedValues?.[key];
@@ -45,7 +47,7 @@ export const StudentScoreRow = ({
       {gradingComponents.map((comp, index) => {
         const key = normalizeKey(comp.name);
         const fieldName = `students.${student.user_id}.${key}`;
-        const error = errors?.students?.[student.user_id]?.[key];
+        const error = errors?.[student.user_id]?.[key];
 
         return (
           <TableCell key={index}>
