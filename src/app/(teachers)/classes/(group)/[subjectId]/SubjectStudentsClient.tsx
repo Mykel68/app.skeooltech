@@ -303,9 +303,12 @@ export default function SubjectStudentsClient({ subjectId }: Props) {
 
       // Send POST for new entries
       if (newPayload.length > 0) {
-        await axios.post(`/api/student/scores/assign/${schoolId}/${classId}`, {
-          scores: newPayload,
-        });
+        await axios.post(
+          `/api/student/scores/assign/${schoolId}/${classId}/${subjectId}`,
+          {
+            scores: newPayload,
+          }
+        );
         toast.success("New scores saved successfully.");
       }
 

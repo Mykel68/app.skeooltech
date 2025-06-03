@@ -4,10 +4,17 @@ import { cookies } from "next/headers";
 
 export async function POST(
   request: Request,
-  context: { params: Promise<{ school_id: string; class_id: string }> }
+  context: {
+    params: Promise<{
+      school_id: string;
+      class_id: string;
+      subject_id: string;
+    }>;
+  }
 ) {
   const { school_id } = await context.params;
   const { class_id } = await context.params;
+  const { subject_id } = await context.params;
   const backendUrl = process.env.MAIN_BACKEND_URL;
   if (!backendUrl) throw new Error("MAIN_BACKEND_URL is not set");
 
@@ -26,7 +33,7 @@ export async function POST(
 
   try {
     const response = await axios.post(
-      `${backendUrl}/api/student-scores/${school_id}/${class_id}`,
+      `${backendUrl}/api/student-scores/${school_id}/${class_id}/${subject_id}`,
       body,
       {
         headers: {
