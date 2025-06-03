@@ -335,12 +335,6 @@ export default function SubjectStudentsClient({ classId }: Props) {
           <h2 className="text-xl font-bold">Grade scores for {subjectName}</h2>
           <p className="text-muted-foreground">
             Class: {students?.[0]?.class?.short || "N/A"}
-            <br />
-            sch: {schoolId}
-            <br />
-            class: {classId}
-            <br />
-            sub:{subjectId}
           </p>
         </CardHeader>
         <CardContent>
