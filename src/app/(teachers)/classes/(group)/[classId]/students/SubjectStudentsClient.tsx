@@ -73,6 +73,8 @@ export default function SubjectStudentsClient({ classId }: Props) {
 
     try {
       setIsSaving(true);
+
+      // Normalize and update form values
       Object.entries(newScores).forEach(([compName, value]) => {
         const normalized = normalizeKey(compName);
         setValue(`${selectedStudent.user_id}.${normalized}`, value);
@@ -80,23 +82,38 @@ export default function SubjectStudentsClient({ classId }: Props) {
 
       const _classId = selectedStudent.class?.class_id;
       const user_id = selectedStudent.user_id;
-      if (!_classId || !user_id) throw new Error("Missing IDs");
 
+      if (!_classId || !user_id) {
+        throw new Error("Missing class ID or user ID.");
+      }
+
+      // Convert the scores into the required structure
+      const formattedScores = Object.entries(newScores).map(
+        ([component_name, score]) => ({
+          component_name: normalizeKey(component_name),
+          score: Number(score),
+        })
+      );
+
+      // Payload format consistent with the bulk edit API
       const payload = {
-        user_id,
-        scores: Object.entries(newScores).map(([component_name, score]) => ({
-          component_name,
-          score,
-        })),
+        scores: [
+          {
+            user_id,
+            scores: formattedScores,
+          },
+        ],
       };
 
       await axios.patch(
-        `/api/student/scores/edit-student-scores/${schoolId}/${_classId}`,
+        `/api/student/scores/editBulk-student-scores/${schoolId}/${_classId}/${subjectId}`,
         payload
       );
-      toast.success("Scores updated.");
+
+      toast.success("Scores updated successfully.");
       setIsSheetOpen(false);
-    } catch {
+    } catch (err) {
+      console.error(err);
       toast.error("Failed to update scores.");
     } finally {
       setIsSaving(false);
