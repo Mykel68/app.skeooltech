@@ -68,33 +68,35 @@ interface ApiResponse {
 }
 
 export default function ResultsPage() {
-  const { userId, schoolId } = useUserStore();
+  const { schoolId } = useUserStore();
   const [selectedClassId, setSelectedClassId] = useState<string>("");
 
-  // Fetch available classes for the student
+  // Fetch available classes for the school
   const { data: classes } = useQuery({
-    queryKey: ["student-classes", userId],
+    queryKey: ["school-classes", schoolId],
     queryFn: async () => {
-      const response = await axios.get(`/api/student/classes/${userId}`);
-      return response.data.data as ClassInfo[];
+      const response = await axios.get(
+        `/api/school/get-class-no-auth/${schoolId}`
+      );
+      return response.data.data.classes as ClassInfo[];
     },
-    enabled: !!userId,
+    enabled: !!schoolId,
   });
 
-  // Fetch results for selected class
+  // Fetch results for selected class using the new API endpoint
   const {
     data: results,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["student-results", userId, selectedClassId],
+    queryKey: ["class-results", schoolId, selectedClassId],
     queryFn: async () => {
       const response = await axios.get(
-        `/api/student/results/${userId}/${selectedClassId}`
+        `/api/result/${schoolId}/${selectedClassId}`
       );
       return response.data as ApiResponse;
     },
-    enabled: !!userId && !!selectedClassId,
+    enabled: !!schoolId && !!selectedClassId,
   });
 
   // Set default class when classes are loaded
@@ -150,13 +152,13 @@ export default function ResultsPage() {
     };
   };
 
-  if (!userId) {
+  if (!schoolId) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground">
-            Please log in to view your results
+            School information not found. Please log in again.
           </p>
         </div>
       </div>
@@ -173,11 +175,9 @@ export default function ResultsPage() {
           className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
         >
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Academic Results
-            </h1>
+            <h1 className="text-3xl font-bold tracking-tight">Class Results</h1>
             <p className="text-muted-foreground">
-              View your performance across all subjects
+              View academic performance across all subjects
             </p>
           </div>
 
@@ -256,7 +256,7 @@ export default function ResultsPage() {
                         <div className="flex items-center gap-2">
                           <BarChart3 className="h-5 w-5 text-primary" />
                           <span className="text-sm font-medium text-muted-foreground">
-                            Overall Average
+                            Class Average
                           </span>
                         </div>
                         <div className="mt-2">
@@ -299,7 +299,7 @@ export default function ResultsPage() {
                         <div className="flex items-center gap-2">
                           <Award className="h-5 w-5 text-green-600" />
                           <span className="text-sm font-medium text-muted-foreground">
-                            Passed Subjects
+                            Subjects with Pass Rate
                           </span>
                         </div>
                         <div className="mt-2">
