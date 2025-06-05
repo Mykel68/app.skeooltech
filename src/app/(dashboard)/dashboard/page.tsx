@@ -143,7 +143,6 @@ export default function StudentClassPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-2xl">Welcome, {studentName}</CardTitle>
-              <p>{studentId}</p>
               <p className="text-muted-foreground">Your class dashboard</p>
             </div>
             <GraduationCap className="h-8 w-8 text-primary" />
