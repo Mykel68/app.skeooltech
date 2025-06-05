@@ -155,7 +155,7 @@ export default function SubjectStudentsClient({ classId }: Props) {
   const fetchScoreList = useCallback(async () => {
     try {
       const res = await axios.get(
-        `/api/student/scores/score-list/${schoolId}/${classId}`
+        `/api/student/scores/score-list/${schoolId}/${classId}/${subjectId}`
       );
       const result = res.data?.data?.data?.[0];
 
