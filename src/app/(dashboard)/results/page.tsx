@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -11,573 +12,459 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import {
-  Trophy,
+  GraduationCap,
   TrendingUp,
-  Star,
+  TrendingDown,
+  Award,
+  BookOpen,
   BarChart3,
   Download,
-  Calendar,
-  GraduationCap,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
+import { useUserStore } from "@/store/userStore";
+import { cn } from "@/lib/utils";
 
-// Mock data for different terms and sessions with class information
-const allResultsData = {
-  "2022-2023": {
-    class: "Grade 10A",
-    "First Term": {
-      subjects: [
-        { name: "Mathematics", score: 78, grade: "B+" },
-        { name: "Physics", score: 75, grade: "B+" },
-        { name: "Chemistry", score: 72, grade: "B" },
-        { name: "Biology", score: 80, grade: "A" },
-        { name: "English", score: 77, grade: "B+" },
-        { name: "Computer Science", score: 85, grade: "A" },
-        { name: "Social Studies", score: 74, grade: "B+" },
-      ],
-      summary: {
-        averageScore: 77.3,
-        overallGrade: "B+",
-        classRank: 8,
-        passedSubjects: 7,
-      },
-    },
-    "Mid Term": {
-      subjects: [
-        { name: "Mathematics", score: 80, grade: "A" },
-        { name: "Physics", score: 78, grade: "B+" },
-        { name: "Chemistry", score: 75, grade: "B+" },
-        { name: "Biology", score: 82, grade: "A" },
-        { name: "English", score: 79, grade: "B+" },
-        { name: "Computer Science", score: 87, grade: "A" },
-        { name: "Social Studies", score: 76, grade: "B+" },
-      ],
-      summary: {
-        averageScore: 79.6,
-        overallGrade: "B+",
-        classRank: 7,
-        passedSubjects: 7,
-      },
-    },
-    "Final Term": {
-      subjects: [
-        { name: "Mathematics", score: 83, grade: "A" },
-        { name: "Physics", score: 80, grade: "A" },
-        { name: "Chemistry", score: 77, grade: "B+" },
-        { name: "Biology", score: 85, grade: "A" },
-        { name: "English", score: 81, grade: "A" },
-        { name: "Computer Science", score: 89, grade: "A" },
-        { name: "Social Studies", score: 78, grade: "B+" },
-      ],
-      summary: {
-        averageScore: 81.9,
-        overallGrade: "A",
-        classRank: 6,
-        passedSubjects: 7,
-      },
-    },
-  },
-  "2023-2024": {
-    class: "Grade 11A",
-    "First Term": {
-      subjects: [
-        { name: "Mathematics", score: 85, grade: "A" },
-        { name: "Physics", score: 82, grade: "B+" },
-        { name: "Chemistry", score: 78, grade: "B+" },
-        { name: "Biology", score: 88, grade: "A" },
-        { name: "English", score: 84, grade: "A" },
-        { name: "Computer Science", score: 90, grade: "A+" },
-        { name: "Social Studies", score: 80, grade: "B+" },
-      ],
-      summary: {
-        averageScore: 83.9,
-        overallGrade: "A",
-        classRank: 5,
-        passedSubjects: 7,
-      },
-    },
-    "Mid Term": {
-      subjects: [
-        { name: "Mathematics", score: 88, grade: "A" },
-        { name: "Physics", score: 85, grade: "A" },
-        { name: "Chemistry", score: 82, grade: "B+" },
-        { name: "Biology", score: 89, grade: "A" },
-        { name: "English", score: 86, grade: "A" },
-        { name: "Computer Science", score: 93, grade: "A+" },
-        { name: "Social Studies", score: 81, grade: "B+" },
-      ],
-      summary: {
-        averageScore: 86.3,
-        overallGrade: "A",
-        classRank: 4,
-        passedSubjects: 7,
-      },
-    },
-    "Final Term": {
-      subjects: [
-        { name: "Mathematics", score: 92, grade: "A+" },
-        { name: "Physics", score: 88, grade: "A" },
-        { name: "Chemistry", score: 85, grade: "A" },
-        { name: "Biology", score: 90, grade: "A+" },
-        { name: "English", score: 87, grade: "A" },
-        { name: "Computer Science", score: 95, grade: "A+" },
-        { name: "Social Studies", score: 82, grade: "B+" },
-      ],
-      summary: {
-        averageScore: 88.4,
-        overallGrade: "A",
-        classRank: 3,
-        passedSubjects: 7,
-      },
-    },
-  },
-  "2024-2025": {
-    class: "Grade 12A",
-    "First Term": {
-      subjects: [
-        { name: "Mathematics", score: 94, grade: "A+" },
-        { name: "Physics", score: 90, grade: "A+" },
-        { name: "Chemistry", score: 88, grade: "A" },
-        { name: "Biology", score: 92, grade: "A+" },
-        { name: "English", score: 89, grade: "A" },
-        { name: "Computer Science", score: 96, grade: "A+" },
-        { name: "Social Studies", score: 85, grade: "A" },
-      ],
-      summary: {
-        averageScore: 90.6,
-        overallGrade: "A+",
-        classRank: 2,
-        passedSubjects: 7,
-      },
-    },
-    "Mid Term": {
-      subjects: [
-        { name: "Mathematics", score: 96, grade: "A+" },
-        { name: "Physics", score: 92, grade: "A+" },
-        { name: "Chemistry", score: 90, grade: "A+" },
-        { name: "Biology", score: 94, grade: "A+" },
-        { name: "English", score: 91, grade: "A+" },
-        { name: "Computer Science", score: 98, grade: "A+" },
-        { name: "Social Studies", score: 87, grade: "A" },
-      ],
-      summary: {
-        averageScore: 92.6,
-        overallGrade: "A+",
-        classRank: 1,
-        passedSubjects: 7,
-      },
-    },
-  },
-};
+interface ScoreComponent {
+  score: number;
+  component_name: string;
+}
 
-const studentInfo = {
-  name: "Sarah Johnson",
-};
+interface Subject {
+  subject_id: string;
+  name: string;
+  short: string;
+}
 
-const getGradeColor = (grade) => {
-  const colors = {
-    "A+": "bg-emerald-500 text-white",
-    A: "bg-blue-500 text-white",
-    "B+": "bg-yellow-500 text-white",
-    B: "bg-orange-500 text-white",
-    C: "bg-red-500 text-white",
+interface SubjectWithScore {
+  subject: Subject;
+  score_id: string;
+  scores: ScoreComponent[];
+  total_score: number;
+}
+
+interface ClassInfo {
+  class_id: string;
+  name: string;
+  grade_level: string;
+}
+
+interface ResultsData {
+  class: ClassInfo;
+  subjectsWithScores: SubjectWithScore[];
+}
+
+interface ApiResponse {
+  success: boolean;
+  data: {
+    message: string;
+    data: ResultsData;
   };
-  return colors[grade] || "bg-gray-500 text-white";
-};
+}
 
-const getScoreBarWidth = (score) => `${score}%`;
+export default function ResultsPage() {
+  const { userId, schoolId } = useUserStore();
+  const [selectedClassId, setSelectedClassId] = useState<string>("");
 
-const getTrendIcon = (currentScore, previousScore) => {
-  if (!previousScore) return null;
-  if (currentScore > previousScore)
-    return <TrendingUp className="h-4 w-4 text-green-500" />;
-  if (currentScore < previousScore)
-    return (
-      <div className="h-4 w-4 text-red-500 rotate-180">
-        <TrendingUp />
-      </div>
-    );
-  return <div className="h-4 w-4 text-gray-400">-</div>;
-};
+  // Fetch available classes for the student
+  const { data: classes } = useQuery({
+    queryKey: ["student-classes", userId],
+    queryFn: async () => {
+      const response = await axios.get(`/api/student/classes/${userId}`);
+      return response.data.data as ClassInfo[];
+    },
+    enabled: !!userId,
+  });
 
-export default function StudentResultsReport() {
-  const [selectedSession, setSelectedSession] = useState("2024-2025");
-  const [selectedTerm, setSelectedTerm] = useState("Mid Term");
-  const [showDetails, setShowDetails] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  // Fetch results for selected class
+  const {
+    data: results,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["student-results", userId, selectedClassId],
+    queryFn: async () => {
+      const response = await axios.get(
+        `/api/student/results/${userId}/${selectedClassId}`
+      );
+      return response.data as ApiResponse;
+    },
+    enabled: !!userId && !!selectedClassId,
+  });
 
-  const availableSessions = Object.keys(allResultsData);
-  const availableTerms = Object.keys(
-    allResultsData[selectedSession] || {}
-  ).filter((key) => key !== "class");
-  const currentData = allResultsData[selectedSession]?.[selectedTerm];
-  const currentClass = allResultsData[selectedSession]?.class;
-
-  // Get previous term data for comparison
-  const getPreviousTermData = () => {
-    const termOrder = ["First Term", "Mid Term", "Final Term"];
-    const currentTermIndex = termOrder.indexOf(selectedTerm);
-
-    if (currentTermIndex > 0) {
-      const previousTerm = termOrder[currentTermIndex - 1];
-      return allResultsData[selectedSession]?.[previousTerm];
+  // Set default class when classes are loaded
+  useEffect(() => {
+    if (classes && classes.length > 0 && !selectedClassId) {
+      setSelectedClassId(classes[0].class_id);
     }
-    // If it's the first term of current session, try to get final term of previous session
-    if (currentTermIndex === 0) {
-      const sessionKeys = Object.keys(allResultsData);
-      const currentSessionIndex = sessionKeys.indexOf(selectedSession);
-      if (currentSessionIndex > 0) {
-        const previousSession = sessionKeys[currentSessionIndex - 1];
-        return allResultsData[previousSession]?.["Final Term"];
-      }
-    }
-    return null;
+  }, [classes, selectedClassId]);
+
+  const getGradeColor = (score: number, maxScore = 100) => {
+    const percentage = (score / maxScore) * 100;
+    if (percentage >= 80) return "text-green-600";
+    if (percentage >= 70) return "text-blue-600";
+    if (percentage >= 60) return "text-yellow-600";
+    if (percentage >= 50) return "text-orange-600";
+    return "text-red-600";
   };
 
-  const previousData = getPreviousTermData();
+  const getGradeBadgeVariant = (score: number, maxScore = 100) => {
+    const percentage = (score / maxScore) * 100;
+    if (percentage >= 80) return "default";
+    if (percentage >= 70) return "secondary";
+    if (percentage >= 60) return "outline";
+    return "destructive";
+  };
 
-  const handleSessionChange = (session) => {
-    setIsLoading(true);
-    setSelectedSession(session);
-    // Reset to first available term when session changes
-    const sessionTerms = Object.keys(allResultsData[session]).filter(
-      (key) => key !== "class"
+  const getGrade = (score: number, maxScore = 100) => {
+    const percentage = (score / maxScore) * 100;
+    if (percentage >= 80) return "A";
+    if (percentage >= 70) return "B";
+    if (percentage >= 60) return "C";
+    if (percentage >= 50) return "D";
+    return "F";
+  };
+
+  const calculateOverallStats = (subjects: SubjectWithScore[]) => {
+    if (!subjects.length)
+      return { average: 0, totalSubjects: 0, passedSubjects: 0 };
+
+    const totalScore = subjects.reduce(
+      (sum, subject) => sum + subject.total_score,
+      0
     );
-    const firstTerm = sessionTerms[0];
-    setSelectedTerm(firstTerm);
+    const average = totalScore / subjects.length;
+    const passedSubjects = subjects.filter(
+      (subject) => subject.total_score >= 50
+    ).length;
 
-    setTimeout(() => setIsLoading(false), 500);
+    return {
+      average: Math.round(average * 10) / 10,
+      totalSubjects: subjects.length,
+      passedSubjects,
+    };
   };
 
-  const handleTermChange = (term) => {
-    setIsLoading(true);
-    setSelectedTerm(term);
-    setTimeout(() => setIsLoading(false), 300);
-  };
-
-  if (!currentData) {
+  if (!userId) {
     return (
-      <div className="p-6 text-center">
-        No data available for selected period
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">
+            Please log in to view your results
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
-      {/* Header with Filters */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Academic Results</h1>
-          <p className="text-gray-600">
-            {studentInfo.name} • {currentClass}
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex items-center gap-2">
-            <GraduationCap className="h-4 w-4 text-gray-500" />
-            <Select value={selectedSession} onValueChange={handleSessionChange}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Select Session" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableSessions.map((session) => (
-                  <SelectItem key={session} value={session}>
-                    <div className="flex flex-col items-start">
-                      <span>{session}</span>
-                      <span className="text-xs text-gray-500">
-                        {allResultsData[session].class}
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+    <div className="min-h-screen bg-gradient-to-b from-background to-background/80 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        >
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Academic Results
+            </h1>
+            <p className="text-muted-foreground">
+              View your performance across all subjects
+            </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-gray-500" />
-            <Select value={selectedTerm} onValueChange={handleTermChange}>
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="Select Term" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableTerms.map((term) => (
-                  <SelectItem key={term} value={term}>
-                    {term}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
-      </div>
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <span className="ml-2 text-gray-600">Loading results...</span>
-        </div>
-      )}
-
-      {!isLoading && (
-        <>
-          {/* Performance Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="relative overflow-hidden">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Average Score</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-2xl font-bold text-blue-600">
-                        {currentData.summary.averageScore}%
-                      </p>
-                      {previousData &&
-                        getTrendIcon(
-                          currentData.summary.averageScore,
-                          previousData.summary.averageScore
-                        )}
-                    </div>
-                  </div>
-                  <TrendingUp className="h-8 w-8 text-blue-500" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Overall Grade</p>
-                    <p className="text-2xl font-bold text-emerald-600">
-                      {currentData.summary.overallGrade}
-                    </p>
-                  </div>
-                  <Star className="h-8 w-8 text-emerald-500" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Class Rank</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-2xl font-bold text-purple-600">
-                        #{currentData.summary.classRank}
-                      </p>
-                      {previousData &&
-                        getTrendIcon(
-                          previousData.summary.classRank,
-                          currentData.summary.classRank
-                        )}
-                    </div>
-                  </div>
-                  <Trophy className="h-8 w-8 text-purple-500" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Subjects Passed</p>
-                    <p className="text-2xl font-bold text-green-600">
-                      {currentData.summary.passedSubjects}/7
-                    </p>
-                  </div>
-                  <BarChart3 className="h-8 w-8 text-green-500" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Subject Results Table */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>
-                  Subject Performance - {selectedTerm} {selectedSession}
-                </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowDetails(!showDetails)}
-                >
-                  {showDetails ? "Hide Details" : "Show Details"}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {currentData.subjects.map((subject, index) => {
-                  const previousSubject = previousData?.subjects.find(
-                    (s) => s.name === subject.name
-                  );
-                  return (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-white rounded-lg border"
+          <div className="flex items-center gap-4">
+            {/* Class Selector */}
+            <div className="min-w-[200px]">
+              <Select
+                value={selectedClassId}
+                onValueChange={setSelectedClassId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select class" />
+                </SelectTrigger>
+                <SelectContent>
+                  {classes?.map((classItem) => (
+                    <SelectItem
+                      key={classItem.class_id}
+                      value={classItem.class_id}
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-medium text-gray-900">
-                            {subject.name}
-                          </h3>
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1">
-                              <span className="text-lg font-semibold text-gray-700">
-                                {subject.score}%
-                              </span>
-                              {previousSubject &&
-                                getTrendIcon(
-                                  subject.score,
-                                  previousSubject.score
-                                )}
-                            </div>
-                            <Badge className={getGradeColor(subject.grade)}>
-                              {subject.grade}
-                            </Badge>
-                          </div>
-                        </div>
-                        {showDetails && (
-                          <div className="mt-2">
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className={`h-2 rounded-full transition-all duration-500 ${
-                                  subject.score >= 90
-                                    ? "bg-emerald-500"
-                                    : subject.score >= 80
-                                    ? "bg-blue-500"
-                                    : subject.score >= 70
-                                    ? "bg-yellow-500"
-                                    : "bg-red-500"
-                                }`}
-                                style={{
-                                  width: getScoreBarWidth(subject.score),
-                                }}
-                              ></div>
-                            </div>
-                            {previousSubject && (
-                              <p className="text-xs text-gray-500 mt-1">
-                                Previous: {previousSubject.score}% (
-                                {previousSubject.grade})
-                              </p>
-                            )}
-                          </div>
-                        )}
+                      <div className="flex flex-col">
+                        <span className="font-medium">{classItem.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {classItem.grade_level}
+                        </span>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Performance Analysis */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Grade Distribution</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {["A+", "A", "B+", "B", "C"].map((grade) => {
-                    const count = currentData.subjects.filter(
-                      (s) => s.grade === grade
-                    ).length;
-                    const percentage =
-                      (count / currentData.subjects.length) * 100;
-                    return (
-                      <div
-                        key={grade}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            className={getGradeColor(grade)}
-                            variant="secondary"
-                          >
-                            {grade}
-                          </Badge>
-                          <span className="text-sm text-gray-600">
-                            {count} subjects
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-20 bg-gray-200 rounded-full h-2">
-                            <div
-                              className="h-2 bg-blue-500 rounded-full transition-all duration-300"
-                              style={{ width: `${percentage}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-sm font-medium">
-                            {percentage.toFixed(0)}%
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  Top Performing Subjects
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {currentData.subjects
-                    .sort((a, b) => b.score - a.score)
-                    .slice(0, 3)
-                    .map((subject, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-2 bg-gray-50 rounded"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                              index === 0
-                                ? "bg-yellow-500"
-                                : index === 1
-                                ? "bg-gray-400"
-                                : "bg-orange-500"
-                            }`}
-                          >
-                            {index + 1}
-                          </div>
-                          <span className="font-medium">{subject.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold">
-                            {subject.score}%
-                          </span>
-                          <Badge className={getGradeColor(subject.grade)}>
-                            {subject.grade}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
           </div>
-        </>
-      )}
+        </motion.div>
+
+        {isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span>Loading results...</span>
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <p className="text-destructive">
+                Failed to load results. Please try again.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {results?.data?.data && (
+          <>
+            {/* Overview Cards */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="grid grid-cols-1 md:grid-cols-4 gap-4"
+            >
+              {(() => {
+                const stats = calculateOverallStats(
+                  results.data.data.subjectsWithScores
+                );
+                return (
+                  <>
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-2">
+                          <BarChart3 className="h-5 w-5 text-primary" />
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Overall Average
+                          </span>
+                        </div>
+                        <div className="mt-2">
+                          <span
+                            className={cn(
+                              "text-2xl font-bold",
+                              getGradeColor(stats.average)
+                            )}
+                          >
+                            {stats.average}%
+                          </span>
+                          <Badge
+                            variant={getGradeBadgeVariant(stats.average)}
+                            className="ml-2"
+                          >
+                            {getGrade(stats.average)}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="h-5 w-5 text-blue-600" />
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Total Subjects
+                          </span>
+                        </div>
+                        <div className="mt-2">
+                          <span className="text-2xl font-bold">
+                            {stats.totalSubjects}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-2">
+                          <Award className="h-5 w-5 text-green-600" />
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Passed Subjects
+                          </span>
+                        </div>
+                        <div className="mt-2">
+                          <span className="text-2xl font-bold text-green-600">
+                            {stats.passedSubjects}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            /{stats.totalSubjects}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-2">
+                          <GraduationCap className="h-5 w-5 text-purple-600" />
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Class
+                          </span>
+                        </div>
+                        <div className="mt-2">
+                          <span className="text-lg font-bold">
+                            {results.data.data.class.grade_level}
+                          </span>
+                          <p className="text-xs text-muted-foreground">
+                            {results.data.data.class.name}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </>
+                );
+              })()}
+            </motion.div>
+
+            {/* Subject Results */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="space-y-4"
+            >
+              <h2 className="text-xl font-semibold">Subject Performance</h2>
+
+              <div className="grid gap-4">
+                {results.data.data.subjectsWithScores.map(
+                  (subjectData, index) => (
+                    <motion.div
+                      key={subjectData.subject.subject_id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 * index }}
+                    >
+                      <Card className="hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                <span className="text-sm font-bold text-primary">
+                                  {subjectData.subject.short}
+                                </span>
+                              </div>
+                              <div>
+                                <CardTitle className="text-lg">
+                                  {subjectData.subject.name}
+                                </CardTitle>
+                                <p className="text-sm text-muted-foreground">
+                                  {subjectData.scores.length} components
+                                  assessed
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="text-right">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={cn(
+                                    "text-2xl font-bold",
+                                    getGradeColor(subjectData.total_score)
+                                  )}
+                                >
+                                  {subjectData.total_score}
+                                </span>
+                                <Badge
+                                  variant={getGradeBadgeVariant(
+                                    subjectData.total_score
+                                  )}
+                                >
+                                  {getGrade(subjectData.total_score)}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center gap-1 mt-1">
+                                {subjectData.total_score >= 50 ? (
+                                  <TrendingUp className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <TrendingDown className="h-4 w-4 text-red-600" />
+                                )}
+                                <span className="text-xs text-muted-foreground">
+                                  {subjectData.total_score >= 50
+                                    ? "Pass"
+                                    : "Fail"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+
+                        <CardContent className="pt-0">
+                          <div className="space-y-3">
+                            <Progress
+                              value={subjectData.total_score}
+                              className="h-2"
+                            />
+
+                            <Separator />
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                              {subjectData.scores.map((component, idx) => (
+                                <div key={idx} className="space-y-1">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm font-medium">
+                                      {component.component_name}
+                                    </span>
+                                    <span
+                                      className={cn(
+                                        "text-sm font-bold",
+                                        getGradeColor(component.score)
+                                      )}
+                                    >
+                                      {component.score}
+                                    </span>
+                                  </div>
+                                  <Progress
+                                    value={component.score}
+                                    className="h-1"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+
+        {results?.data?.data?.subjectsWithScores?.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-12"
+          >
+            <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Results Available</h3>
+            <p className="text-muted-foreground">
+              No assessment results found for the selected class.
+            </p>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }
