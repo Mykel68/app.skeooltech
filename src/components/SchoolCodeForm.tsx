@@ -91,6 +91,7 @@ export function SchoolCodeForm() {
       const response = await authService.client.get(
         `/school/get-code/${data.schoolCode}`
       );
+
       const schoolData = response.data.data;
 
       setSchoolDetails({
@@ -103,7 +104,11 @@ export function SchoolCodeForm() {
       localStorage.setItem("school_code", schoolData.school_code);
 
       toast.success("School code validated!");
-      setOpenDialog(true);
+
+      // Delay dialog slightly to let spinner render visually
+      setTimeout(() => {
+        setOpenDialog(true);
+      }, 300); // 300ms delay
     } catch (error) {
       console.error("[SchoolCodeForm] Error:", error);
       toast.error("Invalid school code. Please try again.");
