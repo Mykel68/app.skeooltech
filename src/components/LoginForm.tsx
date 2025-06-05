@@ -4,26 +4,33 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { FormField } from "@/components/FormField";
-import { PasswordField } from "@/components/PasswordField";
-import { loginSchema, LoginFormData } from "@/schema/loginSchema";
-import { loginUser } from "@/services/httpClient";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { loginSchema, type LoginFormData } from "@/schema/loginSchema";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import Link from "next/link";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-import Cookies from "js-cookie";
-import { DecodedToken } from "@/types/auth";
+import type { DecodedToken } from "@/types/auth";
+import { motion } from "framer-motion";
+import { Eye, EyeOff, Loader2, LogIn, UserPlus } from "lucide-react";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export function LoginForm({ schoolCode }: { schoolCode: string }) {
   const router = useRouter();
   const setUser = useUserStore((state) => state.setUser);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    watch,
+    setValue,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -34,18 +41,15 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
     },
   });
 
+  const watchedValues = watch();
+
   const onSubmit = async (formData: LoginFormData) => {
-    console.log("[LoginForm] submitting", formData);
     try {
       const response = await axios.post(`/api/auth/login`, formData);
-      console.log("[LoginForm] response", response.data);
-
-      console.log("Response status", response.status);
 
       if (response.status === 200) {
         const token = response.data.token;
         const decoded = jwtDecode<DecodedToken>(token);
-        console.log("[LoginForm] Decoded token:", decoded);
 
         setUser({
           userId: decoded.user_id,
@@ -69,13 +73,13 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
           router.push(is_approved ? "/dashboard" : "/awaiting");
         } else if (role === "Admin") {
           toast.error("You are an Admin. Login on your admin portal.");
-          return; // 🔒 prevent further execution
+          return;
         } else {
           toast.error("Unknown role. Contact support.");
           return;
         }
 
-        toast.success("Login successful!");
+        toast.success("Welcome back! Login successful.");
       } else {
         toast.error("Login failed. Please try again.");
       }
@@ -84,63 +88,172 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
       toast.error(
         error.response?.data?.message ||
           error.message ||
-          "Login failed. Please try again."
+          "Login failed. Please check your credentials."
       );
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Hidden school code field */}
-      <input type="hidden" value={schoolCode} {...register("school_code")} />
+    <Card className="border shadow-lg">
+      <CardContent className="p-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Hidden school code field */}
+          <input
+            type="hidden"
+            value={schoolCode}
+            {...register("school_code")}
+          />
 
-      <div className="grid grid-cols-1 gap-4">
-        <FormField
-          id="username"
-          label="Username"
-          placeholder="Enter your username"
-          register={register("username")}
-          error={errors.username}
-        />
-        <PasswordField
-          id="password"
-          label="Password"
-          placeholder="Enter your password"
-          register={register("password")}
-          error={errors.password}
-        />
-      </div>
+          <div className="space-y-4">
+            {/* Username Field */}
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-sm font-medium">
+                Username
+              </Label>
+              <Input
+                id="username"
+                placeholder="Enter your username"
+                className={cn(
+                  "transition-colors",
+                  errors.username &&
+                    "border-destructive focus-visible:ring-destructive"
+                )}
+                {...register("username")}
+              />
+              {errors.username && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="text-sm font-medium text-destructive"
+                >
+                  {errors.username.message}
+                </motion.p>
+              )}
+            </div>
 
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="agreeToTerms"
-          {...register("agreeToTerms")}
-          className="h-4 w-4 rounded border-gray-300 text-green-500 focus:ring-green-500"
-        />
-        <label
-          htmlFor="agreeToTerms"
-          className="ml-2 block text-sm text-gray-700"
-        >
-          I agree to the terms & policy
-        </label>
-      </div>
+            {/* Password Field */}
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium">
+                Password
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  className={cn(
+                    "pr-10 transition-colors",
+                    errors.password &&
+                      "border-destructive focus-visible:ring-destructive"
+                  )}
+                  {...register("password")}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
+              {errors.password && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="text-sm font-medium text-destructive"
+                >
+                  {errors.password.message}
+                </motion.p>
+              )}
+            </div>
 
-      {errors.agreeToTerms && (
-        <p className="text-red-500 text-sm">{errors.agreeToTerms.message}</p>
-      )}
+            {/* Terms Checkbox */}
+            <div className="flex items-center space-x-2 mt-8">
+              <Checkbox
+                id="agreeToTerms"
+                checked={watchedValues.agreeToTerms}
+                onCheckedChange={(checked) =>
+                  setValue("agreeToTerms", checked as boolean)
+                }
+              />
+              <Label
+                htmlFor="agreeToTerms"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                I agree to the{" "}
+                <Link href="/terms" className="text-primary hover:underline">
+                  terms & conditions
+                </Link>
+              </Label>
+            </div>
+            {errors.agreeToTerms && (
+              <motion.p
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="text-sm font-medium text-destructive"
+              >
+                {errors.agreeToTerms.message}
+              </motion.p>
+            )}
+          </div>
 
-      <Button
-        type="submit"
-        className="w-full bg-green-500 hover:bg-green-600"
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? "Logging in..." : "Login"}
-      </Button>
-      <p className="text-sm">
-        No account yet?{" "}
-        <Link href={`/register?school_code=${schoolCode}`}>Create</Link>
-      </p>
-    </form>
+          <Button
+            type="submit"
+            className="w-full"
+            size="lg"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              <>
+                <LogIn className="mr-2 h-4 w-4" />
+                Sign In
+              </>
+            )}
+          </Button>
+        </form>
+      </CardContent>
+
+      <CardFooter className="flex flex-col gap-4 pt-0">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">Or</span>
+          </div>
+        </div>
+
+        <div className="text-center flex gap-4 space-y-2">
+          <p className="text-sm text-muted-foreground">
+            Don't have an account yet?
+          </p>
+          <Link
+            href={`/register?school_code=${schoolCode}`}
+            className="text-sm flex items-center justify-center hover:underline"
+          >
+            <UserPlus className="mr-1 h-3 w-3" />
+            Create Account
+          </Link>
+        </div>
+
+        <p className="text-xs text-center text-muted-foreground">
+          Need help?{" "}
+          <Link href="/support" className="text-green-700 hover:underline">
+            Contact Support
+          </Link>
+        </p>
+      </CardFooter>
+    </Card>
   );
 }
