@@ -104,7 +104,7 @@ export default function RegistrationPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
       {/* Background Video */}
       <video
         autoPlay
@@ -117,138 +117,218 @@ export default function RegistrationPage() {
         Your browser does not support the video tag.
       </video>
 
-      {/* Overlay */}
-      <div className="absolute top-0 left-0 w-full h-full bg-black/60 z-10" />
+      {/* Video Overlay with Green Gradient */}
+      <div className="absolute top-0 left-0 w-full h-full  bg-black/60 z-10"></div>
 
-      {/* Form Content */}
-      <div className="relative z-20 flex items-center justify-center min-h-screen p-4">
-        <Card className="w-full max-w-md shadow-2xl bg-white/90 backdrop-blur-lg rounded-2xl">
-          <CardHeader className="space-y-1 text-center">
-            <img
-              src={schoolImage}
-              alt={schoolName}
-              className="mx-auto w-12 h-12 rounded-full"
-            />
-            <CardTitle className="text-2xl font-bold uppercase">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 z-20">
+        <div className="absolute top-10 left-10 w-72 h-72 bg-emerald-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-1/3 right-20 w-96 h-96 bg-green-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-teal-500/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
+
+      {/* Floating Particles */}
+      <div className="absolute inset-0 overflow-hidden z-20">
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white/40 rounded-full animate-bounce delay-300"></div>
+        <div className="absolute top-3/4 right-1/3 w-1 h-1 bg-white/60 rounded-full animate-bounce delay-700"></div>
+        <div className="absolute bottom-1/3 left-3/4 w-3 h-3 bg-white/30 rounded-full animate-bounce delay-1000"></div>
+        <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-white/50 rounded-full animate-bounce delay-1500"></div>
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-30 flex items-center justify-center min-h-screen p-4">
+        <div className="w-full max-w-lg">
+          {/* School Info Header */}
+          <div className="text-center mb-8">
+            <div className="relative inline-block">
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full blur-lg opacity-60 animate-pulse"></div>
+              <img
+                src={schoolImage}
+                alt={schoolName}
+                className="relative w-20 h-20 rounded-full border-4 border-white/20 shadow-2xl mx-auto"
+              />
+            </div>
+            <h1 className="text-4xl font-bold text-white mt-4 tracking-wide">
               {schoolName}
-            </CardTitle>
-            <CardDescription>
-              Enter your information to register
-            </CardDescription>
-          </CardHeader>
+            </h1>
+            <p className="text-green-200 text-lg mt-2">Create Your Account</p>
+          </div>
 
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Registration Card */}
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Name Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  id="first_name"
-                  label="First Name"
-                  register={register("first_name")}
-                  error={errors.first_name}
-                />
-                <FormField
-                  id="last_name"
-                  label="Last Name"
-                  register={register("last_name")}
-                  error={errors.last_name}
-                />
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/90">
+                    First Name
+                  </label>
+                  <input
+                    {...register("first_name")}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-300"
+                    placeholder="Enter first name"
+                  />
+                  {errors.first_name && (
+                    <p className="text-green-300 text-sm">
+                      {errors.first_name.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/90">
+                    Last Name
+                  </label>
+                  <input
+                    {...register("last_name")}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-300"
+                    placeholder="Enter last name"
+                  />
+                  {errors.last_name && (
+                    <p className="text-green-300 text-sm">
+                      {errors.last_name.message}
+                    </p>
+                  )}
+                </div>
               </div>
 
-              <FormField
-                id="username"
-                label="Username"
-                register={register("username")}
-                error={errors.username}
-              />
+              {/* Username */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/90">
+                  Username
+                </label>
+                <input
+                  {...register("username")}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-300"
+                  placeholder="Choose a username"
+                />
+                {errors.username && (
+                  <p className="text-green-300 text-sm">
+                    {errors.username.message}
+                  </p>
+                )}
+              </div>
 
-              <FormField
-                id="email"
-                type="email"
-                label="Email"
-                register={register("email")}
-                error={errors.email}
-              />
+              {/* Email */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/90">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  {...register("email")}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-300"
+                  placeholder="Enter your email"
+                />
+                {errors.email && (
+                  <p className="text-green-300 text-sm">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
 
-              <FormField
-                id="password"
-                type="password"
-                label="Password"
-                register={register("password")}
-                error={errors.password}
-              />
+              {/* Password */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/90">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  {...register("password")}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-300"
+                  placeholder="Create a secure password"
+                />
+                {errors.password && (
+                  <p className="text-green-300 text-sm">
+                    {errors.password.message}
+                  </p>
+                )}
+              </div>
 
-              {/* Role Select */}
-              <div>
-                <label
-                  htmlFor="role"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
+              {/* Role Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/90">
                   Role
                 </label>
                 <select
-                  id="role"
                   {...register("role")}
-                  className="w-full border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-300"
                 >
-                  <option value="">Select role</option>
-                  <option value="Student">Student</option>
-                  <option value="Teacher">Teacher</option>
+                  <option value="" className="bg-gray-800">
+                    Select your role
+                  </option>
+                  <option value="Student" className="bg-gray-800">
+                    Student
+                  </option>
+                  <option value="Teacher" className="bg-gray-800">
+                    Teacher
+                  </option>
                 </select>
                 {errors.role && (
-                  <p className="text-sm text-red-600 mt-1">
+                  <p className="text-green-300 text-sm">
                     {errors.role.message}
                   </p>
                 )}
               </div>
 
-              {/* Class Select (Only for Student) */}
+              {/* Class Selection (Student Only) */}
               {selectedRole === "Student" && (
-                <div>
-                  <label
-                    htmlFor="class_id"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white/90">
                     Select Class
                   </label>
                   <select
-                    id="class_id"
                     {...register("class_id")}
-                    className="w-full border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-300"
                   >
-                    <option value="">Select a class</option>
+                    <option value="" className="bg-gray-800">
+                      Choose your class
+                    </option>
                     {classes.map((c) => (
-                      <option key={c.class_id} value={c.class_id}>
+                      <option
+                        key={c.class_id}
+                        value={c.class_id}
+                        className="bg-gray-800"
+                      >
                         {c.name}
                       </option>
                     ))}
                   </select>
                   {errors.class_id && (
-                    <p className="text-sm text-red-600 mt-1">
+                    <p className="text-green-300 text-sm">
                       {errors.class_id.message}
                     </p>
                   )}
                 </div>
               )}
 
-              <Button
+              {/* Submit Button */}
+              <button
                 type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-700"
                 disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 disabled:from-gray-500 disabled:to-gray-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl disabled:hover:scale-100 disabled:hover:shadow-none focus:outline-none focus:ring-4 focus:ring-emerald-300"
               >
-                {isSubmitting ? "Creating account..." : "Register"}
-              </Button>
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Creating Account...</span>
+                  </div>
+                ) : (
+                  "Create Account"
+                )}
+              </button>
             </form>
-          </CardContent>
 
-          <CardFooter className="justify-center">
-            <Link
-              href="/login"
-              className="text-sm text-blue-600 hover:underline"
-            >
-              Already have an account? Login
-            </Link>
-          </CardFooter>
-        </Card>
+            {/* Login Link */}
+            <div className="text-center mt-6">
+              <Link
+                href="/login"
+                className="text-green-200 hover:text-white transition-colors duration-300 text-sm underline-offset-4 hover:underline"
+              >
+                Already have an account? Sign in here
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
