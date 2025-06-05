@@ -144,7 +144,9 @@ export default function SubjectStudentsClient({ classId }: Props) {
         router.push(
           `/classes/settings?class=${_classId}&subjectName=${encodeURIComponent(
             subjectName
-          )}&gradeLevel=${encodeURIComponent(gradeLevel || "")}`
+          )}&gradeLevel=${encodeURIComponent(
+            gradeLevel || ""
+          )}&subjectId=${subjectId}`
         );
       }
     } catch {

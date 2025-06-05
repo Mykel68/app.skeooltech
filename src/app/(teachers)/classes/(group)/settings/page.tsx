@@ -54,6 +54,7 @@ export default function AssessmentSettings() {
   const subjectName = searchParams.get("subjectName");
   const class_id = searchParams.get("class");
   const gradeLevel = searchParams.get("gradeLevel");
+  const subjectId = searchParams.get("subjectId");
 
   const {
     control,
@@ -81,7 +82,7 @@ export default function AssessmentSettings() {
     queryKey: ["grade_components", schoolId, class_id],
     queryFn: async () => {
       const res = await axios.get(
-        `/api/grade_setting/get-grade-setting/${schoolId}/${class_id}`
+        `/api/grade_setting/get-grade-setting/${schoolId}/${class_id}/${subjectId}`
       );
       return res.data.data.data; // return full grading setting object
     },
@@ -99,8 +100,8 @@ export default function AssessmentSettings() {
       const isUpdate = Boolean(data?.components && data.components.length > 0);
 
       const endpoint = isUpdate
-        ? `/api/grade_setting/edit-class-grade-setting/${schoolId}/${class_id}`
-        : `/api/grade_setting/${schoolId}/${class_id}`;
+        ? `/api/grade_setting/edit-class-grade-setting/${schoolId}/${class_id}/${subjectId}`
+        : `/api/grade_setting/${schoolId}/${class_id}/${subjectId}`;
 
       const method = isUpdate ? "put" : "post";
 

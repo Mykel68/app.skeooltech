@@ -144,7 +144,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     {user.schoolName || "Loading..."}
                   </span>
                   {sessions.length <= 1 && currentSession ? (
-                    <p className="text-xs text-white mt-1">
+                    <p className="text-xs text-green-700 mt-1">
                       {currentSession.name} - {currentTerm?.name}
                     </p>
                   ) : (
