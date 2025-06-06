@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 interface ScoreComponent {
   score: number;
   component_name: string;
+  component_total: number; // <-- note this field
 }
 
 interface Subject {
@@ -46,6 +47,8 @@ interface SubjectWithScore {
   score_id: string;
   scores: ScoreComponent[];
   total_score: number;
+  grading_total: number; // <-- note this field
+  class_average?: number;
 }
 
 interface ClassInfo {
@@ -83,7 +86,7 @@ export default function ResultsPage() {
     enabled: !!schoolId,
   });
 
-  // Fetch results for selected class using the new API endpoint
+  // Fetch results for selected class
   const {
     data: results,
     isLoading,
@@ -99,7 +102,7 @@ export default function ResultsPage() {
     enabled: !!schoolId && !!selectedClassId,
   });
 
-  // Set default class when classes are loaded
+  // Set default class when classes load
   useEffect(() => {
     if (classes && classes.length > 0 && !selectedClassId) {
       setSelectedClassId(classes[0].class_id);
@@ -136,13 +139,13 @@ export default function ResultsPage() {
     if (!subjects.length)
       return { average: 0, totalSubjects: 0, passedSubjects: 0 };
 
-    const totalScore = subjects.reduce(
+    const totalScoreSum = subjects.reduce(
       (sum, subject) => sum + subject.total_score,
       0
     );
-    const average = totalScore / subjects.length;
+    const average = totalScoreSum / subjects.length;
     const passedSubjects = subjects.filter(
-      (subject) => subject.total_score >= 50
+      (subject) => subject.total_score >= subject.grading_total * 0.5
     ).length;
 
     return {
@@ -379,27 +382,40 @@ export default function ResultsPage() {
                                 <span
                                   className={cn(
                                     "text-2xl font-bold",
-                                    getGradeColor(subjectData.total_score)
+                                    getGradeColor(
+                                      (subjectData.total_score /
+                                        subjectData.grading_total) *
+                                        100
+                                    )
                                   )}
                                 >
-                                  {subjectData.total_score}
+                                  {subjectData.total_score} /{" "}
+                                  {subjectData.grading_total}
                                 </span>
                                 <Badge
                                   variant={getGradeBadgeVariant(
-                                    subjectData.total_score
+                                    (subjectData.total_score /
+                                      subjectData.grading_total) *
+                                      100
                                   )}
                                 >
-                                  {getGrade(subjectData.total_score)}
+                                  {getGrade(
+                                    (subjectData.total_score /
+                                      subjectData.grading_total) *
+                                      100
+                                  )}
                                 </Badge>
                               </div>
                               <div className="flex items-center gap-1 mt-1">
-                                {subjectData.total_score >= 50 ? (
+                                {subjectData.total_score >=
+                                subjectData.grading_total * 0.5 ? (
                                   <TrendingUp className="h-4 w-4 text-green-600" />
                                 ) : (
                                   <TrendingDown className="h-4 w-4 text-red-600" />
                                 )}
                                 <span className="text-xs text-muted-foreground">
-                                  {subjectData.total_score >= 50
+                                  {subjectData.total_score >=
+                                  subjectData.grading_total * 0.5
                                     ? "Pass"
                                     : "Fail"}
                                 </span>
@@ -410,8 +426,13 @@ export default function ResultsPage() {
 
                         <CardContent className="pt-0">
                           <div className="space-y-3">
+                            {/* Subject-level progress */}
                             <Progress
-                              value={subjectData.total_score}
+                              value={Math.round(
+                                (subjectData.total_score /
+                                  subjectData.grading_total) *
+                                  100
+                              )}
                               className="h-2"
                             />
 
@@ -427,14 +448,24 @@ export default function ResultsPage() {
                                     <span
                                       className={cn(
                                         "text-sm font-bold",
-                                        getGradeColor(component.score)
+                                        getGradeColor(
+                                          (component.score /
+                                            component.component_total) *
+                                            100
+                                        )
                                       )}
                                     >
-                                      {component.score}
+                                      {component.score} /{" "}
+                                      {component.component_total}
                                     </span>
                                   </div>
+                                  {/* Component-level progress */}
                                   <Progress
-                                    value={component.score}
+                                    value={Math.round(
+                                      (component.score /
+                                        component.component_total) *
+                                        100
+                                    )}
                                     className="h-1"
                                   />
                                 </div>
