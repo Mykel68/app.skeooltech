@@ -54,15 +54,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   }, [role]);
 
   const fetchSessions = async () => {
-    if (!schoolId) return;
+    if (!schoolId) return [];
     const res = await axios.get(`/api/term/get-all-terms/${schoolId}`);
     const sessionData = res.data?.data?.data?.sessions;
-
     if (!sessionData) throw new Error("Failed to fetch sessions");
 
     return Object.entries(sessionData).map(([id, session]) => ({
-      ...session,
       session_id: id,
+      ...session,
     }));
   };
 
@@ -72,16 +71,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     fetchSessions()
       .then((data) => {
         setSessions(data);
-        const defaultSession = data[0];
-        const defaultTerm = defaultSession.terms?.[0] ?? null;
-
-        setCurrentSession(defaultSession);
-        setCurrentTerm(defaultTerm);
-
-        setUser({
-          session_id: defaultSession.session_id,
-          term_id: defaultTerm?.term_id || null,
-        });
+        if (data.length > 0) {
+          const defaultSession = data[0];
+          const defaultTerm = defaultSession.terms?.[0] ?? null;
+          setCurrentSession(defaultSession);
+          setCurrentTerm(defaultTerm);
+          setUser({
+            session_id: defaultSession.session_id,
+            term_id: defaultTerm?.term_id || null,
+          });
+        }
       })
       .catch((err) => console.error("Error fetching sessions:", err));
   }, [schoolId, setUser]);
@@ -89,15 +88,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const handleSessionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = e.target.value;
     const selectedSession = sessions.find((s) => s.session_id === selectedId);
-    if (selectedSession) {
-      const firstTerm = selectedSession.terms?.[0] || null;
-      setCurrentSession(selectedSession);
-      setCurrentTerm(firstTerm);
-      setUser({
-        session_id: selectedSession.session_id,
-        term_id: firstTerm?.term_id || null,
-      });
-    }
+    if (!selectedSession) return;
+
+    const firstTerm = selectedSession.terms?.[0] || null;
+    setCurrentSession(selectedSession);
+    setCurrentTerm(firstTerm);
+    setUser({
+      session_id: selectedSession.session_id,
+      term_id: firstTerm?.term_id || null,
+    });
   };
 
   const handleTermChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -105,10 +104,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     const selectedTerm = currentSession?.terms?.find(
       (t: any) => t.term_id === selectedTermId
     );
-    if (selectedTerm) {
-      setCurrentTerm(selectedTerm);
-      setUser({ term_id: selectedTerm.term_id });
-    }
+    if (!selectedTerm) return;
+
+    setCurrentTerm(selectedTerm);
+    setUser({ term_id: selectedTerm.term_id });
   };
 
   if (!hydrated) {
@@ -139,16 +138,21 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                       "/placeholder-logo.png";
                   }}
                 />
-                <div className="">
+                <div>
                   <span className="text-base font-semibold">
                     {user.schoolName || "Loading..."}
                   </span>
-                  {sessions.length <= 1 && currentSession ? (
+
+                  {/**
+                   * Now we check how many terms the *currentSession* has,
+                   * not how many sessions in total.
+                   */}
+                  {currentSession?.terms?.length <= 1 ? (
                     <p className="text-xs text-green-700 mt-1">
-                      {currentSession.name} - {currentTerm?.name}
+                      {currentSession?.name} – {currentTerm?.name || "No Term"}
                     </p>
                   ) : (
-                    <div className="grid grid-cols-2 gap-4 w-full">
+                    <div className="grid grid-cols-2 gap-4 w-full mt-1">
                       <select
                         value={currentSession?.session_id || ""}
                         onChange={handleSessionChange}
@@ -164,19 +168,17 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                         ))}
                       </select>
 
-                      {currentSession?.terms?.length > 0 && (
-                        <select
-                          value={currentTerm?.term_id || ""}
-                          onChange={handleTermChange}
-                          className="text-xs bg-popover text-black rounded px-2 py-1 outline-none focus:ring-1 ring-white w-full"
-                        >
-                          {currentSession.terms.map((term: any) => (
-                            <option key={term.term_id} value={term.term_id}>
-                              {term.name}
-                            </option>
-                          ))}
-                        </select>
-                      )}
+                      <select
+                        value={currentTerm?.term_id || ""}
+                        onChange={handleTermChange}
+                        className="text-xs bg-popover text-black rounded px-2 py-1 outline-none focus:ring-1 ring-white w-full"
+                      >
+                        {currentSession.terms.map((term: any) => (
+                          <option key={term.term_id} value={term.term_id}>
+                            {term.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   )}
                 </div>
