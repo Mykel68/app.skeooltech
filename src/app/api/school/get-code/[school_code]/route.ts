@@ -1,33 +1,25 @@
 import { NextResponse } from "next/server";
-import axios from "axios";
+import axios from "axios"; // ← import axios here
+import { backendClient } from "@/lib/backendClient";
 
 export async function GET(
   _request: Request,
   context: { params: Promise<{ school_code: string }> }
 ) {
   try {
-    const { params } = await context;
-    const backendUrl = process.env.MAIN_BACKEND_URL;
-    if (!backendUrl) {
-      throw new Error("MAIN_BACKEND_URL is not set");
-    }
+    const { school_code } = await context.params;
 
-    const schoolCode = (await params).school_code;
-
-    const response = await axios.get(
-      `${backendUrl}/api/schools/code/${schoolCode}`
-    );
-
-    console.log("[API Route] Full response from backend:", response.data);
-
-    const data = response.data;
+    // Use backendClient (baseURL + x-api-key are already set)
+    const resp = await backendClient.get(`/api/schools/code/${school_code}`);
+    const data = resp.data;
 
     if (!data) {
-      throw new Error("School not found");
+      return NextResponse.json({ error: "School not found" }, { status: 404 });
     }
 
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
+    // Use axios.isAxiosError(...) instead of backendClient.isAxiosError
     if (axios.isAxiosError(error)) {
       console.error("[API Route] Axios error:", error.response?.data);
       return NextResponse.json(
