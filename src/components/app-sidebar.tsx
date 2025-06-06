@@ -71,9 +71,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     fetchSessions()
       .then((data) => {
         setSessions(data);
-        if (data.length > 0) {
-          const defaultSession = data[0];
-          const defaultTerm = defaultSession.terms?.[0] ?? null;
+        const defaultSession = data.find((s) => s.terms?.length > 0) || null;
+        const defaultTerm = defaultSession?.terms?.[0] || null;
+
+        if (defaultSession) {
           setCurrentSession(defaultSession);
           setCurrentTerm(defaultTerm);
           setUser({
@@ -143,10 +144,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     {user.schoolName || "Loading..."}
                   </span>
 
-                  {/**
-                   * Now we check how many terms the *currentSession* has,
-                   * not how many sessions in total.
-                   */}
                   {currentSession?.terms?.length <= 1 ? (
                     <p className="text-xs text-green-700 mt-1">
                       {currentSession?.name} – {currentTerm?.name || "No Term"}
@@ -173,11 +170,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                         onChange={handleTermChange}
                         className="text-xs bg-popover text-black rounded px-2 py-1 outline-none focus:ring-1 ring-white w-full"
                       >
-                        {currentSession.terms.map((term: any) => (
-                          <option key={term.term_id} value={term.term_id}>
-                            {term.name}
-                          </option>
-                        ))}
+                        {Array.isArray(currentSession?.terms) &&
+                          currentSession.terms.map((term: any) => (
+                            <option key={term.term_id} value={term.term_id}>
+                              {term.name}
+                            </option>
+                          ))}
                       </select>
                     </div>
                   )}
