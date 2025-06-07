@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import { useUserStore } from '@/store/userStore';
 import { Button } from '@/components/ui/button';
 import {
 	Table,
@@ -11,89 +10,23 @@ import {
 	TableRow,
 	TableHead,
 } from '@/components/ui/table';
-import { toast } from 'sonner';
-import { useUserStore } from '@/store/userStore';
 import { Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-// Import separated components
 import { SubjectTableLoadingState } from './LoadingStates';
 import { SubjectEmptyState } from './EmptyState';
 import { SubjectErrorState } from './ErrorState';
-import {
-	SubjectForm,
-	SubjectFormValues,
-	Subject,
-	SchoolClass,
-} from './SubjectForm';
+import { SubjectForm, SubjectFormValues, Subject } from './SubjectForm';
 import { AssessmentSettingsDialog } from './SubjectSettingsDialog';
 import { SubjectTableRow } from './SubjectTableRows';
-import { useRouter } from 'next/navigation';
-
-// API Functions
-const fetchClasses = async (schoolId: string): Promise<SchoolClass[]> => {
-	const { data } = await axios.get(`/api/class/get-all-class/${schoolId}`);
-	return data.data.classes;
-};
-
-const fetchSubjects = async (
-	userId: string,
-	sessionId: string,
-	termId: string
-): Promise<Subject[]> => {
-	const { data } = await axios.get(
-		`/api/subject/by-teacher/${sessionId}/${termId}/${userId}`
-	);
-	return data.data.subjects;
-};
-
-const createSubject = async (
-	payload: SubjectFormValues & {
-		schoolId: string;
-		sessionId: string;
-		termId: string;
-	}
-) => {
-	const { name, short, class_id, sessionId, termId } = payload;
-	await axios.post(
-		`/api/subject/create-new/${sessionId}/${termId}/${class_id}`,
-		{
-			name,
-			short,
-		}
-	);
-};
-
-const updateSubject = async (
-	payload: SubjectFormValues & { subject_id: string; schoolId: string }
-) => {
-	const { name, short, class_id, subject_id, schoolId } = payload;
-	await axios.patch(`/api/subject/update/${schoolId}/${subject_id}`, {
-		name,
-		short,
-		class_id,
-	});
-};
-
-const deleteSubject = async ({
-	subject_id,
-	schoolId,
-}: {
-	subject_id: string;
-	schoolId: string;
-}) => {
-	await axios.delete(`/api/subject/delete/${schoolId}/${subject_id}`);
-};
+import { useSubjects } from './useSubjects';
 
 export default function SubjectTable() {
-	const router = useRouter();
 	const schoolId = useUserStore((s) => s.schoolId)!;
 	const userId = useUserStore((s) => s.userId)!;
 	const termId = useUserStore((s) => s.term_id)!;
-	const sessionId = useUserStore((s) => s.session_id);
-	const queryClient = useQueryClient();
+	const sessionId = useUserStore((s) => s.session_id)!;
 
-	// State management
 	const [formOpen, setFormOpen] = useState(false);
 	const [editMode, setEditMode] = useState(false);
 	const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
@@ -102,95 +35,41 @@ export default function SubjectTable() {
 		null
 	);
 
-	// Queries
-	const {
-		data: classes = [],
-		isLoading: classesLoading,
-		error: classesError,
-	} = useQuery({
-		queryKey: ['classes', schoolId],
-		queryFn: () => fetchClasses(schoolId),
-		enabled: !!schoolId,
-	});
+	const handleFormClose = () => {
+		setFormOpen(false);
+		setEditMode(false);
+		setEditingSubject(null);
+	};
 
 	const {
-		data: subjects = [],
-		isLoading: subjectsLoading,
-		error: subjectsError,
-		refetch: refetchSubjects,
-	} = useQuery({
-		queryKey: ['subjects', schoolId, userId, sessionId, termId],
-		queryFn: () => fetchSubjects(userId, sessionId!, termId),
-		enabled: !!schoolId && !!userId && !!sessionId && !!termId,
+		classesQuery,
+		subjectsQuery,
+		createSubjectMutation,
+		updateSubjectMutation,
+		deleteSubjectMutation,
+	} = useSubjects({
+		schoolId,
+		userId,
+		sessionId,
+		termId,
+		onFormClose: handleFormClose,
 	});
 
-	// Mutations
-	const createMutation = useMutation({
-		mutationFn: createSubject,
-		onSuccess: () => {
-			toast.success('Subject created!');
-			queryClient.invalidateQueries({
-				queryKey: ['subjects', schoolId, userId],
-			});
-			handleFormClose();
-		},
-		onError: (err: any) =>
-			toast.error(
-				err.response?.data?.message || 'Failed to create subject'
-			),
-	});
-
-	const updateMutation = useMutation({
-		mutationFn: updateSubject,
-		onSuccess: () => {
-			toast.success('Subject updated!');
-			queryClient.invalidateQueries({
-				queryKey: ['subjects', schoolId, userId],
-			});
-			handleFormClose();
-		},
-		onError: (err: any) =>
-			toast.error(
-				err.response?.data?.message || 'Failed to update subject'
-			),
-	});
-
-	const deleteMutation = useMutation({
-		mutationFn: deleteSubject,
-		onSuccess: () => {
-			toast.success('Subject deleted!');
-			queryClient.invalidateQueries({
-				queryKey: ['subjects', schoolId, userId],
-			});
-		},
-		onError: (err: any) =>
-			toast.error(
-				err.response?.data?.message || 'Failed to delete subject'
-			),
-	});
-
-	// Event handlers
 	const handleFormSubmit = (values: SubjectFormValues) => {
 		if (editMode && editingSubject) {
-			updateMutation.mutate({
+			updateSubjectMutation.mutate({
 				...values,
 				schoolId,
 				subject_id: editingSubject.subject_id,
 			});
 		} else {
-			createMutation.mutate({
+			createSubjectMutation.mutate({
 				...values,
 				schoolId,
-				sessionId: sessionId!,
-				termId: termId!,
+				sessionId,
+				termId,
 			});
 		}
-	};
-
-	const handleFormClose = () => {
-		setFormOpen(false);
-		setEditMode(false);
-		setEditingSubject(null);
 	};
 
 	const handleEdit = (subject: Subject) => {
@@ -205,7 +84,7 @@ export default function SubjectTable() {
 	};
 
 	const handleDelete = (subjectId: string) => {
-		deleteMutation.mutate({ subject_id: subjectId, schoolId });
+		deleteSubjectMutation.mutate({ subject_id: subjectId, schoolId });
 	};
 
 	const handleCreateClick = () => {
@@ -213,11 +92,10 @@ export default function SubjectTable() {
 	};
 
 	const handleRetry = () => {
-		refetchSubjects();
+		subjectsQuery.refetch();
 	};
 
-	// Loading state
-	if (subjectsLoading || classesLoading) {
+	if (subjectsQuery.isLoading || classesQuery.isLoading) {
 		return (
 			<div className='p-4'>
 				<Card className='w-full'>
@@ -229,8 +107,7 @@ export default function SubjectTable() {
 		);
 	}
 
-	// Error state
-	if (subjectsError || classesError) {
+	if (subjectsQuery.error || classesQuery.error) {
 		return (
 			<div className='p-4'>
 				<Card className='w-full'>
@@ -257,40 +134,28 @@ export default function SubjectTable() {
 				</CardHeader>
 
 				<CardContent>
-					{/* Form Dialog */}
 					<SubjectForm
 						open={formOpen}
 						onOpenChange={setFormOpen}
 						editMode={editMode}
 						editingSubject={editingSubject}
-						classes={classes}
+						classes={classesQuery.data || []}
 						onSubmit={handleFormSubmit}
 						isSubmitting={
-							createMutation.isPending || updateMutation.isPending
+							createSubjectMutation.isPending ||
+							updateSubjectMutation.isPending
 						}
 					/>
 
-					{/* Settings Dialog */}
 					<AssessmentSettingsDialog
 						open={settingsOpen}
 						onOpenChange={setSettingsOpen}
-						classId={
-							settingsSubject?.class_id
-								? settingsSubject?.class_id
-								: ' '
-						}
-						subjectName={
-							settingsSubject?.name ? settingsSubject?.name : ' '
-						}
-						gradeLevel={
-							settingsSubject?.grade_level
-								? settingsSubject?.grade_level
-								: ' '
-						}
+						classId={settingsSubject?.class_id || ''}
+						subjectName={settingsSubject?.name || ''}
+						gradeLevel={settingsSubject?.grade_level || ''}
 					/>
 
-					{/* Content */}
-					{subjects.length === 0 ? (
+					{subjectsQuery.data?.length === 0 ? (
 						<SubjectEmptyState onCreateClick={handleCreateClick} />
 					) : (
 						<Table>
@@ -304,14 +169,16 @@ export default function SubjectTable() {
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{subjects.map((subject) => (
+								{subjectsQuery.data?.map((subject) => (
 									<SubjectTableRow
 										key={subject.subject_id}
 										subject={subject}
 										onEdit={handleEdit}
 										onSettings={handleSettings}
 										onDelete={handleDelete}
-										isDeleting={deleteMutation.isPending}
+										isDeleting={
+											deleteSubjectMutation.isPending
+										}
 									/>
 								))}
 							</TableBody>
