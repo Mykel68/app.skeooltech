@@ -19,6 +19,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type ClassDetails = {
   class_id: string;
@@ -128,7 +129,54 @@ export default function StudentClassPage() {
   const currentAttendance = 92;
 
   if (isClassLoading || isSubjectsLoading) {
-    return <p className="p-4">Loading class information...</p>;
+    return (
+      <div className="py-2 max-w-6xl mx-auto space-y-6">
+        {/* Skeleton for class header */}
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-1/2 mb-2" />
+            <Skeleton className="h-4 w-1/3" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <Skeleton className="h-10 w-32" />
+              <Separator orientation="vertical" className="h-12" />
+              <div className="flex gap-6">
+                <Skeleton className="h-10 w-16" />
+                <Skeleton className="h-10 w-16" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Skeleton for subjects */}
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-5 w-1/4" />
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full rounded-lg" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Skeleton for assignments */}
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-5 w-1/4" />
+          </CardHeader>
+          <CardContent>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full mb-3 rounded-lg" />
+            ))}
+            <Skeleton className="h-10 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (!classDetails) {

@@ -23,9 +23,7 @@ export default function StudentLayout({
   }, [role, router]);
 
   // Optionally, you can prevent rendering while checking:
-  if (!role || role !== "Student") {
-    router.replace("/");
-  }
+  if (!role || role !== "Student") return null;
 
   return (
     <SidebarProvider
