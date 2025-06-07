@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/sidebar";
 import { logout } from "@/utils/logout";
 import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/userStore";
 
 export function NavUser({
   user,
@@ -38,6 +39,13 @@ export function NavUser({
 }) {
   const router = useRouter();
   const { isMobile } = useSidebar();
+  const storeUser = useUserStore();
+
+  // Get initials for fallback
+  const fallbackInitials =
+    `${storeUser.firstName?.[0] ?? ""}${
+      storeUser.lastName?.[0] ?? ""
+    }`.toUpperCase() || "??";
 
   const handleLogout = () => {
     logout();
@@ -55,7 +63,9 @@ export function NavUser({
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
                 <AvatarImage src={user.avatar} alt={user.username} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-lg">
+                  {fallbackInitials}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.username}</span>
@@ -76,7 +86,9 @@ export function NavUser({
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.username} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">
+                    {fallbackInitials}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.username}</span>
