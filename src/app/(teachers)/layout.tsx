@@ -23,7 +23,9 @@ export default function TeacherLayout({
   }, [role, router]);
 
   // Wait until we confirm the user role to avoid flickering
-  if (!role || role !== "Teacher") return null;
+  if (!role || role !== "Teacher") {
+    router.replace("/");
+  }
 
   return (
     <SidebarProvider
