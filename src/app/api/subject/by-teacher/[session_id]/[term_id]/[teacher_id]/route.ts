@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import axios from 'axios';
 import { cookies } from 'next/headers';
+import { backendClient } from '@/lib/backendClient';
 
 // ✅ GET school profile
 export async function GET(
@@ -31,7 +32,7 @@ export async function GET(
 			);
 		}
 
-		const response = await axios.get(
+		const response = await backendClient.get(
 			`${backendUrl}/api/subjects/teacher/${
 				(
 					await params

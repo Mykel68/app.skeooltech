@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import axios from 'axios';
 import { cookies } from 'next/headers';
+import { backendClient } from '@/lib/backendClient';
 
 const classSchemaa = z.object({
 	name: z.string().min(2),
@@ -40,7 +41,7 @@ export async function POST(
 			);
 		}
 
-		const resp = await axios.post(
+		const resp = await backendClient.post(
 			`${backendUrl}/api/subjects/${class_id}?session_id=${session_id}&term_id=${term_id}`,
 			validated,
 			{ headers: { Authorization: `Bearer ${token}` } }
