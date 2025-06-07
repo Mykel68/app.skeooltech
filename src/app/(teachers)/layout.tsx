@@ -1,21 +1,31 @@
-import AppBreadcrumb from "@/components/app-breadcrumb";
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/userStore";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
-export default function DashboardLayout({
+export default function TeacherLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+  const user = useUserStore();
+  const role = user?.role;
+
+  useEffect(() => {
+    if (role && role !== "Teacher") {
+      router.replace("/dashboard"); // avoid back button returning to restricted area
+    }
+  }, [role, router]);
+
+  // Wait until we confirm the user role to avoid flickering
+  if (!role || role !== "Teacher") return null;
+
   return (
-    // <SidebarProvider>
-    //   <AppSidebar />
-    //   <main>
-    //     <SidebarTrigger />
-    //     {children}
-    //   </main>
-    // </SidebarProvider>
     <SidebarProvider
       style={
         {
@@ -28,7 +38,6 @@ export default function DashboardLayout({
       <SidebarInset>
         <SiteHeader />
         <main className="p-3">
-          {/* <AppBreadcrumb /> */}
           <div className="mt-4">{children}</div>
         </main>
       </SidebarInset>
