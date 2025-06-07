@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
 	Table,
@@ -38,10 +37,13 @@ const fetchClasses = async (schoolId: string): Promise<SchoolClass[]> => {
 };
 
 const fetchSubjects = async (
-	schoolId: string,
-	userId: string
+	userId: string,
+	sessionId: string,
+	termId: string
 ): Promise<Subject[]> => {
-	const { data } = await axios.get(`/api/subject/by-teacher/${userId}`);
+	const { data } = await axios.get(
+		`/api/subject/by-teacher/${sessionId}/${termId}/${userId}`
+	);
 	return data.data.subjects;
 };
 
@@ -79,6 +81,8 @@ export default function SubjectTable() {
 	const router = useRouter();
 	const schoolId = useUserStore((s) => s.schoolId)!;
 	const userId = useUserStore((s) => s.userId)!;
+	const termId = useUserStore((s) => s.term_id)!;
+	const sessionId = useUserStore((s) => s.session_id);
 	const queryClient = useQueryClient();
 
 	// State management
@@ -107,9 +111,9 @@ export default function SubjectTable() {
 		error: subjectsError,
 		refetch: refetchSubjects,
 	} = useQuery({
-		queryKey: ['subjects', schoolId, userId],
-		queryFn: () => fetchSubjects(schoolId, userId),
-		enabled: !!schoolId && !!userId,
+		queryKey: ['subjects', schoolId, userId, sessionId, termId],
+		queryFn: () => fetchSubjects(userId, sessionId!, termId),
+		enabled: !!schoolId && !!userId && !!sessionId && !!termId,
 	});
 
 	// Mutations
