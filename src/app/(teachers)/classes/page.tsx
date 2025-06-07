@@ -48,12 +48,20 @@ const fetchSubjects = async (
 };
 
 const createSubject = async (
-	payload: SubjectFormValues & { schoolId: string }
+	payload: SubjectFormValues & {
+		schoolId: string;
+		sessionId: string;
+		termId: string;
+	}
 ) => {
-	await axios.post(`/api/subject/create-new/${payload.class_id}`, {
-		name: payload.name,
-		short: payload.short,
-	});
+	const { name, short, class_id, sessionId, termId } = payload;
+	await axios.post(
+		`/api/subject/create-new/${sessionId}/${termId}/${class_id}`,
+		{
+			name,
+			short,
+		}
+	);
 };
 
 const updateSubject = async (
@@ -170,7 +178,12 @@ export default function SubjectTable() {
 				subject_id: editingSubject.subject_id,
 			});
 		} else {
-			createMutation.mutate({ ...values, schoolId });
+			createMutation.mutate({
+				...values,
+				schoolId,
+				sessionId: sessionId!,
+				termId: termId!,
+			});
 		}
 	};
 

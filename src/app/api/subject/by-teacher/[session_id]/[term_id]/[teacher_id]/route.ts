@@ -36,7 +36,7 @@ export async function GET(
 				(
 					await params
 				).teacher_id
-			}?session_id${(await params).session_id}&term_id=${
+			}?session_id=${(await params).session_id}&term_id=${
 				(
 					await params
 				).term_id
