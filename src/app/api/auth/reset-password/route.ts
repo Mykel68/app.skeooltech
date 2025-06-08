@@ -4,7 +4,8 @@ import axios from 'axios';
 import { backendClient } from '@/lib/backendClient';
 
 const classSchemaa = z.object({
-	email: z.string().email(),
+	token: z.string(),
+	newPassword: z.string(),
 });
 
 export async function POST(request: Request) {
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
 		const backendUrl = process.env.MAIN_BACKEND_URL!;
 
 		const resp = await backendClient.post(
-			`${backendUrl}/api/auth/forgot-password`,
+			`${backendUrl}/api/auth/reset-password`,
 			validated
 		);
 
