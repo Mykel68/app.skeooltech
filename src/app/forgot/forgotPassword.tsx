@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Loader2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
+import { useMutation } from '@tanstack/react-query';
+import axios from 'axios';
 
 const formSchema = z.object({
 	email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -25,18 +27,28 @@ export function ForgotPasswordForm() {
 		resolver: zodResolver(formSchema),
 	});
 
-	const onSubmit = async (data: ForgotPasswordData) => {
-		try {
-			// Replace with your actual forgot password API call
-			console.log('Sending reset email to:', data.email);
+	const sendPasswordResetEmail = async (email: string) => {
+		const res = await axios.post('/api/auth/forgot-password', { email });
+		return res.data;
+	};
 
-			// Fake delay for UX effect
-			await new Promise((res) => setTimeout(res, 1500));
-
+	const { mutate, isPending } = useMutation({
+		mutationFn: async (data: ForgotPasswordData) => {
+			return sendPasswordResetEmail(data.email);
+		},
+		onSuccess: () => {
 			toast.success('Password reset email sent!');
-		} catch (error) {
-			toast.error('Something went wrong. Please try again.');
-		}
+		},
+		onError: (error: any) => {
+			const message =
+				error?.response?.data?.message ||
+				'Something went wrong. Please try again.';
+			toast.error(message);
+		},
+	});
+
+	const onSubmit = (data: ForgotPasswordData) => {
+		mutate(data);
 	};
 
 	return (
@@ -69,10 +81,10 @@ export function ForgotPasswordForm() {
 
 			<Button
 				type='submit'
-				disabled={isSubmitting}
+				disabled={isPending}
 				className='w-full group'
 			>
-				{isSubmitting ? (
+				{isPending ? (
 					<Loader2 className='mr-2 h-4 w-4 animate-spin' />
 				) : (
 					<Mail className='mr-2 h-4 w-4 group-hover:scale-110 transition-transform' />
