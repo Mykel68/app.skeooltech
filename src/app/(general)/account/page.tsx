@@ -1,6 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
 	Edit2,
 	Save,
@@ -12,80 +15,61 @@ import {
 	Shield,
 	Bell,
 	Eye,
-	Check,
 	AlertCircle,
 } from 'lucide-react';
 import { useUserStore } from '@/store/userStore';
+import axios from 'axios';
 
 const UserProfile = () => {
-	// Mock store values - in real app these would come from useUserStore
-	const username = useUserStore((s) => s.username);
-	const firstName = useUserStore((s) => s.firstName);
-	const lastName = useUserStore((s) => s.lastName);
-	const role = useUserStore((s) => s.role);
-	const email = useUserStore((s) => s.email);
+	const { username, firstName, lastName, email, role, schoolName, userId } =
+		useUserStore();
+	const [isEditing, setIsEditing] = React.useState(false);
 
-	const [profile, setProfile] = useState({
-		username: username,
-		email: email,
-		first_name: firstName,
-		last_name: lastName,
-		role: role,
-		school_name: 'University of Technology',
-		avatar: null,
+	const {
+		register,
+		handleSubmit,
+		reset,
+		formState: { isDirty, isSubmitting, errors },
+	} = useForm({
+		defaultValues: {
+			username,
+			email,
+		},
 	});
 
-	const [isEditing, setIsEditing] = useState(false);
-	const [editedProfile, setEditedProfile] = useState({ ...profile });
-	const [showSuccess, setShowSuccess] = useState(false);
-
-	const handleEdit = () => {
-		setIsEditing(true);
-		setEditedProfile({ ...profile });
+	const updateUserProfile = async (data) => {
+		const res = await axios.patch(`/api/user/profile/${userId}`, data);
+		return res.data;
 	};
 
-	const handleSave = async () => {
-		// Simulate API call
-		await new Promise((resolve) => setTimeout(resolve, 500));
+	const mutation = useMutation({
+		mutationFn: updateUserProfile,
+		onSuccess: () => {
+			toast.success('Profile updated successfully!');
+			setIsEditing(false);
+		},
+		onError: () => {
+			toast.error('Something went wrong. Try again.');
+		},
+	});
 
-		setProfile({
-			...profile,
-			username: editedProfile.username,
-			email: editedProfile.email,
-		});
-		setIsEditing(false);
-		setShowSuccess(true);
-		setTimeout(() => setShowSuccess(false), 3000);
-	};
-
-	const handleCancel = () => {
-		setEditedProfile({ ...profile });
-		setIsEditing(false);
-	};
-
-	const handleChange = (field, value) => {
-		setEditedProfile((prev) => ({
-			...prev,
-			[field]: value,
-		}));
+	const onSubmit = (data) => {
+		mutation.mutate(data);
 	};
 
 	const getInitials = () => {
-		return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+		return `${firstName?.charAt(0) || ''}${
+			lastName?.charAt(0) || ''
+		}`.toUpperCase();
+	};
+
+	const handleCancel = () => {
+		reset();
+		setIsEditing(false);
 	};
 
 	return (
 		<div className='min-h-screen p-4'>
-			{/* Success Toast */}
-			{showSuccess && (
-				<div className='fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center space-x-2 animate-in slide-in-from-top duration-300'>
-					<Check className='w-5 h-5' />
-					<span className='font-medium'>
-						Profile updated successfully!
-					</span>
-				</div>
-			)}
-
 			<div className='max-w-7xl mx-auto'>
 				{/* Main Profile Card */}
 				<div className='bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 overflow-hidden'>
@@ -116,13 +100,13 @@ const UserProfile = () => {
 										</p>
 										<div className='flex items-center space-x-2'>
 											<div className='px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full'>
-												<span className='text-white text-sm font-medium'>
+												<span className='text-white text-sm font-medium capitalize'>
 													{role}
 												</span>
 											</div>
 											<div className='px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full'>
 												<span className='text-white text-sm'>
-													{profile.school_name}
+													{schoolName}
 												</span>
 											</div>
 										</div>
@@ -132,7 +116,8 @@ const UserProfile = () => {
 								{/* Action Buttons */}
 								{!isEditing ? (
 									<button
-										onClick={handleEdit}
+										type='button'
+										onClick={() => setIsEditing(true)}
 										className='self-start bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 hover:scale-105 shadow-lg'
 									>
 										<Edit2 className='w-5 h-5' />
@@ -143,17 +128,23 @@ const UserProfile = () => {
 								) : (
 									<div className='flex space-x-3'>
 										<button
-											onClick={handleSave}
-											className='bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 hover:scale-105 shadow-lg'
+											type='submit'
+											form='profile-form'
+											disabled={isSubmitting || !isDirty}
+											className='bg-green-500 hover:bg-green-600 disabled:bg-green-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 hover:scale-105 shadow-lg disabled:hover:scale-100'
 										>
 											<Save className='w-5 h-5' />
 											<span className='font-medium'>
-												Save Changes
+												{isSubmitting
+													? 'Saving...'
+													: 'Save Changes'}
 											</span>
 										</button>
 										<button
+											type='button'
 											onClick={handleCancel}
-											className='bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 hover:scale-105 shadow-lg'
+											disabled={isSubmitting}
+											className='bg-white/20 backdrop-blur-sm hover:bg-white/30 disabled:bg-white/10 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 hover:scale-105 shadow-lg disabled:hover:scale-100'
 										>
 											<X className='w-5 h-5' />
 											<span className='font-medium'>
@@ -166,141 +157,185 @@ const UserProfile = () => {
 						</div>
 					</div>
 
-					{/* Profile Content */}
+					{/* Profile Form */}
 					<div className='p-8'>
-						<div className='grid lg:grid-cols-2 gap-8'>
-							{/* Editable Information */}
-							<div className='space-y-6'>
-								<div className='flex items-center space-x-3 mb-6'>
-									<div className='w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center'>
-										<Edit2 className='w-4 h-4 text-white' />
-									</div>
-									<h2 className='text-xl font-bold text-gray-800'>
-										Editable Information
-									</h2>
-								</div>
-
-								{/* Username Field */}
-								<div className='group'>
-									<label className='block text-sm font-semibold text-gray-700 mb-2'>
-										Username
-									</label>
-									<div className='relative'>
-										<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
-											<User className='w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors' />
+						<form
+							id='profile-form'
+							onSubmit={handleSubmit(onSubmit)}
+						>
+							<div className='grid lg:grid-cols-2 gap-8'>
+								{/* Editable Information */}
+								<div className='space-y-6'>
+									<div className='flex items-center space-x-3 mb-6'>
+										<div className='w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center'>
+											<Edit2 className='w-4 h-4 text-white' />
 										</div>
-										{isEditing ? (
+										<h2 className='text-xl font-bold text-gray-800'>
+											Editable Information
+										</h2>
+									</div>
+
+									{/* Username Field */}
+									<div className='group'>
+										<label className='block text-sm font-semibold text-gray-700 mb-2'>
+											Username
+										</label>
+										<div className='relative'>
+											<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+												<User
+													className={`w-5 h-5 transition-colors ${
+														isEditing &&
+														!errors.username
+															? 'text-blue-500'
+															: errors.username
+															? 'text-red-500'
+															: 'text-gray-400'
+													}`}
+												/>
+											</div>
 											<input
-												type='text'
-												value={editedProfile.username}
-												onChange={(e) =>
-													handleChange(
-														'username',
-														e.target.value
-													)
-												}
-												className='w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 font-medium'
+												{...register('username', {
+													required:
+														'Username is required',
+													minLength: {
+														value: 3,
+														message:
+															'Username must be at least 3 characters',
+													},
+												})}
+												disabled={!isEditing}
+												className={`w-full pl-12 pr-4 py-4 border rounded-xl transition-all duration-200 font-medium ${
+													isEditing
+														? errors.username
+															? 'bg-white border-red-300 focus:ring-2 focus:ring-red-500 focus:border-transparent'
+															: 'bg-white border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+														: 'bg-gray-50 border-gray-200 text-gray-900'
+												}`}
 												placeholder='Enter username'
 											/>
-										) : (
-											<div className='w-full pl-12 pr-4 py-4 bg-gray-50 rounded-xl font-medium text-gray-900'>
-												{profile.username}
-											</div>
+										</div>
+										{errors.username && (
+											<p className='mt-1 text-sm text-red-600 flex items-center space-x-1'>
+												<AlertCircle className='w-4 h-4' />
+												<span>
+													{errors.username.message}
+												</span>
+											</p>
 										)}
 									</div>
-								</div>
 
-								{/* Email Field */}
-								<div className='group'>
-									<label className='block text-sm font-semibold text-gray-700 mb-2'>
-										Email Address
-									</label>
-									<div className='relative'>
-										<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
-											<Mail className='w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors' />
-										</div>
-										{isEditing ? (
+									{/* Email Field */}
+									<div className='group'>
+										<label className='block text-sm font-semibold text-gray-700 mb-2'>
+											Email Address
+										</label>
+										<div className='relative'>
+											<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+												<Mail
+													className={`w-5 h-5 transition-colors ${
+														isEditing &&
+														!errors.email
+															? 'text-blue-500'
+															: errors.email
+															? 'text-red-500'
+															: 'text-gray-400'
+													}`}
+												/>
+											</div>
 											<input
+												{...register('email', {
+													required:
+														'Email is required',
+													pattern: {
+														value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+														message:
+															'Invalid email address',
+													},
+												})}
+												disabled={!isEditing}
 												type='email'
-												value={editedProfile.email}
-												onChange={(e) =>
-													handleChange(
-														'email',
-														e.target.value
-													)
-												}
-												className='w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 font-medium'
+												className={`w-full pl-12 pr-4 py-4 border rounded-xl transition-all duration-200 font-medium ${
+													isEditing
+														? errors.email
+															? 'bg-white border-red-300 focus:ring-2 focus:ring-red-500 focus:border-transparent'
+															: 'bg-white border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+														: 'bg-gray-50 border-gray-200 text-gray-900'
+												}`}
 												placeholder='Enter email address'
 											/>
-										) : (
-											<div className='w-full pl-12 pr-4 py-4 bg-gray-50 rounded-xl font-medium text-gray-900'>
-												{profile.email}
-											</div>
+										</div>
+										{errors.email && (
+											<p className='mt-1 text-sm text-red-600 flex items-center space-x-1'>
+												<AlertCircle className='w-4 h-4' />
+												<span>
+													{errors.email.message}
+												</span>
+											</p>
 										)}
 									</div>
 								</div>
+
+								{/* Read-Only Information */}
+								<div className='space-y-6'>
+									<div className='flex items-center space-x-3 mb-6'>
+										<div className='w-8 h-8 bg-gray-500 rounded-lg flex items-center justify-center'>
+											<Shield className='w-4 h-4 text-white' />
+										</div>
+										<h2 className='text-xl font-bold text-gray-800'>
+											Account Information
+										</h2>
+										<span className='text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full'>
+											Read-only
+										</span>
+									</div>
+
+									{/* First Name */}
+									<div className='group'>
+										<label className='block text-sm font-semibold text-gray-700 mb-2'>
+											First Name
+										</label>
+										<div className='relative'>
+											<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+												<User className='w-5 h-5 text-gray-400' />
+											</div>
+											<div className='w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl font-medium text-gray-600 border-2 border-dashed border-gray-300'>
+												{firstName}
+											</div>
+										</div>
+									</div>
+
+									{/* Last Name */}
+									<div className='group'>
+										<label className='block text-sm font-semibold text-gray-700 mb-2'>
+											Last Name
+										</label>
+										<div className='relative'>
+											<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+												<User className='w-5 h-5 text-gray-400' />
+											</div>
+											<div className='w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl font-medium text-gray-600 border-2 border-dashed border-gray-300'>
+												{lastName}
+											</div>
+										</div>
+									</div>
+
+									{/* Role */}
+									<div className='group'>
+										<label className='block text-sm font-semibold text-gray-700 mb-2'>
+											Role
+										</label>
+										<div className='relative'>
+											<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+												<Building className='w-5 h-5 text-gray-400' />
+											</div>
+											<div className='w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl font-medium text-gray-600 border-2 border-dashed border-gray-300 capitalize'>
+												{role}
+											</div>
+										</div>
+									</div>
+								</div>
 							</div>
-
-							{/* Read-Only Information */}
-							<div className='space-y-6'>
-								<div className='flex items-center space-x-3 mb-6'>
-									<div className='w-8 h-8 bg-gray-500 rounded-lg flex items-center justify-center'>
-										<Shield className='w-4 h-4 text-white' />
-									</div>
-									<h2 className='text-xl font-bold text-gray-800'>
-										Account Information
-									</h2>
-									<span className='text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full'>
-										Read-only
-									</span>
-								</div>
-
-								{/* First Name */}
-								<div className='group'>
-									<label className='block text-sm font-semibold text-gray-700 mb-2'>
-										First Name
-									</label>
-									<div className='relative'>
-										<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
-											<User className='w-5 h-5 text-gray-400' />
-										</div>
-										<div className='w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl font-medium text-gray-600 border-2 border-dashed border-gray-300'>
-											{profile.first_name}
-										</div>
-									</div>
-								</div>
-
-								{/* Last Name */}
-								<div className='group'>
-									<label className='block text-sm font-semibold text-gray-700 mb-2'>
-										Last Name
-									</label>
-									<div className='relative'>
-										<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
-											<User className='w-5 h-5 text-gray-400' />
-										</div>
-										<div className='w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl font-medium text-gray-600 border-2 border-dashed border-gray-300'>
-											{profile.last_name}
-										</div>
-									</div>
-								</div>
-
-								{/* Role */}
-								<div className='group'>
-									<label className='block text-sm font-semibold text-gray-700 mb-2'>
-										Role
-									</label>
-									<div className='relative'>
-										<div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
-											<Building className='w-5 h-5 text-gray-400' />
-										</div>
-										<div className='w-full pl-12 pr-4 py-4 bg-gray-100 rounded-xl font-medium text-gray-600 border-2 border-dashed border-gray-300'>
-											{profile.role}
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
+						</form>
 
 						{/* School Information Card */}
 						<div className='mt-8 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100'>
@@ -313,7 +348,7 @@ const UserProfile = () => {
 										Institution
 									</h3>
 									<p className='text-indigo-600 font-semibold text-lg'>
-										{profile.school_name}
+										{schoolName}
 									</p>
 								</div>
 							</div>
@@ -321,7 +356,10 @@ const UserProfile = () => {
 
 						{/* Quick Actions */}
 						<div className='mt-8 grid sm:grid-cols-3 gap-4'>
-							<button className='p-4 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors duration-200 group'>
+							<button
+								type='button'
+								className='p-4 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors duration-200 group'
+							>
 								<div className='flex items-center space-x-3'>
 									<div className='w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform'>
 										<Bell className='w-5 h-5 text-white' />
@@ -337,7 +375,10 @@ const UserProfile = () => {
 								</div>
 							</button>
 
-							<button className='p-4 bg-green-50 hover:bg-green-100 rounded-xl transition-colors duration-200 group'>
+							<button
+								type='button'
+								className='p-4 bg-green-50 hover:bg-green-100 rounded-xl transition-colors duration-200 group'
+							>
 								<div className='flex items-center space-x-3'>
 									<div className='w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform'>
 										<Shield className='w-5 h-5 text-white' />
@@ -353,7 +394,10 @@ const UserProfile = () => {
 								</div>
 							</button>
 
-							<button className='p-4 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors duration-200 group'>
+							<button
+								type='button'
+								className='p-4 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors duration-200 group'
+							>
 								<div className='flex items-center space-x-3'>
 									<div className='w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform'>
 										<Eye className='w-5 h-5 text-white' />
