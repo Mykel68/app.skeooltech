@@ -320,7 +320,7 @@ const UserProfile = () => {
 									</div>
 
 									{/* Role */}
-									<div className='group'>
+									{/* <div className='group'>
 										<label className='block text-sm font-semibold text-gray-700 mb-2'>
 											Role
 										</label>
@@ -332,7 +332,7 @@ const UserProfile = () => {
 												{role}
 											</div>
 										</div>
-									</div>
+									</div> */}
 								</div>
 							</div>
 						</form>

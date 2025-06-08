@@ -1,14 +1,27 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUserStore } from '@/store/userStore';
 import { AppSidebar } from '@/components/app-sidebar';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
-export default function GeneralLayout({
+export default function TeacherLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
+	const router = useRouter();
+	const user = useUserStore();
+	const role = user?.role;
+
+	useEffect(() => {
+		if (!role) {
+			router.replace('/');
+		}
+	}, [role, router]);
+
 	return (
 		<SidebarProvider
 			style={
