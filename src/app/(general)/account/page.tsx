@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useUserStore } from '@/store/userStore';
 import axios from 'axios';
+import { Input } from '@/components/ui/input';
 
 const UserProfile = () => {
 	const { username, firstName, lastName, email, role, schoolName, userId } =
@@ -193,7 +194,7 @@ const UserProfile = () => {
 													}`}
 												/>
 											</div>
-											<input
+											<Input
 												{...register('username', {
 													required:
 														'Username is required',
@@ -242,7 +243,7 @@ const UserProfile = () => {
 													}`}
 												/>
 											</div>
-											<input
+											<Input
 												{...register('email', {
 													required:
 														'Email is required',
