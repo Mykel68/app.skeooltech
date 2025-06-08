@@ -11,6 +11,7 @@ import { Loader2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
 	email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -19,6 +20,7 @@ const formSchema = z.object({
 type ForgotPasswordData = z.infer<typeof formSchema>;
 
 export function ForgotPasswordForm() {
+	const router = useRouter();
 	const {
 		register,
 		handleSubmit,
@@ -38,6 +40,7 @@ export function ForgotPasswordForm() {
 		},
 		onSuccess: () => {
 			toast.success('Password reset email sent!');
+			router.push('/check-mail');
 		},
 		onError: (error: any) => {
 			const message =
