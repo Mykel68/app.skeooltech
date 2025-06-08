@@ -142,28 +142,29 @@ export default function StudentSubjectsPage() {
 	});
 
 	// Fetch grades
-	const { data: grades } = useQuery({
-		queryKey: ['studentGrades', studentId],
-		queryFn: async () => {
-			try {
-				const { data } = await axios.get(
-					`/api/grades/student/${studentId}`
-				);
-				return data.data;
-			} catch (error) {
-				console.error('Failed to fetch grades:', error);
-				return [];
-			}
-		},
-		enabled: !!studentId,
-	});
+	// const { data: grades } = useQuery({
+	// 	queryKey: ['studentGrades', schoolId, classDetails],
+	// 	queryFn: async () => {
+	// 		try {
+	// 			const classId = classDetails?.class_id!;
+	// 			const { data } = await axios.get(
+	// 				`/api/resultd/${schoolId}/${classId}`
+	// 			);
+	// 			return data.data.data.subjectsWithScores;
+	// 		} catch (error) {
+	// 			console.error('Failed to fetch grades:', error);
+	// 			return [];
+	// 		}
+	// 	},
+	// 	enabled: !!schoolId && !!classDetails,
+	// });
 
 	// Use API data or fallback to defaults
 	const actualClassDetails = classDetails;
 	const actualSubjects = subjects;
 	const actualAssignments = assignments;
 	const actualResources = resources;
-	const actualGrades = grades;
+	// const actualGrades = grades;
 
 	// Helper functions
 	const getSubjectAssignments = (subjectId: string): Assignment[] => {
@@ -178,19 +179,19 @@ export default function StudentSubjectsPage() {
 		);
 	};
 
-	const getSubjectGrades = (subjectId: string): Grade[] => {
-		return actualGrades.filter((grade) => grade.subject_id === subjectId);
-	};
+	// const getSubjectGrades = (subjectId: string): Grade[] => {
+	// 	return actualGrades.filter((grade) => grade.subject_id === subjectId);
+	// };
 
-	const getSubjectAverage = (subjectId: string): number => {
-		const subjectGrades = getSubjectGrades(subjectId);
-		if (subjectGrades.length === 0) return 0;
-		const total = subjectGrades.reduce(
-			(sum, grade) => sum + (grade.grade / grade.max_grade) * 100,
-			0
-		);
-		return Math.round(total / subjectGrades.length);
-	};
+	// const getSubjectAverage = (subjectId: string): number => {
+	// 	const subjectGrades = getSubjectGrades(subjectId);
+	// 	if (subjectGrades.length === 0) return 0;
+	// 	const total = subjectGrades.reduce(
+	// 		(sum, grade) => sum + (grade.grade / grade.max_grade) * 100,
+	// 		0
+	// 	);
+	// 	return Math.round(total / subjectGrades.length);
+	// };
 
 	const getFileIcon = (type: string) => {
 		switch (type) {
@@ -250,7 +251,7 @@ export default function StudentSubjectsPage() {
 			{/* Subjects Grid */}
 			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
 				{actualSubjects.map((subject) => {
-					const average = getSubjectAverage(subject.subject_id);
+					// const average = getSubjectAverage(subject.subject_id);
 					const subjectAssignments = getSubjectAssignments(
 						subject.subject_id
 					);
@@ -278,14 +279,14 @@ export default function StudentSubjectsPage() {
 											</Badge>
 										</div>
 									</div>
-									<div className='text-right'>
+									{/* <div className='text-right'>
 										<p className='text-xs text-muted-foreground'>
 											Average
 										</p>
 										<p className='text-lg font-semibold text-primary'>
 											{average}%
 										</p>
-									</div>
+									</div> */}
 								</div>
 							</CardHeader>
 							<CardContent className='space-y-4'>
@@ -411,7 +412,7 @@ export default function StudentSubjectsPage() {
 												'No description available'}
 										</p>
 									</div>
-									<div className='text-right'>
+									{/* <div className='text-right'>
 										<p className='text-sm text-muted-foreground'>
 											Current Average
 										</p>
@@ -424,7 +425,7 @@ export default function StudentSubjectsPage() {
 												%
 											</span>
 										</div>
-									</div>
+									</div> */}
 								</div>
 
 								<Separator />
@@ -672,7 +673,7 @@ export default function StudentSubjectsPage() {
 												</CardTitle>
 											</CardHeader>
 											<CardContent>
-												<div className='space-y-3'>
+												{/* <div className='space-y-3'>
 													{getSubjectGrades(
 														subject.subject_id
 													)
@@ -722,7 +723,7 @@ export default function StudentSubjectsPage() {
 															No grades available
 														</p>
 													)}
-												</div>
+												</div> */}
 												<Button
 													variant='outline'
 													className='w-full mt-4'
