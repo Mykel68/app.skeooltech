@@ -1,78 +1,80 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
-// import toast from 'react-hot-toast';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-
-type FormData = { email: string };
+import { motion } from 'framer-motion';
+import { ForgotPasswordForm } from './forgotPassword';
 
 export default function ForgotPasswordPage() {
-	const router = useRouter();
-	const {
-		register,
-		handleSubmit,
-		formState: { errors, isSubmitting },
-	} = useForm<FormData>();
-
-	const onSubmit = async (data: FormData) => {
-		try {
-			await axios.post('/api/auth/forgot-password', {
-				email: data.email,
-			});
-			toast.success('If that email exists, we’ve sent a reset link.');
-			router.push('/');
-		} catch (err: any) {
-			toast.error(err.response?.data?.message || 'Something went wrong');
-		}
-	};
-
 	return (
-		<div className='flex items-center justify-center min-h-screen bg-background'>
-			<Card className='w-full max-w-md'>
-				<CardHeader>
-					<CardTitle>Forgot Password</CardTitle>
-				</CardHeader>
-				<CardContent className='space-y-4'>
-					<p className='text-sm text-muted-foreground'>
-						Enter your email and we’ll send you a link to reset your
-						password.
-					</p>
-					<form
-						onSubmit={handleSubmit(onSubmit)}
-						className='space-y-6'
-					>
-						<div>
-							<Label htmlFor='email'>Email Address</Label>
-							<Input
-								id='email'
-								type='email'
-								placeholder='you@example.com'
-								{...register('email', {
-									required: 'Email is required',
-								})}
-							/>
-							{errors.email && (
-								<p className='mt-1 text-xs text-destructive'>
-									{errors.email.message}
-								</p>
-							)}
+		<main className='relative min-h-screen flex items-center justify-center overflow-hidden'>
+			{/* Video background */}
+			<video
+				autoPlay
+				muted
+				loop
+				playsInline
+				className='absolute top-0 left-0 w-full h-full object-cover'
+			>
+				<source
+					src='/videos/background.mp4'
+					type='video/mp4'
+				/>
+				Your browser does not support the video tag.
+			</video>
+
+			{/* Gradient overlay */}
+			<div className='absolute inset-0 bg-gradient-to-br from-black/80 via-black/70 to-primary/30 z-10' />
+
+			{/* Foreground content */}
+			<div className='container relative z-20 max-w-md px-4 mx-auto'>
+				<motion.div
+					initial={{ opacity: 0, y: -20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.6 }}
+					className='p-8 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl space-y-6'
+				>
+					{/* Logo placeholder */}
+					<div className='flex justify-center'>
+						<div className='w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center'>
+							<span className='text-xl font-bold text-white'>
+								S
+							</span>
 						</div>
-						<Button
-							type='submit'
-							className='w-full'
-							disabled={isSubmitting}
+					</div>
+
+					<div className='space-y-1 text-center'>
+						<motion.h1
+							className='text-2xl font-bold'
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							transition={{ delay: 0.2 }}
 						>
-							{isSubmitting ? 'Sending…' : 'Send Reset Link'}
-						</Button>
-					</form>
-				</CardContent>
-			</Card>
-		</div>
+							Forgot Password
+						</motion.h1>
+						<motion.p
+							className='text-muted-foreground text-sm'
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							transition={{ delay: 0.3 }}
+						>
+							Enter your email address to receive a reset link.
+						</motion.p>
+					</div>
+
+					<ForgotPasswordForm />
+
+					<div className='pt-4 text-center text-xs text-muted-foreground'>
+						<p>
+							Remember your password?{' '}
+							<a
+								href='/login'
+								className='underline'
+							>
+								Log in
+							</a>
+						</p>
+					</div>
+				</motion.div>
+			</div>
+		</main>
 	);
 }
