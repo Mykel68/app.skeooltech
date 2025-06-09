@@ -40,7 +40,6 @@ export function ForgotPasswordForm() {
 		},
 		onSuccess: () => {
 			toast.success('Password reset email sent!');
-			router.push('/check-mail');
 		},
 		onError: (error: any) => {
 			const message =
@@ -51,7 +50,11 @@ export function ForgotPasswordForm() {
 	});
 
 	const onSubmit = (data: ForgotPasswordData) => {
-		mutate(data);
+		mutate(data, {
+			onSuccess: () => {
+				router.push(`/check-mail?email=${data.email}`);
+			},
+		});
 	};
 
 	return (

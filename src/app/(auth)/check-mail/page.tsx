@@ -52,7 +52,7 @@ export default function CheckEmailPage() {
 		<Card className='w-full max-w-xl relative backdrop-blur-sm bg-white/80 border-0 shadow-2xl shadow-blue-500/10 z-20'>
 			<CardHeader className='text-center '>
 				{/* Animated Mail Icon */}
-				<div className='mx-auto w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-2 shadow-lg relative'>
+				<div className='mx-auto w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg relative'>
 					<Mail className='w-10 h-10 text-white' />
 					<div className='absolute -top-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center'>
 						<CheckCircle2 className='w-4 h-4 text-white' />
@@ -63,12 +63,13 @@ export default function CheckEmailPage() {
 					Check Your Email
 				</CardTitle>
 
-				<p className='text-gray-600 text-sm leading-relaxed'>
-					We've sent a password reset link to your mail
+				<p className='text-gray-600 text-sm leading-relaxed text-balance'>
+					We've sent a password reset link to{' '}
+					<span className='font-semibold'>{email}</span>
 				</p>
 			</CardHeader>
 
-			<CardContent className='space-y-6'>
+			<CardContent className='space-y-4'>
 				{/* Instructions */}
 				<div className='space-y-4'>
 					<div className='bg-blue-50 rounded-lg p-4 border border-blue-200'>
