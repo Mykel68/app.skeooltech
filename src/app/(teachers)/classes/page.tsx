@@ -161,9 +161,9 @@ export default function SubjectTable() {
 						<Table>
 							<TableHeader>
 								<TableRow>
-									<TableHead>Class</TableHead>
-									<TableHead>Grade Level</TableHead>
 									<TableHead>Name</TableHead>
+									<TableHead>Grade Level</TableHead>
+									<TableHead>Class</TableHead>
 									<TableHead>Status</TableHead>
 									<TableHead>Actions</TableHead>
 								</TableRow>

@@ -27,7 +27,7 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { useSchoolStore } from '@/store/schoolStore';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -50,11 +50,15 @@ export default function RegistrationPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const { setSchoolDetails, schoolDetails } = useSchoolStore();
-	const schoolCodeFromUrl = searchParams.get('school_code');
-	const schoolCode = schoolCodeFromUrl || schoolDetails?.schoolCode;
 	const schoolId = schoolDetails?.schoolId;
 	const schoolName = schoolDetails?.name;
 	const schoolImage = schoolDetails?.schoolImage;
+
+	const schoolCode = useMemo(() => {
+		return (
+			searchParams.get('school_code') || schoolDetails?.schoolCode || null
+		);
+	}, [searchParams, schoolDetails?.schoolCode]);
 
 	// State for password visibility
 	const [showPassword, setShowPassword] = useState(false);
