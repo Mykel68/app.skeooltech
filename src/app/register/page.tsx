@@ -92,7 +92,7 @@ export default function RegistrationPage() {
 			const res = await axios.get(
 				`/api/auth/check-username/${schoolId}/${debouncedUsername}`
 			);
-			return res.data.available as boolean;
+			return res.data.data.is_available as boolean;
 		},
 		retry: false,
 		staleTime: 30000, // Cache for 30 seconds

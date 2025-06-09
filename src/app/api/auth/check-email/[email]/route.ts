@@ -1,13 +1,10 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import axios from 'axios';
-import { cookies } from 'next/headers';
-import { backendClient } from '@/lib/backendClient';
 
 // ✅ GET school profile
 export async function GET(
 	_request: Request,
-	context: { params: Promise<{ school_id: string; username: string }> }
+	context: { params: Promise<{ email: string }> }
 ) {
 	try {
 		const { params } = await context;
@@ -16,12 +13,8 @@ export async function GET(
 			throw new Error('MAIN_BACKEND_URL is not set');
 		}
 
-		const response = await backendClient.get(
-			`${backendUrl}/api/auth/check-username?username=${
-				(
-					await params
-				).username
-			}&school_id=${(await params).school_id}`
+		const response = await axios.get(
+			`${backendUrl}/api/auth/check-email?email=${(await params).email}`
 		);
 		return NextResponse.json(response.data, { status: 200 });
 	} catch (error) {
