@@ -49,7 +49,7 @@ export default function CheckEmailPage() {
 	};
 
 	return (
-		<Card className='w-full max-w-3xl relative backdrop-blur-sm bg-white/80 border-0 shadow-2xl shadow-blue-500/10 z-20'>
+		<Card className='w-full max-w-xl relative backdrop-blur-sm bg-white/80 border-0 shadow-2xl shadow-blue-500/10 z-20'>
 			<CardHeader className='text-center '>
 				{/* Animated Mail Icon */}
 				<div className='mx-auto w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-2 shadow-lg relative'>
