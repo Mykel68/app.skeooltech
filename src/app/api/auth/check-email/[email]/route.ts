@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
+import { backendClient } from '@/lib/backendClient';
 
 // ✅ GET school profile
 export async function GET(
@@ -13,7 +14,7 @@ export async function GET(
 			throw new Error('MAIN_BACKEND_URL is not set');
 		}
 
-		const response = await axios.get(
+		const response = await backendClient.get(
 			`${backendUrl}/api/auth/check-email?email=${(await params).email}`
 		);
 		return NextResponse.json(response.data, { status: 200 });

@@ -27,7 +27,7 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { useSchoolStore } from '@/store/schoolStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -56,6 +56,9 @@ export default function RegistrationPage() {
 	const schoolName = schoolDetails?.name;
 	const schoolImage = schoolDetails?.schoolImage;
 
+	// State for password visibility
+	const [showPassword, setShowPassword] = useState(false);
+
 	const {
 		register,
 		handleSubmit,
@@ -76,8 +79,28 @@ export default function RegistrationPage() {
 	});
 
 	const watchedUsername = watch('username');
+	const watchedEmail = watch('email'); // Fixed: was watching 'username' instead of 'email'
 	const [debouncedUsername] = useDebounce(watchedUsername, 500);
+	const [debouncedEmail] = useDebounce(watchedEmail, 500); // Added debounced email
 	const selectedRole = watch('role');
+
+	// Email availability check
+	const {
+		data: isEmailAvailable,
+		isLoading: isCheckingEmail,
+		error: emailError,
+	} = useQuery({
+		queryKey: ['email-availability', schoolId, debouncedEmail], // Fixed: added debouncedEmail to queryKey
+		enabled: !!schoolId && !!debouncedEmail && debouncedEmail.length >= 3,
+		queryFn: async () => {
+			const res = await axios.get(
+				`/api/auth/check-email/${debouncedEmail}` // Fixed: using debouncedEmail instead of undefined variable
+			);
+			return res.data.data.is_available as boolean;
+		},
+		retry: false,
+		staleTime: 30000, // Cache for 30 seconds
+	});
 
 	// Username availability check
 	const {
@@ -203,7 +226,27 @@ export default function RegistrationPage() {
 		return null;
 	};
 
+	// Function to get email status
+	const getEmailStatus = () => {
+		if (!watchedEmail || watchedEmail.length === 0) return null;
+		if (watchedEmail.length < 3)
+			return {
+				type: 'info',
+				message: 'Email must be at least 3 characters',
+			};
+		if (isCheckingEmail)
+			return { type: 'loading', message: 'Checking availability...' };
+		if (emailError)
+			return { type: 'error', message: 'Error checking email' };
+		if (isEmailAvailable === true)
+			return { type: 'success', message: 'Email is available' };
+		if (isEmailAvailable === false)
+			return { type: 'error', message: 'Email is already taken' };
+		return null;
+	};
+
 	const usernameStatus = getUsernameStatus();
+	const emailStatus = getEmailStatus();
 
 	return (
 		<div className='min-h-screen flex flex-col lg:flex-row'>
@@ -396,21 +439,69 @@ export default function RegistrationPage() {
 										)}
 									</div>
 
-									{/* Email */}
+									{/* Email with availability check */}
 									<div className='space-y-2'>
 										<Label htmlFor='email'>
 											Email Address
 										</Label>
-										<Input
-											id='email'
-											type='email'
-											placeholder='Enter your email address'
-											className={cn(
-												errors.email &&
-													'border-destructive focus-visible:ring-destructive'
-											)}
-											{...register('email')}
-										/>
+										<div className='relative'>
+											<Input
+												id='email'
+												type='email'
+												placeholder='Enter your email address'
+												className={cn(
+													'pr-10',
+													errors.email &&
+														'border-destructive focus-visible:ring-destructive',
+													emailStatus?.type ===
+														'success' &&
+														'border-green-500 focus-visible:ring-green-500',
+													emailStatus?.type ===
+														'error' &&
+														'border-destructive focus-visible:ring-destructive'
+												)}
+												{...register('email')}
+											/>
+											{/* Status indicator */}
+											<div className='absolute right-3 top-1/2 -translate-y-1/2'>
+												{emailStatus?.type ===
+													'loading' && (
+													<Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
+												)}
+												{emailStatus?.type ===
+													'success' && (
+													<Check className='h-4 w-4 text-green-500' />
+												)}
+												{emailStatus?.type ===
+													'error' && (
+													<X className='h-4 w-4 text-destructive' />
+												)}
+											</div>
+										</div>
+										{/* Status message */}
+										{emailStatus && (
+											<motion.p
+												initial={{ opacity: 0 }}
+												animate={{ opacity: 1 }}
+												className={cn(
+													'text-sm font-medium',
+													emailStatus.type ===
+														'success' &&
+														'text-green-600',
+													emailStatus.type ===
+														'error' &&
+														'text-destructive',
+													emailStatus.type ===
+														'info' &&
+														'text-muted-foreground',
+													emailStatus.type ===
+														'loading' &&
+														'text-muted-foreground'
+												)}
+											>
+												{emailStatus.message}
+											</motion.p>
+										)}
 										{errors.email && (
 											<motion.p
 												initial={{ opacity: 0 }}
@@ -431,7 +522,7 @@ export default function RegistrationPage() {
 											<Input
 												id='password'
 												type={
-													watch('showPassword')
+													showPassword
 														? 'text'
 														: 'password'
 												}
@@ -449,13 +540,12 @@ export default function RegistrationPage() {
 												size='icon'
 												className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
 												onClick={() =>
-													setValue(
-														'showPassword',
-														!watch('showPassword')
+													setShowPassword(
+														!showPassword
 													)
 												}
 											>
-												{watch('showPassword') ? (
+												{showPassword ? (
 													<EyeOff className='h-4 w-4 text-muted-foreground' />
 												) : (
 													<Eye className='h-4 w-4 text-muted-foreground' />
@@ -583,7 +673,9 @@ export default function RegistrationPage() {
 										disabled={
 											registrationMutation.isLoading ||
 											isUsernameAvailable === false ||
-											isCheckingUsername
+											isEmailAvailable === false ||
+											isCheckingUsername ||
+											isCheckingEmail
 										}
 									>
 										{registrationMutation.isLoading ? (
