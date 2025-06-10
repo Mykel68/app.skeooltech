@@ -36,6 +36,10 @@ type Subject = {
 		time: string;
 		room: string;
 	}[];
+	teacher?: {
+		username: string;
+		email: string;
+	};
 };
 
 type Assignment = {
@@ -169,13 +173,13 @@ export default function StudentSubjectsPage() {
 	// Helper functions
 	const getSubjectAssignments = (subjectId: string): Assignment[] => {
 		return actualAssignments.filter(
-			(assignment) => assignment.subject_id === subjectId
+			(assignment: Assignment) => assignment.subject_id === subjectId
 		);
 	};
 
 	const getSubjectResources = (subjectId: string): Resource[] => {
 		return actualResources.filter(
-			(resource) => resource.subject_id === subjectId
+			(resource: Resource) => resource.subject_id === subjectId
 		);
 	};
 
@@ -250,7 +254,7 @@ export default function StudentSubjectsPage() {
 
 			{/* Subjects Grid */}
 			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-				{actualSubjects.map((subject) => {
+				{actualSubjects.map((subject: Subject) => {
 					// const average = getSubjectAverage(subject.subject_id);
 					const subjectAssignments = getSubjectAssignments(
 						subject.subject_id
@@ -295,7 +299,7 @@ export default function StudentSubjectsPage() {
 									<Avatar className='h-8 w-8'>
 										<AvatarFallback className='text-xs'>
 											{subject.teacher_name ||
-												subject.teacher.username
+												subject?.teacher?.username
 													.split(' ')
 													.map((n) => n[0])
 													.join('')}
@@ -305,7 +309,7 @@ export default function StudentSubjectsPage() {
 										<p className='font-medium text-sm'>
 											{subject.teacher_name
 												? subject.teacher_name
-												: subject.teacher.username}
+												: subject?.teacher?.username}
 										</p>
 										<p className='text-xs text-muted-foreground'>
 											{subject.credits || 1} Credits
@@ -381,19 +385,21 @@ export default function StudentSubjectsPage() {
 						className='w-full'
 					>
 						<TabsList className='grid w-full grid-cols-5'>
-							{actualSubjects.slice(0, 5).map((subject) => (
-								<TabsTrigger
-									key={subject.subject_id}
-									value={subject.name
-										.toLowerCase()
-										.replace(/\s+/g, '')}
-								>
-									{subject.short}
-								</TabsTrigger>
-							))}
+							{actualSubjects
+								.slice(0, 5)
+								.map((subject: Subject) => (
+									<TabsTrigger
+										key={subject.subject_id}
+										value={subject.name
+											.toLowerCase()
+											.replace(/\s+/g, '')}
+									>
+										{subject.short}
+									</TabsTrigger>
+								))}
 						</TabsList>
 
-						{actualSubjects.map((subject) => (
+						{actualSubjects.map((subject: Subject) => (
 							<TabsContent
 								key={subject.subject_id}
 								value={subject.name
@@ -577,7 +583,7 @@ export default function StudentSubjectsPage() {
 														<AvatarFallback>
 															{subject.teacher_name
 																? subject.teacher_name
-																: subject.teacher.username
+																: subject?.teacher?.username
 
 																		.split(
 																			' '
@@ -598,12 +604,12 @@ export default function StudentSubjectsPage() {
 															{subject.teacher_name
 																? subject.teacher_name
 																: subject
-																		.teacher
-																		.username}
+																		?.teacher
+																		?.username}
 														</p>
 														<p className='text-sm text-muted-foreground'>
-															{subject.teacher
-																.email ||
+															{subject?.teacher
+																?.email ||
 																'No email available'}
 														</p>
 													</div>

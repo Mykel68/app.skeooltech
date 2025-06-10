@@ -38,7 +38,7 @@ const UserProfile = () => {
 		},
 	});
 
-	const updateUserProfile = async (data) => {
+	const updateUserProfile = async (data: {}) => {
 		const res = await axios.patch(`/api/user/profile/${userId}`, data);
 		return res.data;
 	};
@@ -54,7 +54,7 @@ const UserProfile = () => {
 		},
 	});
 
-	const onSubmit = (data) => {
+	const onSubmit = (data: {}) => {
 		mutation.mutate(data);
 	};
 

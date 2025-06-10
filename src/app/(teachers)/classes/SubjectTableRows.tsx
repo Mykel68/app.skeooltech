@@ -43,9 +43,11 @@ export const SubjectTableRow: React.FC<SubjectTableRowProps> = ({
 		<TableRow className='cursor-pointer'>
 			<TableCell onClick={handleRowClick}>{subject.name}</TableCell>
 			<TableCell onClick={handleRowClick}>
-				{subject.class.grade_level}
+				{subject?.class?.grade_level}
 			</TableCell>
-			<TableCell onClick={handleRowClick}>{subject.class.name}</TableCell>
+			<TableCell onClick={handleRowClick}>
+				{subject?.class?.name}
+			</TableCell>
 			<TableCell>
 				<Badge variant={subject.is_approved ? 'default' : 'secondary'}>
 					{subject.is_approved ? 'Approved' : 'Pending'}

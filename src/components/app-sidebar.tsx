@@ -28,12 +28,23 @@ import {
 import { usePathname } from 'next/navigation';
 import axios from 'axios';
 
+type Term = {
+	term_id: string;
+	name: string;
+};
+
+type Session = {
+	session_id: string;
+	session_name: string;
+	terms: Term[];
+};
+
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 	const schoolId = useUserStore((s) => s.schoolId);
 	const setUser = useUserStore((s) => s.setUser);
-	const [sessions, setSessions] = useState<any[]>([]);
-	const [currentSession, setCurrentSession] = useState<any>(null);
-	const [currentTerm, setCurrentTerm] = useState<any>(null);
+	const [sessions, setSessions] = useState<Session[]>([]);
+	const [currentSession, setCurrentSession] = useState<Session | null>(null);
+	const [currentTerm, setCurrentTerm] = useState<Term | null>(null);
 	const pathname = usePathname();
 	const [hydrated, setHydrated] = useState(false);
 	const user = useUserStore();
@@ -53,15 +64,17 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 		}
 	}, [role]);
 
-	const fetchSessions = async () => {
+	const fetchSessions = async (): Promise<Session[]> => {
 		if (!schoolId) return [];
+
 		const res = await axios.get(`/api/sessions/${schoolId}`);
 		const sessionData = res.data?.data;
+
 		if (!sessionData) throw new Error('Failed to fetch sessions');
 
 		return Object.entries(sessionData).map(([id, session]) => ({
 			session_id: id,
-			...session,
+			...(session as Omit<Session, 'session_id'>),
 		}));
 	};
 
@@ -80,7 +93,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 					setCurrentTerm(defaultTerm);
 					setUser({
 						session_id: defaultSession.session_id,
-						term_id: defaultTerm?.term_id || null,
+						term_id: defaultTerm?.term_id || undefined,
 					});
 				}
 			})
@@ -99,7 +112,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 		setCurrentTerm(firstTerm);
 		setUser({
 			session_id: selectedSession.session_id,
-			term_id: firstTerm?.term_id || null,
+			term_id: firstTerm?.term_id || undefined,
 		});
 	};
 
@@ -121,6 +134,28 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 			</div>
 		);
 	}
+
+	const safeNavItems = navItems.map((item) => ({
+		...item,
+		title: item.title ?? 'Untitled',
+	}));
+
+	const safeDocuments = documents.map((item) => ({
+		...item,
+		name: item.name ?? 'Untitled Document',
+	}));
+
+	const safeSecondary = navSecondary.map((item) => ({
+		...item,
+		title: item.title ?? 'Untitled',
+	}));
+
+	const safeUser = {
+		...user,
+		// avatar: user.avatar ?? '/default-avatar.png',
+		username: user.username ?? 'unknown',
+		email: user.email ?? 'no-email@example.com',
+	};
 
 	return (
 		<Sidebar
@@ -154,7 +189,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 										{user.schoolName || 'Loading...'}
 									</span>
 
-									{currentSession?.terms?.length <= 1 ? (
+									{(currentSession?.terms?.length ?? 0) <=
+									1 ? (
 										<p className='text-xs text-green-700 mt-1'>
 											{currentSession?.session_name} –{' '}
 											{currentTerm?.name || 'No Term'}
@@ -217,23 +253,24 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
 			<SidebarContent>
 				<NavMain
-					items={navItems}
+					items={safeNavItems}
 					activeUrl={pathname}
 				/>
 				<NavDocuments
-					items={documents}
+					items={safeDocuments}
 					activeUrl={pathname}
 					className='cursor-pointer'
 				/>
+
 				<NavSecondary
-					items={navSecondary}
+					items={safeSecondary}
 					activeUrl={pathname}
 					className='mt-auto'
 				/>
 			</SidebarContent>
 
 			<SidebarFooter>
-				<NavUser user={user} />
+				<NavUser user={safeUser} />
 			</SidebarFooter>
 		</Sidebar>
 	);
