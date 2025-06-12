@@ -153,7 +153,7 @@ export default function SubjectTable() {
 						classId={settingsSubject?.class_id || ''}
 						subjectName={settingsSubject?.name || ''}
 						gradeLevel={settingsSubject?.grade_level || ''}
-						subjectId={settingsSubject?.subject_id}
+						subjectId={settingsSubject?.subject_id!}
 					/>
 
 					{subjectsQuery.data?.length === 0 ? (
