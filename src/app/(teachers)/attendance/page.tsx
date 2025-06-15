@@ -53,9 +53,21 @@ export default function AttendancePage() {
 			const response = await axios.get(
 				`/api/class-teacher/atttendance/${schoolId}/${sessionId}/${termId}/${teacherId}`
 			);
-			setTotalSchoolDays(response.data.data.data.total_school_days);
-			return response.data.data.data;
+			const fetchedData = response.data.data.data;
+
+			// Pre-fill attendanceRecords with existing present_days
+			const initialAttendance: Record<string, number> = {};
+			for (const student of fetchedData.students) {
+				if (student.present_days !== undefined) {
+					initialAttendance[student.user_id] = student.present_days;
+				}
+			}
+			setAttendanceRecords(initialAttendance);
+			setTotalSchoolDays(fetchedData.total_school_days);
+
+			return fetchedData;
 		},
+
 		enabled: !!schoolId && !!sessionId && !!termId && !!teacherId,
 	});
 
@@ -73,19 +85,17 @@ export default function AttendancePage() {
 			const attendanceData = Object.entries(attendanceRecords).map(
 				([studentId, daysAttended]) => ({
 					student_id: studentId,
-					days_attended: daysAttended,
-					total_school_days: totalSchoolDays,
+					days_present: daysAttended, // 🔄 changed this key to match backend
 				})
 			);
 
-			// Replace with your actual API endpoint
-			await axios.post('/api/attendance/submit-bulk', {
-				class_id: data?.classDetails?.class?.id,
-				attendance: attendanceData,
-				total_school_days: totalSchoolDays,
-				session_id: sessionId,
-				term_id: termId,
-			});
+			// Submit attendance
+			await axios.post(
+				`/api/attendance/submit-bulk/${schoolId}/${sessionId}/${termId}/${data.classDetails.class.class_id}`,
+				{
+					attendances: attendanceData, // 🔄 match expected backend field
+				}
+			);
 
 			setSubmitSuccess(true);
 			setTimeout(() => setSubmitSuccess(false), 3000);
@@ -165,22 +175,19 @@ export default function AttendancePage() {
 					<div className='flex items-center space-x-4'>
 						<Calendar className='w-6 h-6 text-blue-600' />
 						<div className='flex-1'>
-							<label className='block text-sm font-medium text-gray-700 mb-2'>
-								Total School Days This Term
+							<label className='block text-sm font-semibold text-gray-800 mb-2'>
+								Total School Days (Auto-filled)
 							</label>
 							<input
 								type='number'
-								min='0'
-								max='200'
+								readOnly
 								value={totalSchoolDays}
-								// onChange={(e) =>
-								// 	setTotalSchoolDays(
-								// 		parseInt(e.target.value) || 0
-								// 	)
-								// }
-								placeholder='Enter total school days'
-								className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+								className='w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed'
 							/>
+							<p className='text-sm text-gray-500 mt-1'>
+								This value is set automatically based on school
+								records.
+							</p>
 						</div>
 						{/* <div className='text-sm text-gray-500'>
 							<p>Set the total number of</p>
@@ -257,7 +264,7 @@ export default function AttendancePage() {
 
 					<div className='p-6'>
 						<div className='space-y-3'>
-							{students.map((student: Student, index) => (
+							{students.map((student: Student, index: number) => (
 								<div
 									key={student.user_id}
 									className='flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors'
