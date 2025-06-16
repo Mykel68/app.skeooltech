@@ -31,7 +31,7 @@ export const studentNav: NavItem[] = [
 export const teacherNav: NavItem[] = [
 	{ title: 'Home', url: '/home', icon: IconDashboard },
 	{ title: 'Classes', url: '/classes', icon: IconUser },
-	{ title: 'Attendance', url: '/attendance', icon: IconReport },
+	// { title: 'Attendance', url: '/attendance', icon: IconReport },
 
 	{ title: 'Gradebook', url: '/gradebook', icon: IconClipboardList },
 ];
@@ -53,12 +53,14 @@ export const studentNavSecondary: NavItem[] = [
 
 // Secondary nav for teachers
 export const teacherNavSecondary: NavItem[] = [
+	{ title: 'Account', url: '/account', icon: IconSettings },
 	{ title: 'Settings', url: '#', icon: IconSettings },
 	{ title: 'Search', url: '#', icon: IconSearch },
 ];
 
 // Secondary nav for parents
 export const parentNavSecondary: NavItem[] = [
+	{ title: 'Account', url: '/account', icon: IconSettings },
 	{ title: 'Settings', url: '#', icon: IconSettings },
 	{ title: 'Search', url: '#', icon: IconSearch },
 ];

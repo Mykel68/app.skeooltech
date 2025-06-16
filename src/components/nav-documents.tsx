@@ -39,6 +39,10 @@ export function NavDocuments({
 	className?: string;
 }) {
 	const { isMobile } = useSidebar();
+	const isActive = (url: string) => {
+		if (url === '/') return activeUrl === '/';
+		return activeUrl === url || activeUrl.startsWith(url + '/');
+	};
 
 	return (
 		<SidebarGroup
@@ -49,7 +53,14 @@ export function NavDocuments({
 			<SidebarMenu>
 				{items.map((item) => (
 					<SidebarMenuItem key={item.name}>
-						<SidebarMenuButton asChild>
+						<SidebarMenuButton
+							asChild
+							className={
+								isActive(item.url)
+									? 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground cursor-pointer'
+									: 'cursor-pointer'
+							}
+						>
 							<a href={item.url}>
 								<item.icon />
 								<span>{item.name}</span>
