@@ -1,17 +1,17 @@
-import SubjectStudentsClient from "./SubjectStudentsClient";
+import SubjectStudentsClient from './SubjectStudentsClient';
 
 export default async function SubjectStudentsPage({
-  params,
+	params,
 }: {
-  params: { classId: string };
+	params: Promise<{ classId: string }>;
 }) {
-  // Make this function async
-  // await params before destructuring
-  const { classId } = await params;
+	// Make this function async
+	// await params before destructuring
+	const { classId } = await params;
 
-  return (
-    <div className=" space-y-4 p-4">
-      <SubjectStudentsClient classId={classId} />
-    </div>
-  );
+	return (
+		<div className=' space-y-4 p-4'>
+			<SubjectStudentsClient classId={classId} />
+		</div>
+	);
 }

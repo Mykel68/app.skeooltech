@@ -35,10 +35,11 @@ const UserProfile = () => {
 		defaultValues: {
 			username,
 			email,
+			gender: null,
 		},
 	});
 
-	const updateUserProfile = async (data) => {
+	const updateUserProfile = async (data: {}) => {
 		const res = await axios.patch(`/api/user/profile/${userId}`, data);
 		return res.data;
 	};
@@ -54,7 +55,7 @@ const UserProfile = () => {
 		},
 	});
 
-	const onSubmit = (data) => {
+	const onSubmit = (data: {}) => {
 		mutation.mutate(data);
 	};
 
@@ -270,6 +271,53 @@ const UserProfile = () => {
 												<AlertCircle className='w-4 h-4' />
 												<span>
 													{errors.email.message}
+												</span>
+											</p>
+										)}
+									</div>
+
+									{/* Gender Field (Radio Buttons) */}
+									<div className='group'>
+										<label className='block text-sm font-semibold text-gray-700 mb-2'>
+											Gender
+										</label>
+										<div className='flex items-center space-x-6 pl-1'>
+											<label className='flex items-center space-x-2'>
+												<input
+													type='radio'
+													value='Male'
+													{...register('gender', {
+														required:
+															'Gender is required',
+													})}
+													disabled={!isEditing}
+													className='form-radio text-blue-600 h-4 w-4 disabled:opacity-50'
+												/>
+												<span className='text-sm text-gray-700'>
+													Male
+												</span>
+											</label>
+											<label className='flex items-center space-x-2'>
+												<input
+													type='radio'
+													value='Female'
+													{...register('gender', {
+														required:
+															'Gender is required',
+													})}
+													disabled={!isEditing}
+													className='form-radio text-blue-600 h-4 w-4 disabled:opacity-50'
+												/>
+												<span className='text-sm text-gray-700'>
+													Female
+												</span>
+											</label>
+										</div>
+										{errors.gender && (
+											<p className='mt-1 text-sm text-red-600 flex items-center space-x-1'>
+												<AlertCircle className='w-4 h-4' />
+												<span>
+													{errors.gender.message}
 												</span>
 											</p>
 										)}

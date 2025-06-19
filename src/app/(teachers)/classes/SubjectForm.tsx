@@ -44,6 +44,10 @@ export type Subject = {
 	teacher_name: string;
 	teacher_email: string;
 	is_approved: boolean;
+	class?: {
+		grade_level: string;
+		name: string;
+	};
 };
 
 interface SubjectFormProps {
