@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import axios from "axios";
 import { cookies } from "next/headers";
+import { backendClient } from "@/lib/backendClient";
 
 // ✅ GET school profile
 export async function GET(
@@ -15,16 +16,16 @@ export async function GET(
       throw new Error("MAIN_BACKEND_URL is not set");
     }
 
-    const response = await axios.get(
+    const response = await backendClient.get(
       `${backendUrl}/api/schools/classes/${(await params).school_id}/no-auth`
     );
     return NextResponse.json(response.data, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.response);
     if (axios.isAxiosError(error)) {
       return NextResponse.json(
         {
-          error:
-            error.response?.data?.message || "Failed to fetch school profile",
+          error: error.response?.data || "Failed to fetch school profile",
         },
         { status: error.response?.status || 500 }
       );
