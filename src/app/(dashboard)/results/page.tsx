@@ -203,9 +203,7 @@ export default function ResultsPage() {
     try {
       // Fetch individual student report data from your endpoint
       // Replace this with your actual endpoint for individual student reports
-      const response = await axios.get(
-        `/api/student-report/${schoolId}/${session_id}/${term_id}/${selectedClassId}/student-id`
-      );
+      const response = await axios.get(`/api/result`);
 
       // Transform your API response to match the report format
       const transformedData: StudentReportData = {
