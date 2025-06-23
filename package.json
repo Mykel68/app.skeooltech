@@ -36,6 +36,7 @@
     "clsx": "^2.1.1",
     "cookies-next": "^6.0.0",
     "framer-motion": "^12.16.0",
+    "html2pdf.js": "^0.10.3",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
     "lodash.get": "^4.4.2",

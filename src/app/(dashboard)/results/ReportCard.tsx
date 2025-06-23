@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useRef, MutableRefObject } from "react";
-import { Printer } from "lucide-react";
+import React, { useRef } from "react";
+import { Download, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/store/userStore";
 import { useReactToPrint } from "react-to-print";
+import html2pdf from "html2pdf.js";
 interface Props {
   data: any; // raw response passed in
   onClose: () => void;
@@ -44,8 +45,23 @@ function getOverallRemark(average) {
 }
 
 const ReportCard = ({ data, onClose }: Props) => {
-  const reportRef = useRef<HTMLDivElement>(null);
   const schoolImage = useUserStore((s) => s.schoolImage);
+
+  const handleDownloadPDF = () => {
+    if (!contentRef.current) return;
+
+    const element = contentRef.current;
+
+    const options = {
+      margin: 0.2,
+      filename: `${student.first_name}_${student.last_name}_Report.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+    };
+
+    html2pdf().set(options).from(element).save();
+  };
 
   // Safely guard against undefined data
   if (!data) {
@@ -91,6 +107,10 @@ const ReportCard = ({ data, onClose }: Props) => {
         <div className="sticky top-0 bg-white border-b p-2 flex justify-between items-center print:hidden z-10">
           <h3 className="text-sm font-semibold">Report Card</h3>
           <div className="flex gap-2">
+            <Button onClick={handleDownloadPDF} size="sm" variant="secondary">
+              <Download className="h-4 w-4 mr-1" /> Download PDF
+            </Button>
+
             <Button onClick={reactToPrintFn} size="sm">
               <Printer className="h-4 w-4 mr-1" /> Print
             </Button>
@@ -99,13 +119,27 @@ const ReportCard = ({ data, onClose }: Props) => {
             </Button>
           </div>
         </div>
-        <div ref={contentRef} className="p-12 print-area">
+        <div
+          ref={contentRef}
+          className="p-12 print-area print:p-4 print:text-xs"
+        >
           {/* School Header */}
           <div className="text-center border-b-4 border-blue-600 pb-6 mb-8">
-            <div className="flex items-center justify-center gap-6 mb-4">
-              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+            <div className="flex items-center justify-center gap-8 mb-4">
+              {/* <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
                 {school.name.charAt(0)}
-              </div>
+              </div> */}
+              {schoolImage ? (
+                <img
+                  src={schoolImage}
+                  alt="School Logo"
+                  className="w-24 h-24 rounded-full object-cover border-4 border-blue-200 shadow-lg"
+                />
+              ) : (
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-3xl shadow-lg">
+                  {school?.name?.charAt(0) || "S"}
+                </div>
+              )}
               <div>
                 <h1 className="text-3xl font-bold text-blue-800 uppercase mb-2">
                   {school.name}
@@ -117,6 +151,16 @@ const ReportCard = ({ data, onClose }: Props) => {
                 <p className="italic text-blue-600 font-semibold mt-2">
                   "{school.motto}"
                 </p>
+              </div>
+              <div className="flex-shrink-0">
+                <div className="w-28 aspect-square bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-lg flex flex-col items-center justify-center text-center shadow-lg">
+                  <div className="p-2 font-bold text-xl border-b-2 border-white/30 w-full text-center">
+                    {classInfo?.grade_level || "N/A"}
+                  </div>
+                  <div className="p-2 font-semibold text-sm">
+                    {termData?.name || "Term"}
+                  </div>
+                </div>
               </div>
             </div>
             <div className="bg-blue-50 py-3 px-6 rounded-lg">
@@ -139,18 +183,22 @@ const ReportCard = ({ data, onClose }: Props) => {
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between border-b pb-2">
-                  <span className="font-semibold">Full Name:</span>
+                  <span className="font-semibold">Last Name:</span>
                   <span className="uppercase font-bold">
-                    {student.first_name} {student.last_name}
+                    {student.last_name}
                   </span>
                 </div>
                 <div className="flex justify-between border-b pb-2">
-                  <span className="font-semibold">Admission No:</span>
-                  <span>{student.admissionNumber}</span>
+                  <span className="font-semibold uppercase">First Name:</span>
+                  <span>{student.first_name}</span>
                 </div>
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-semibold">Class:</span>
                   <span>{classInfo.name}</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-semibold">Grade Level:</span>
+                  <span>{classInfo.grade_level}</span>
                 </div>
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-semibold">Gender:</span>
@@ -173,19 +221,19 @@ const ReportCard = ({ data, onClose }: Props) => {
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
                     <p className="font-semibold text-sm">School Days</p>
-                    <p className="text-2xl font-bold text-green-600">
+                    <p className="text-3xl font-bold text-green-600">
                       {termData.total_days}
                     </p>
                   </div>
                   <div>
                     <p className="font-semibold text-sm">Present</p>
-                    <p className="text-2xl font-bold text-blue-600">
+                    <p className="text-3xl font-bold text-blue-600">
                       {attendance?.days_present}
                     </p>
                   </div>
                   <div>
                     <p className="font-semibold text-sm">Absent</p>
-                    <p className="text-2xl font-bold text-red-600">
+                    <p className="text-3xl font-bold text-red-600">
                       {termData.total_days - (attendance?.days_present || 0)}
                     </p>
                   </div>
@@ -530,7 +578,7 @@ const ReportCard = ({ data, onClose }: Props) => {
           </div>
 
           {/* Signatures */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t-2 border-gray-300">
+          <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-8 pt-8 border-t-2 border-gray-300">
             <div className="text-center">
               <div className="border-t-2 border-gray-400 pt-2 mt-16">
                 <p className="font-bold">Class Teacher</p>
@@ -540,12 +588,6 @@ const ReportCard = ({ data, onClose }: Props) => {
             <div className="text-center">
               <div className="border-t-2 border-gray-400 pt-2 mt-16">
                 <p className="font-bold">Principal</p>
-                <p className="text-sm text-gray-600">Signature & Date</p>
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="border-t-2 border-gray-400 pt-2 mt-16">
-                <p className="font-bold">Parent/Guardian</p>
                 <p className="text-sm text-gray-600">Signature & Date</p>
               </div>
             </div>

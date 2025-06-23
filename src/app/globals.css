@@ -168,3 +168,43 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  .print-area {
+    padding: 1rem !important;
+    font-size: 80% !important;
+    line-height: 1.2 !important;
+    transform: scale(0.95);
+    /* transform-origin: top left; */
+  }
+
+  .print-area * {
+    margin: 0 !important;
+    padding: 0.25rem !important;
+    box-shadow: none !important;
+  }
+
+  .no-print-gap {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  .print-area table th,
+  .print-area table td {
+    padding: 0.2rem !important;
+  }
+
+  .print-area h1,
+  .print-area h2,
+  .print-area h3 {
+    font-size: 1rem !important;
+  }
+}
+
