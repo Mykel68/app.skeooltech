@@ -423,7 +423,7 @@ const ReportCard = ({ data, onClose }: Props) => {
                 <tfoot className="bg-blue-100 font-bold">
                   <tr>
                     <td
-                      colSpan="4"
+                      colSpan={4}
                       className="border border-gray-300 p-2 text-center"
                     >
                       TOTAL SCORES

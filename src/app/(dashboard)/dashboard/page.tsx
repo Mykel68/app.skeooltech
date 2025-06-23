@@ -21,12 +21,18 @@ import {
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-type ClassDetails = {
-  class_id: string;
-  school_id: string;
-  name: string;
-  grade_level: string;
-  student_count: number;
+type Data = {
+  class: {
+    class_id: string;
+    name: string;
+    grade_level: string;
+  };
+  totalStudents: number;
+  subject_list: {
+    subject_id: string;
+    name: string;
+    short: string;
+  };
 };
 
 type Subject = {
@@ -56,32 +62,31 @@ export default function StudentClassPage() {
   const studentName = useUserStore((s) => s.firstName);
   const schoolId = useUserStore((s) => s.schoolId);
   const studentId = useUserStore((s) => s.userId);
-  const [classId, setClassId] = useState<string | null>(null);
+  // const [classId, setClassId] = useState<string | null>(null);
 
-  const { data: classDetails, isLoading: isClassLoading } =
-    useQuery<ClassDetails>({
-      queryKey: ["studentClassDetails", schoolId, studentId],
-      queryFn: async () => {
-        const { data } = await axios.get(
-          `/api/student/class/details/${schoolId}/${studentId}`
-        );
-        setClassId(data.data.class_id);
-        return data.data;
-      },
-      enabled: !!schoolId && !!studentId,
-    });
-
-  const { data: subjectDetails, isLoading: isSubjectsLoading } = useQuery<
-    Subject[]
-  >({
-    queryKey: ["studentSubjects", schoolId, classId],
+  const { data: Data, isLoading: isClassLoading } = useQuery<Data>({
+    queryKey: ["studentData", schoolId, studentId],
     queryFn: async () => {
-      const { data } = await axios.get(`/api/subject/by-student/${classId}`);
-      console.log("studentSubjects", subjectDetails);
+      const { data } = await axios.get(
+        `/api/student/class/details/${schoolId}/${studentId}`
+      );
+      // setClassId(data.data.class_id);
       return data.data;
     },
-    enabled: !!schoolId && !!classId,
+    enabled: !!schoolId && !!studentId,
   });
+
+  // const { data: subjectDetails, isLoading: isSubjectsLoading } = useQuery<
+  //   Subject[]
+  // >({
+  //   queryKey: ["studentSubjects", schoolId, classId],
+  //   queryFn: async () => {
+  //     const { data } = await axios.get(`/api/subject/by-student/${classId}`);
+  //     console.log("studentSubjects", subjectDetails);
+  //     return data.data;
+  //   },
+  //   enabled: !!schoolId && !!classId,
+  // });
 
   const mockAssignments: Assignment[] = [
     {
@@ -125,10 +130,7 @@ export default function StudentClassPage() {
     },
   ];
 
-  // const classDetails.student_count = 28;
-  const currentAttendance = 92;
-
-  if (isClassLoading || isSubjectsLoading) {
+  if (isClassLoading) {
     return (
       <div className="py-2 max-w-6xl mx-auto space-y-6">
         {/* Skeleton for class header */}
@@ -179,7 +181,7 @@ export default function StudentClassPage() {
     );
   }
 
-  if (!classDetails) {
+  if (!Data) {
     return <p className="p-4">No class information found.</p>;
   }
 
@@ -199,9 +201,9 @@ export default function StudentClassPage() {
         <CardContent>
           <div className="flex items-center gap-6">
             <div className="text-left">
-              <h3 className="text-xl font-semibold">{classDetails.name}</h3>
+              <h3 className="text-xl font-semibold">{Data.class.name}</h3>
               <Badge variant="outline" className="mt-1">
-                {classDetails.grade_level}
+                {Data.class.grade_level}
               </Badge>
             </div>
             <Separator orientation="vertical" className="h-12" />
@@ -211,16 +213,16 @@ export default function StudentClassPage() {
                   <Users className="h-4 w-4" />
                   <span>Classmates</span>
                 </div>
-                <p className="text-lg font-semibold">
-                  {classDetails.student_count}
-                </p>
+                <p className="text-lg font-semibold">{Data.totalStudents}</p>
               </div>
               <div className="text-center">
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span>Attendance</span>
                 </div>
-                <p className="text-lg font-semibold">{currentAttendance}%</p>
+                <p className="text-lg font-semibold">
+                  {Data.attendance_percentage}%
+                </p>
               </div>
             </div>
           </div>
@@ -240,7 +242,7 @@ export default function StudentClassPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {(subjectDetails ?? []).map((subject) => (
+                {(Data.subject_list ?? []).map((subject) => (
                   <div
                     key={subject.subject_id}
                     className="border rounded-lg p-3 hover:bg-muted/50 transition-colors"
