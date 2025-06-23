@@ -191,13 +191,13 @@ const ReportCard = ({ data, onClose }: Props) => {
                     </tr>
                     <tr>
                       <td className="border p-1 text-center">
+                        {termData.total_days ?? "N/A"}
+                      </td>
+                      <td className="border p-1 text-center">
                         {attendance.days_present ?? "N/A"}
                       </td>
                       <td className="border p-1 text-center">
-                        {student.attendance?.timesPresent ?? "N/A"}
-                      </td>
-                      <td className="border p-1 text-center">
-                        {student.attendance?.timesAbsent ?? "N/A"}
+                        {termData.total_days - attendance.days_present}
                       </td>
                     </tr>
                   </tbody>
@@ -230,7 +230,7 @@ const ReportCard = ({ data, onClose }: Props) => {
                         {formatDate(termData.end_date) ?? "N/A"}
                       </td>
                       <td className="border p-1 text-center">
-                        {formatDate(termData.nextTermBegins) ?? "N/A"}
+                        {formatDate(termData.next_term_start_date) ?? "N/A"}
                       </td>
                     </tr>
                   </tbody>
