@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, MutableRefObject } from "react";
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/store/userStore";
-
+import { useReactToPrint } from "react-to-print";
 interface Props {
   data: any; // raw response passed in
   onClose: () => void;
@@ -81,8 +81,8 @@ const ReportCard = ({ data, onClose }: Props) => {
   // Calculate class statistics
   const totalStudents = 45; // This would come from your data
   const overallPosition = 5;
-
-  const downloadReport = () => window.print();
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reactToPrintFn = useReactToPrint({ contentRef });
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -91,7 +91,7 @@ const ReportCard = ({ data, onClose }: Props) => {
         <div className="sticky top-0 bg-white border-b p-2 flex justify-between items-center print:hidden z-10">
           <h3 className="text-sm font-semibold">Report Card</h3>
           <div className="flex gap-2">
-            <Button onClick={downloadReport} size="sm">
+            <Button onClick={reactToPrintFn} size="sm">
               <Printer className="h-4 w-4 mr-1" /> Print
             </Button>
             <Button variant="outline" size="sm" onClick={onClose}>
@@ -99,7 +99,7 @@ const ReportCard = ({ data, onClose }: Props) => {
             </Button>
           </div>
         </div>
-        <div ref={reportRef} className="p-12 print-area">
+        <div ref={contentRef} className="p-12 print-area">
           {/* School Header */}
           <div className="text-center border-b-4 border-blue-600 pb-6 mb-8">
             <div className="flex items-center justify-center gap-6 mb-4">
