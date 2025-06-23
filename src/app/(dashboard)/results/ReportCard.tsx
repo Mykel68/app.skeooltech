@@ -13,12 +13,14 @@ interface Props {
 const ReportCard = ({ data, onClose }: Props) => {
   const reportRef = useRef<HTMLDivElement>(null);
 
-   // Safely guard against undefined data
-  if (!data || !data.data) {
+  // Safely guard against undefined data
+  if (!data) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
         <div className="bg-white p-6 rounded shadow max-w-md w-full text-center">
-          <p className="text-red-600 font-medium">Invalid or missing report data.</p>
+          <p className="text-red-600 font-medium">
+            Invalid or missing report data.
+          </p>
           <Button variant="outline" className="mt-4" onClick={onClose}>
             Close
           </Button>
@@ -27,12 +29,12 @@ const ReportCard = ({ data, onClose }: Props) => {
     );
   }
 
-  const student = data.data.student;
-  const school = data.data.school;
-  const termData = data.data.sessions[0].terms[0];
+  const student = data.student;
+  const school = data.school;
+  const termData = data.sessions[0].terms[0];
   const classInfo = termData.class;
   const scores = termData.scores;
-  const attendance = data.data.attendance?.[0];
+  const attendance = data.attendance?.[0];
 
   const totalScore = scores.reduce(
     (acc: number, s: any) => acc + s.total_score,
@@ -68,8 +70,7 @@ const ReportCard = ({ data, onClose }: Props) => {
             </p>
             <h2 className="text-lg font-semibold py-2">Terminal Report Card</h2>
             <p>
-              Session: {data.data.sessions[0].session.name} | Term:{" "}
-              {termData.name}
+              Session: {data.sessions[0].session.name} | Term: {termData.name}
             </p>
           </div>
 

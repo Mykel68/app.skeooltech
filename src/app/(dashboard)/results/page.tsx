@@ -205,7 +205,7 @@ export default function ResultsPage() {
       // Replace this with your actual endpoint for individual student reports
       const response = await axios.get(`/api/result`);
 
-      setReportData(response);
+      setReportData(response.data.data);
       setShowReport(true);
     } catch (error) {
       console.error("Failed to fetch report data:", error);
@@ -627,7 +627,7 @@ export default function ResultsPage() {
       {showReport && reportData && (
         <ReportCard
           //   ref={reportRef}
-          reportData={reportData}
+          data={reportData}
           onClose={() => setShowReport(false)}
         />
       )}
