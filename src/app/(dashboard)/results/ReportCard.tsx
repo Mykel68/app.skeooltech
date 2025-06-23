@@ -95,8 +95,8 @@ const ReportCard = ({ data, onClose }: Props) => {
   const overallGrade = getGrade(average);
 
   // Calculate class statistics
-  const totalStudents = 45; // This would come from your data
-  const overallPosition = 5;
+  const totalStudents = termData.overall_position; // This would come from your data
+  const overallPosition = termData.totalStudents;
   const contentRef = useRef<HTMLDivElement>(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
 
@@ -411,7 +411,7 @@ const ReportCard = ({ data, onClose }: Props) => {
                           {grade.remark}
                         </td>
                         <td className="border border-gray-300 p-2 text-center">
-                          {score.position || "-"}
+                          {score.subject_position || "-"}
                         </td>
                         <td className="border border-gray-300 p-2 text-center">
                           {score.average}
