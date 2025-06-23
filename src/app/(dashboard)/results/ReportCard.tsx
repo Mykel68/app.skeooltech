@@ -4,14 +4,25 @@ import React, { useRef } from "react";
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getGrade } from "@/lib/grades";
+import { useUserStore } from "@/store/userStore";
 
 interface Props {
   data: any; // raw response passed in
   onClose: () => void;
 }
 
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 const ReportCard = ({ data, onClose }: Props) => {
   const reportRef = useRef<HTMLDivElement>(null);
+  const schoolImage = useUserStore((s) => s.schoolImage);
 
   // Safely guard against undefined data
   if (!data) {
@@ -63,92 +74,215 @@ const ReportCard = ({ data, onClose }: Props) => {
 
         {/* Report Body */}
         <div ref={reportRef} className="p-6 print:p-4 text-black">
-          <div className="text-center space-y-1">
-            <h1 className="text-xl font-bold uppercase">{school.name}</h1>
-            <p className="text-gray-700 whitespace-pre-line">
-              {school.address}
-            </p>
-            <h2 className="text-lg font-semibold py-2">Terminal Report Card</h2>
-            <p>
-              Session: {data.sessions[0].session.name} | Term: {termData.name}
-            </p>
-          </div>
-
-          {/* Student Info */}
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <p>
-                <span className="font-semibold">Full Name:</span>{" "}
-                {student.first_name} {student.last_name}
-              </p>
-              <p>
-                <span className="font-semibold">Email:</span> {student.email}
-              </p>
-              <p>
-                <span className="font-semibold">Class:</span> {classInfo.name}
-              </p>
-              <p>
-                <span className="font-semibold">Grade Level:</span>{" "}
-                {classInfo.grade_level}
-              </p>
+          <div className="flex items-center justify-between border-b border-gray-300 pb-4 mb-6">
+            {/* School Logo - Far Left */}
+            <div className="flex-shrink-0 w-24">
+              <img
+                src={schoolImage}
+                alt="School Logo"
+                className="w-24 aspect-square object-cover rounded"
+              />
             </div>
-            <div className="space-y-1">
-              <p>
-                <span className="font-semibold">Times Opened:</span> 3
+
+            {/* School Info - Centered */}
+            <div className="flex-1 px-4 text-center max-w-2xl">
+              <p className="font-bold text-3xl mb-2 text-balance uppercase">
+                {school.name}
               </p>
-              <p>
-                <span className="font-semibold">Present:</span>{" "}
-                {attendance?.days_present ?? 0}
+              <p className="text-sm text-balance">{school.address}</p>
+              <p className="text-sm">
+                Tel: {school.phone_number} | Email: {school.users[0].email}
               </p>
-              <p>
-                <span className="font-semibold">Absent:</span>{" "}
-                {3 - (attendance?.days_present ?? 0)}
-              </p>
+              <p className="italic text-sm mt-1">"{school.motto}"</p>
+              <i className="text-lg font-semibold mt-2">
+                Continuous Assessment Report - {data.sessions[0].session.name} /{" "}
+                {termData.name}
+              </i>
+            </div>
+
+            {/* Grade Info - Far Right */}
+            <div className="flex-shrink-0 pl-4 ml-4">
+              <div className="w-24 aspect-square bg-primary text-white rounded flex flex-col items-center justify-center text-center">
+                <div className="p-1 font-bold text-lg border-b-4 border-black-100 w-full text-center">
+                  {classInfo.grade_level}
+                </div>
+                <div className="p-1 font-semibold text-sm">{termData.name}</div>
+              </div>
             </div>
           </div>
 
-          {/* Subjects Table */}
-          <div className="mt-6">
-            <table className="w-full border border-black text-center">
+          <div className="grid grid-cols-2 gap-4">
+            {/* Student Personal data */}
+            <div className="space-y-3">
+              <div className="font-bold p-1 text-sm text-center border border">
+                STUDENT'S PERSONAL DATA
+              </div>
+              <table className="w-full border border-black mb-4">
+                <tbody>
+                  <tr>
+                    <td className="border p-1">
+                      <strong className="text-sm">FULL NAME</strong>{" "}
+                    </td>
+                    <td className="border p-1">
+                      <strong className="uppercase text-sm">
+                        {student.first_name} {student.last_name}
+                      </strong>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border p-1">
+                      <strong className="text-sm">LAST NAME:</strong>{" "}
+                    </td>
+                    <td className="border p-1">
+                      <strong className="text-sm">{student.last_name}</strong>{" "}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td className="border p-1">
+                      <strong className="text-sm">ADM NO:</strong>{" "}
+                    </td>
+                    <td className="border p-1">
+                      <strong className="text-sm">
+                        {student.admissionNumber}
+                      </strong>{" "}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border p-1">
+                      <strong className="text-sm">CLASS:</strong>{" "}
+                    </td>
+                    <td className="border p-1">
+                      <strong className="text-sm">{classInfo.name}</strong>{" "}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border p-1">
+                      <strong className="text-sm">SEX:</strong>{" "}
+                    </td>
+                    <td className="border p-1">
+                      <strong className="text-sm">
+                        {student.admissionNumber}
+                      </strong>{" "}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="space-y-1">
+              {/* Attendance */}
+              <div className="space-y-1">
+                <div className="font-bold p-1 text-sm text-center border border">
+                  ATTENDANCE
+                </div>
+                <table className="w-full border border-black mb-4">
+                  <tbody>
+                    <tr>
+                      <td className="border p-1 text-sm text-center">
+                        <strong>Times Sch. Opened</strong>{" "}
+                      </td>
+                      <td className="border p-1 text-sm text-center">
+                        <strong className="">Times Present</strong>
+                      </td>
+                      <td className="border p-1 text-sm text-center">
+                        <strong className="">Times Absent</strong>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1 text-center">
+                        {attendance.days_present ?? "N/A"}
+                      </td>
+                      <td className="border p-1 text-center">
+                        {student.attendance?.timesPresent ?? "N/A"}
+                      </td>
+                      <td className="border p-1 text-center">
+                        {student.attendance?.timesAbsent ?? "N/A"}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Term */}
+              <div className="space-y-1">
+                <div className="font-bold p-1 text-center text-sm border border">
+                  TERMINAL DURATION WEEKS
+                </div>
+                <table className="w-full border border-black mb-4">
+                  <tbody>
+                    <tr>
+                      <td className="border p-1 text-center text-sm">
+                        <strong>Term Begins</strong>{" "}
+                      </td>
+                      <td className="border p-1 text-center text-sm">
+                        <strong className="">Term Ends</strong>
+                      </td>
+                      <td className="border p-1 text-center text-sm">
+                        <strong className="">Next Term Begins</strong>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="border p-1 text-center">
+                        {formatDate(termData.start_date) ?? "N/A"}
+                      </td>
+                      <td className="border p-1 text-center">
+                        {formatDate(termData.end_date) ?? "N/A"}
+                      </td>
+                      <td className="border p-1 text-center">
+                        {formatDate(termData.nextTermBegins) ?? "N/A"}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Grade */}
+          <div className="space-y-1">
+            <div className="font-bold p-1 text-center border border">
+              GRADES
+            </div>
+            <table className="w-full border border-black mb-4 text-center">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="border p-1">Subject</th>
-                  <th className="border p-1">Total Score</th>
-                  <th className="border p-1">Grade</th>
+                  <th className="border p-1">A1</th>
+                  <th className="border p-1">B2</th>
+                  <th className="border p-1">B3</th>
+                  <th className="border p-1">C4</th>
+                  <th className="border p-1">C5</th>
+                  <th className="border p-1">C6</th>
+                  <th className="border p-1">D7</th>
+                  <th className="border p-1">E8</th>
+                  <th className="border p-1">F9</th>
                 </tr>
               </thead>
               <tbody>
-                {scores.map((subject: any, idx: number) => (
-                  <tr key={subject.subject_id}>
-                    <td className="border p-1 text-left">
-                      {subject.subject_name}
-                    </td>
-                    <td className="border p-1 font-semibold">
-                      {subject.total_score}
-                    </td>
-                    <td className="border p-1">
-                      {getGrade(subject.total_score)}
-                    </td>
-                  </tr>
-                ))}
+                <tr>
+                  <td className="border p-1">75 - 100</td>
+                  <td className="border p-1">70 - 74</td>
+                  <td className="border p-1">65 - 69</td>
+                  <td className="border p-1">60 - 64</td>
+                  <td className="border p-1">55 - 59</td>
+                  <td className="border p-1">50 - 54</td>
+                  <td className="border p-1">45 - 49</td>
+                  <td className="border p-1">40 - 44</td>
+                  <td className="border p-1">0 - 39</td>
+                </tr>
+                <tr>
+                  <td className="border p-1">Excellent</td>
+                  <td className="border p-1">Very Good</td>
+                  <td className="border p-1">Good</td>
+                  <td className="border p-1">Credit</td>
+                  <td className="border p-1">Credit</td>
+                  <td className="border p-1">Credit</td>
+                  <td className="border p-1">Pass</td>
+                  <td className="border p-1">Pass</td>
+                  <td className="border p-1">Fail</td>
+                </tr>
               </tbody>
             </table>
-          </div>
-
-          {/* Summary */}
-          <div className="mt-6 border-t pt-4 text-sm">
-            <p>
-              <span className="font-semibold">Total Score:</span> {totalScore} /{" "}
-              {totalPossible}
-            </p>
-            <p>
-              <span className="font-semibold">Average:</span>{" "}
-              {average.toFixed(2)}%
-            </p>
-            <p>
-              <span className="font-semibold">Overall Grade:</span>{" "}
-              {getGrade(average)}
-            </p>
           </div>
 
           {/* Footer */}
