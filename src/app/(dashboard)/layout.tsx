@@ -37,7 +37,7 @@ export default function StudentLayout({
       <AppSidebar variant="sidebar" />
       <SidebarInset>
         <SiteHeader />
-        <main className="p-3">{children}</main>
+        <main className="p-1 md:p-3">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

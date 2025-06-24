@@ -39,7 +39,7 @@ export default function TeacherLayout({
       <AppSidebar variant="sidebar" />
       <SidebarInset>
         <SiteHeader />
-        <main className="p-3">
+        <main className="p-1 md:p-3">
           <div className="mt-4">{children}</div>
         </main>
       </SidebarInset>
