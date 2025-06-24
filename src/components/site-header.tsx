@@ -5,9 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Bell, Search, Settings } from "lucide-react";
+import { useUserStore } from "@/store/userStore";
 
 export function SiteHeader() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const role = useUserStore((s) => s.role);
+  const firstName = useUserStore((s) => s.firstName);
+  const lastName = useUserStore((s) => s.lastName);
+  const className = useUserStore((s) => s.class_name);
+  const classGradeLevel = useUserStore((s) => s.class_grade_level);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -42,11 +48,16 @@ export function SiteHeader() {
 
         <div className="flex items-center space-x-4">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium text-gray-900">Adunni Olatunji</p>
-            <p className="text-xs text-gray-600">SS2 Science</p>
+            <p className="text-sm font-medium text-gray-900">
+              {firstName} {lastName}
+            </p>
+            {role === "Student" && (
+              <p className="text-xs text-gray-600">{className}</p> // You can replace with dynamic class if needed
+            )}
           </div>
+
           <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md">
-            AO
+            {`${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase()}
           </div>
         </div>
       </div>

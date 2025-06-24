@@ -62,6 +62,7 @@ export default function StudentClassPage() {
   const studentName = useUserStore((s) => s.firstName);
   const schoolId = useUserStore((s) => s.schoolId);
   const studentId = useUserStore((s) => s.userId);
+  const setUser = useUserStore((s) => s.setUser);
   // const [classId, setClassId] = useState<string | null>(null);
 
   const { data: Data, isLoading: isClassLoading } = useQuery<Data>({
@@ -70,6 +71,11 @@ export default function StudentClassPage() {
       const { data } = await axios.get(
         `/api/student/details/${schoolId}/${studentId}`
       );
+      setUser({
+        class_id: data.data.class.class_id,
+        class_name: data.data.class.name,
+        class_grade_level: data.data.class.grade_level,
+      });
       // setClassId(data.data.class_id);
       return data.data;
     },

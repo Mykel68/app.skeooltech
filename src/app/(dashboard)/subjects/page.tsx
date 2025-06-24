@@ -70,6 +70,18 @@ const subjects: Subject[] = [
   },
 ];
 
+// const { data: subjectDetails, isLoading: isSubjectsLoading } = useQuery<
+//   Subject[]
+// >({
+//   queryKey: ["studentSubjects", schoolId, classId],
+//   queryFn: async () => {
+//     const { data } = await axios.get(`/api/subject/by-student/${classId}`);
+//     console.log("studentSubjects", subjectDetails);
+//     return data.data;
+//   },
+//   enabled: !!schoolId && !!classId,
+// });
+
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
 

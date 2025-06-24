@@ -34,6 +34,9 @@ interface UserState {
   schoolCode: string | null;
   session_id: string | null;
   term_id: string | null;
+  class_id?: string | null;
+  class_name?: string | null;
+  class_grade_level?: string | null;
   setUser: (user: {
     userId?: string;
     username?: string;
@@ -48,6 +51,9 @@ interface UserState {
     schoolCode?: string;
     session_id?: string;
     term_id?: string;
+    class_id?: string;
+    class_name?: string;
+    class_grade_level?: string;
   }) => void;
   clearUser: () => void;
 }
@@ -68,6 +74,9 @@ export const useUserStore = create<UserState>()(
       schoolCode: null,
       session_id: null,
       term_id: null,
+      class_id: null,
+      class_name: null,
+      class_grade_level: null,
       setUser: (user) => {
         console.log("[UserStore] Updating user store:", user);
         set({ ...user });
@@ -88,6 +97,9 @@ export const useUserStore = create<UserState>()(
           schoolCode: null,
           session_id: null,
           term_id: null,
+          class_id: null,
+          class_name: null,
+          class_grade_level: null,
         });
       },
     }),
