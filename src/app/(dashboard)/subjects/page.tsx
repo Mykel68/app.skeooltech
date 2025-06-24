@@ -21,6 +21,8 @@ interface ApiSubject {
   short: string;
   teacher: {
     username: string;
+    first_name: string;
+    last_name: string;
   };
 }
 
@@ -107,7 +109,8 @@ const Index = () => {
                 <CardContent>
                   <div className="flex items-center text-sm text-gray-600">
                     <Users className="h-4 w-4 mr-2" />
-                    {subject.teacher?.username || "No teacher assigned"}
+                    {` ${subject.teacher?.first_name} ${subject.teacher?.last_name} ` ||
+                      "No teacher assigned"}
                   </div>
                 </CardContent>
               </Card>
