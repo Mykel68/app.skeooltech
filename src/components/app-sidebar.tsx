@@ -22,8 +22,8 @@ import {
   teacherNav,
   studentDocuments,
   teacherDocuments,
-  studentNavSecondary,
-  teacherNavSecondary,
+  // studentNavSecondary,
+  // teacherNavSecondary,
 } from "@/lib/navData";
 import { usePathname } from "next/navigation";
 import axios from "axios";
@@ -50,8 +50,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const user = useUserStore();
   const role = user?.role;
   const navItems = role === "Student" ? studentNav : teacherNav;
-  const navSecondary =
-    role === "Student" ? studentNavSecondary : teacherNavSecondary;
+  // const navSecondary =
+  //   role === "Student" ? studentNavSecondary : teacherNavSecondary;
   const documents = role === "Student" ? studentDocuments : teacherDocuments;
 
   useEffect(() => {
@@ -138,10 +138,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     name: item.name ?? "Untitled Document",
   }));
 
-  const safeSecondary = navSecondary.map((item) => ({
-    ...item,
-    title: item.title ?? "Untitled",
-  }));
+  // const safeSecondary = navSecondary.map((item) => ({
+  //   ...item,
+  //   title: item.title ?? "Untitled",
+  // }));
 
   const safeUser = {
     ...user,
@@ -226,11 +226,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           className="cursor-pointer"
         />
 
-        <NavSecondary
+        {/* <NavSecondary
           items={safeSecondary}
           activeUrl={pathname}
           className="mt-auto"
-        />
+        /> */}
       </SidebarContent>
 
       <SidebarFooter>
