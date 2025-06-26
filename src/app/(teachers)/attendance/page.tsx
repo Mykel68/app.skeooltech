@@ -44,7 +44,7 @@ export default function AttendancePage() {
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error } = useQuery<AttendanceData>({
+  const { data, isLoading, error } = useQuery<any>({
     queryKey: ["get-teacher-classes", schoolId, sessionId, termId, teacherId],
     queryFn: async () => {
       const res = await axios.get(
@@ -132,9 +132,9 @@ export default function AttendancePage() {
   };
 
   if (isLoading) return <LoadingState />;
-  if (error) return <ErrorState />;
   if (!data || !data.classDetails || !data.students?.length)
     return <EmptyState />;
+  if (error) return <ErrorState />;
 
   const { classDetails, students } = data;
   const stats = getAttendanceStats();
