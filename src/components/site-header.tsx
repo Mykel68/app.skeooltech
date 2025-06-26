@@ -14,6 +14,7 @@ export function SiteHeader() {
   const lastName = useUserStore((s) => s.lastName);
   const className = useUserStore((s) => s.class_name);
   const classGradeLevel = useUserStore((s) => s.class_grade_level);
+  const email = useUserStore((s) => s.email);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -51,9 +52,9 @@ export function SiteHeader() {
             <p className="text-sm font-medium text-gray-900">
               {firstName} {lastName}
             </p>
-            {role === "Student" && (
-              <p className="text-xs text-gray-600">{className}</p> // You can replace with dynamic class if needed
-            )}
+            <p className="text-xs text-gray-600">{`${
+              role === "Student" ? className : email
+            }`}</p>{" "}
           </div>
 
           <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md">

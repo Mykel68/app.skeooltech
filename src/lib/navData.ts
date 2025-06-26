@@ -8,6 +8,7 @@ import {
   IconReport,
   IconHelp,
   IconSearch,
+  IconHome,
 } from "@tabler/icons-react";
 
 import { IconProps } from "@tabler/icons-react";
@@ -43,8 +44,8 @@ export const studentNav: NavItem[] = [
 // 	{ title: 'Gradebook', url: '/gradebook', icon: IconClipboardList },
 // ];
 export const teacherNav: NavItem[] = [
-  { title: "Home", url: "/home", icon: IconDashboard },
-  { title: "Classes / Subjects", url: "/classes", icon: IconUser },
+  { title: "Home", url: "/home", icon: IconHome },
+  { title: "Subjects", url: "/classes", icon: IconBook },
   { title: "Students", url: "/students", icon: IconUser }, // NEW
   { title: "Gradebook", url: "/gradebook", icon: IconClipboardList },
   { title: "Attendance", url: "/attendance", icon: IconReport }, // MOVED from documents
