@@ -44,7 +44,7 @@ export default function AttendancePage() {
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error } = useQuery<any>({
+  const { data, isLoading, error } = useQuery<AttendanceData>({
     queryKey: ["get-teacher-classes", schoolId, sessionId, termId, teacherId],
     queryFn: async () => {
       const res = await axios.get(
