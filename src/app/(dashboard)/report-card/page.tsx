@@ -556,8 +556,8 @@ const ReportCardPage = () => {
     <div className="min-h-screen p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Report Card</h1>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Report Card</h1>
           <p className="text-gray-600">
             Excellence Secondary School - Academic Records System
           </p>
@@ -736,9 +736,9 @@ const ReportCardPage = () => {
 
         {/* Report Generation Section */}
         <Card>
-          {/* <CardHeader> */}
-          <CardTitle>Generate Reports</CardTitle>
-          {/* </CardHeader> */}
+          <CardHeader>
+            <CardTitle>Generate Reports</CardTitle>
+          </CardHeader>
           <CardContent>
             {reportType === "session" ? (
               // Complete Session Report
@@ -803,7 +803,7 @@ const ReportCardPage = () => {
                   return (
                     <Card
                       key={index}
-                      className="border-2 hover:border-blue-300 transition-all"
+                      className="border-2 hover:border-emerald-300 transition-all cursor-pointer"
                     >
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg text-blue-800">
