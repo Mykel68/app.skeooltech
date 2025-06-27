@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/store/userStore";
 import { useReactToPrint } from "react-to-print";
 import html2pdf from "html2pdf.js";
+
 interface Props {
   data: any; // raw response passed in
   onClose: () => void;
@@ -42,6 +43,98 @@ function getOverallRemark(average) {
   if (average >= 45)
     return "Fair performance. More effort needed in weak areas.";
   return "Poor performance. Requires serious attention and extra support.";
+}
+
+function getPerformanceInsights(scores, average) {
+  const excellentSubjects = scores.filter((s) => s.total_score >= 75);
+  const goodSubjects = scores.filter(
+    (s) => s.total_score >= 65 && s.total_score < 75
+  );
+  const weakSubjects = scores.filter((s) => s.total_score < 50);
+  const bestSubject = scores.reduce((best, current) =>
+    current.total_score > best.total_score ? current : best
+  );
+  const weakestSubject = scores.reduce((weakest, current) =>
+    current.total_score < weakest.total_score ? current : weakest
+  );
+
+  const insights = [];
+
+  // Best performance insight
+  insights.push(
+    `Strongest performance in ${bestSubject.subject_name} (${bestSubject.total_score}%)`
+  );
+
+  // Areas needing improvement
+  if (weakSubjects.length > 0) {
+    insights.push(
+      `Needs improvement in ${weakestSubject.subject_name} (${weakestSubject.total_score}%)`
+    );
+  }
+
+  // Overall performance category
+  if (average >= 75) {
+    insights.push("Consistently excellent across most subjects");
+  } else if (average >= 65) {
+    insights.push("Good overall performance with room for growth");
+  } else if (average >= 50) {
+    insights.push("Average performance, focus on weaker subjects");
+  } else {
+    insights.push("Below average performance, requires additional support");
+  }
+
+  return insights;
+}
+
+function getRecommendations(scores, average, attendance) {
+  const recommendations = [];
+  const weakSubjects = scores.filter((s) => s.total_score < 50);
+  const attendanceRate = attendance
+    ? (attendance.days_present / attendance.total_days) * 100
+    : 100;
+
+  // Academic recommendations
+  if (average >= 75) {
+    recommendations.push(
+      "Continue the excellent work and maintain this high standard"
+    );
+    recommendations.push(
+      "Consider taking on leadership roles in academic activities"
+    );
+  } else if (average >= 65) {
+    recommendations.push("Focus on improving performance in weaker subjects");
+    recommendations.push("Seek additional practice in challenging topics");
+  } else if (average >= 50) {
+    recommendations.push(
+      "Dedicate more time to studying, especially in weak subjects"
+    );
+    recommendations.push("Consider forming study groups with classmates");
+  } else {
+    recommendations.push(
+      "Requires immediate academic intervention and support"
+    );
+    recommendations.push(
+      "Regular consultation with subject teachers recommended"
+    );
+  }
+
+  // Subject-specific recommendations
+  if (weakSubjects.length > 0) {
+    const subjectNames = weakSubjects
+      .slice(0, 2)
+      .map((s) => s.subject_name)
+      .join(" and ");
+    recommendations.push(`Pay special attention to ${subjectNames}`);
+  }
+
+  // Attendance recommendations
+  if (attendanceRate < 90) {
+    recommendations.push(
+      "Improve school attendance for better academic performance"
+    );
+  }
+
+  return recommendations;
 }
 
 const ReportCard = ({ data, onClose }: Props) => {
@@ -93,6 +186,9 @@ const ReportCard = ({ data, onClose }: Props) => {
   const totalPossible = scores.length * 100;
   const average = (totalScore / totalPossible) * 100;
   const overallGrade = getGrade(average);
+  const overallRemark = getOverallRemark(average);
+  const performanceInsights = getPerformanceInsights(scores, average);
+  const recommendations = getRecommendations(scores, average, attendance);
 
   // Calculate class statistics
   const totalStudents = termData.overall_position; // This would come from your data
@@ -126,9 +222,6 @@ const ReportCard = ({ data, onClose }: Props) => {
           {/* School Header */}
           <div className="text-center border-b-4 border-blue-600 pb-6 mb-8">
             <div className="flex items-center justify-center gap-8 mb-4">
-              {/* <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                {school.name.charAt(0)}
-              </div> */}
               {schoolImage ? (
                 <img
                   src={schoolImage}
@@ -449,8 +542,8 @@ const ReportCard = ({ data, onClose }: Props) => {
             </div>
           </div>
 
-          {/* Summary Statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-6 mb-8">
+          {/* Dynamic Summary Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-6 mb-8">
             <div className="bg-blue-50 rounded-lg p-6">
               <h3 className="text-lg font-bold text-center bg-blue-600 text-white py-2 rounded mb-4">
                 PERFORMANCE SUMMARY
@@ -526,69 +619,69 @@ const ReportCard = ({ data, onClose }: Props) => {
                 </div>
               </div>
             </div>
+
+            <div className="bg-orange-50 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-center bg-orange-600 text-white py-2 rounded mb-4">
+                PERFORMANCE INSIGHTS
+              </h3>
+              <div className="space-y-2">
+                <div className="mb-3">
+                  <p className="font-semibold text-orange-800 mb-2">
+                    Overall Assessment:
+                  </p>
+                  <p className="text-sm italic bg-orange-100 p-2 rounded">
+                    "{overallRemark}"
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  {performanceInsights.map((insight, index) => (
+                    <div key={index} className="flex items-start">
+                      <span className="text-orange-600 mr-2">•</span>
+                      <span className="text-xs">{insight}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Remarks Section */}
+          {/* Recommendations Section */}
           <div className="mb-8">
-            <h3 className="text-lg font-bold text-center bg-orange-600 text-white py-2 rounded mb-4">
-              REMARKS & COMMENTS
+            <h3 className="text-lg font-bold text-center bg-indigo-600 text-white py-2 rounded mb-4">
+              RECOMMENDATIONS FOR IMPROVEMENT
             </h3>
-            <div className="space-y-4">
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <h4 className="font-bold text-orange-800 mb-2">
-                  Class Teacher's Remark:
-                </h4>
-                <p className="text-gray-700">
-                  {getOverallRemark(average)} Sam shows dedication in
-                  Mathematics and Science subjects. However, improvement is
-                  needed in Language subjects. Regular practice and consultation
-                  with subject teachers is recommended.
-                </p>
-              </div>
-
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-bold text-blue-800 mb-2">
-                  Principal's Remark:
-                </h4>
-                <p className="text-gray-700">
-                  A commendable performance overall. The student demonstrates
-                  good academic potential. Continue to maintain focus and strive
-                  for excellence in all subjects.
-                </p>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-bold text-gray-800 mb-2">
-                  Areas for Improvement:
-                </h4>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li>Focus more on Language subjects (English & Yoruba)</li>
-                  <li>
-                    Improve attendance - only{" "}
-                    {(
-                      ((attendance?.days_present || 0) / termData.total_days) *
-                      100
-                    ).toFixed(1)}
-                    % attendance
-                  </li>
-                  <li>Participate more actively in Creative Arts</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          {/* Signatures */}
-          <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-8 pt-8 border-t-2 border-gray-300">
-            <div className="text-center">
-              <div className="border-t-2 border-gray-400 pt-2 mt-16">
-                <p className="font-bold">Class Teacher</p>
-                <p className="text-sm text-gray-600">Signature & Date</p>
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="border-t-2 border-gray-400 pt-2 mt-16">
-                <p className="font-bold">Principal</p>
-                <p className="text-sm text-gray-600">Signature & Date</p>
+            <div className="bg-indigo-50 rounded-lg p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-bold text-indigo-800 mb-3">
+                    Academic Focus Areas:
+                  </h4>
+                  <ul className="space-y-2">
+                    {recommendations
+                      .slice(0, Math.ceil(recommendations.length / 2))
+                      .map((rec, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-indigo-600 mr-2">▸</span>
+                          <span className="text-sm">{rec}</span>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-bold text-indigo-800 mb-3">
+                    Next Steps:
+                  </h4>
+                  <ul className="space-y-2">
+                    {recommendations
+                      .slice(Math.ceil(recommendations.length / 2))
+                      .map((rec, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-indigo-600 mr-2">▸</span>
+                          <span className="text-sm">{rec}</span>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
