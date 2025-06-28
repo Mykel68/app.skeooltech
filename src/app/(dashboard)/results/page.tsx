@@ -199,90 +199,6 @@ export default function ResultsPage() {
     };
   };
 
-  const handleDownloadReport = async () => {
-    try {
-      // Fetch individual student report data from your endpoint
-      // Replace this with your actual endpoint for individual student reports
-      const response = await axios.get(`/api/result`);
-
-      setReportData(response.data.data);
-      setShowReport(true);
-    } catch (error) {
-      console.error("Failed to fetch report data:", error);
-      // For demo purposes, show sample data
-      setReportData({
-        school: {
-          name: "ABESAN JUNIOR HIGH SCHOOL",
-          address: "123 Education Street, Lagos State",
-        },
-        student: {
-          name: "SAMPLE STUDENT NAME",
-          admissionNumber: "AJS/2023/001",
-          class: results?.data?.data?.class?.name || "JSS 2B",
-          age: 14,
-          attendance: {
-            schoolOpened: 98,
-            timesPresent: 94,
-            timesAbsent: 4,
-          },
-        },
-        session: "2023/2024",
-        term: "First Term",
-        subjects:
-          results?.data?.data?.subjectsWithScores
-            ?.slice(0, 6)
-            .map((subject, index) => ({
-              name: subject.subject.name,
-              scores: {
-                firstTest: {
-                  score: Math.floor(Math.random() * 5) + 15,
-                  total: 20,
-                },
-                secondTest: {
-                  score: Math.floor(Math.random() * 5) + 15,
-                  total: 20,
-                },
-                project: {
-                  score: Math.floor(Math.random() * 3) + 7,
-                  total: 10,
-                },
-                exam: { score: Math.floor(Math.random() * 10) + 35, total: 50 },
-              },
-              total: subject.total_score,
-              grade: getGrade(
-                (subject.total_score / subject.grading_total) * 100
-              ),
-              position: index + 1,
-              remark: getRemarkFromGrade(
-                getGrade((subject.total_score / subject.grading_total) * 100)
-              ),
-            })) || [],
-        summary: {
-          totalScore: 479,
-          totalPossible: 600,
-          average: 79.8,
-          position: 3,
-          totalInClass: 32,
-          grade: "B+",
-        },
-        classTeacher: {
-          name: "Mrs. Adebisi Folake",
-        },
-        principal: {
-          name: "Mr. Adeyemi Johnson",
-        },
-        nextTermBegins: "January 8, 2024",
-        comments: {
-          classTeacher:
-            "Good performance overall. Continue to work hard and maintain consistency.",
-          principal:
-            "Keep up the good work. Strive for excellence in all subjects.",
-        },
-      });
-      setShowReport(true);
-    }
-  };
-
   if (!schoolId) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -339,11 +255,6 @@ export default function ResultsPage() {
                 </SelectContent>
               </Select>
             </div>
-
-            <Button variant="outline" size="sm" onClick={handleDownloadReport}>
-              <Download className="h-4 w-4 mr-2" />
-              Download
-            </Button>
           </div>
         </motion.div>
 
