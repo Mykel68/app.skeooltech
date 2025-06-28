@@ -136,17 +136,7 @@ const ReportCardPage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div>
-                <Label htmlFor="studentId">Student ID</Label>
-                <Input
-                  id="studentId"
-                  value={studentId}
-                  onChange={(e) => setStudentId(e.target.value)}
-                  placeholder="Enter Student ID"
-                  disabled
-                />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 space-y-2">
               <div>
                 <Label htmlFor="session">Academic Session</Label>
                 <Select
