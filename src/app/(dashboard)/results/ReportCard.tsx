@@ -8,7 +8,7 @@ import { useReactToPrint } from "react-to-print";
 import html2pdf from "html2pdf.js";
 
 interface Props {
-  data: any;
+  data: any; // raw response passed in
   onClose: () => void;
 }
 
@@ -139,14 +139,11 @@ function getRecommendations(scores, average, attendance) {
 
 const ReportCard = ({ data, onClose }: Props) => {
   const schoolImage = useUserStore((s) => s.schoolImage);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const reactToPrintFn = useReactToPrint({ contentRef });
 
   const handleDownloadPDF = () => {
     if (!contentRef.current) return;
 
     const element = contentRef.current;
-    const student = data.student;
 
     const options = {
       margin: 0.2,
@@ -159,6 +156,7 @@ const ReportCard = ({ data, onClose }: Props) => {
     html2pdf().set(options).from(element).save();
   };
 
+  // Safely guard against undefined data
   if (!data) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -176,69 +174,39 @@ const ReportCard = ({ data, onClose }: Props) => {
 
   const student = data.student;
   const school = data.school;
-  const sessionData = data.sessions[0];
-  const terms = sessionData.terms;
-  const isSessionReport = terms.length > 1;
+  const termData = data.sessions[0].terms[0];
+  const classInfo = termData.class;
+  const scores = termData.scores;
+  const attendance = data.attendance?.[0];
 
-  // Get session statistics if multiple terms
-  const getSessionStats = () => {
-    if (!isSessionReport) return null;
+  const totalScore = scores.reduce(
+    (acc: number, s: any) => acc + s.total_score,
+    0
+  );
+  const totalPossible = scores.length * 100;
+  const average = (totalScore / totalPossible) * 100;
+  const overallGrade = getGrade(average);
+  const overallRemark = getOverallRemark(average);
+  const performanceInsights = getPerformanceInsights(scores, average);
+  const recommendations = getRecommendations(scores, average, attendance);
 
-    const termAverages = terms.map((term) => {
-      const total = term.scores.reduce(
-        (acc, score) => acc + score.total_score,
-        0
-      );
-      return (total / (term.scores.length * 100)) * 100;
-    });
-
-    const sessionAverage =
-      termAverages.reduce((acc, avg) => acc + avg, 0) / termAverages.length;
-    const bestTermIndex = termAverages.indexOf(Math.max(...termAverages));
-    const improvement = termAverages[termAverages.length - 1] - termAverages[0];
-
-    return { termAverages, sessionAverage, bestTermIndex, improvement };
-  };
-
-  const sessionStats = getSessionStats();
-
-  // For session reports, combine all subjects across terms
-  const getCombinedSubjects = () => {
-    if (!isSessionReport) return terms[0].scores;
-
-    const subjectMap = new Map();
-
-    terms.forEach((term, termIndex) => {
-      term.scores.forEach((score) => {
-        if (!subjectMap.has(score.subject_name)) {
-          subjectMap.set(score.subject_name, {
-            subject_name: score.subject_name,
-            terms: new Array(terms.length).fill(null),
-          });
-        }
-        subjectMap.get(score.subject_name).terms[termIndex] = score;
-      });
-    });
-
-    return Array.from(subjectMap.values());
-  };
-
-  const combinedSubjects = getCombinedSubjects();
+  // Calculate class statistics
+  const totalStudents = termData.overall_position; // This would come from your data
+  const overallPosition = termData.totalStudents;
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reactToPrintFn = useReactToPrint({ contentRef });
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg w-full max-w-6xl max-h-[95vh] overflow-auto text-xs print:text-[10px]">
-        {/* Print Controls */}
+      <div className="bg-white rounded-lg w-full max-w-5xl max-h-[95vh] overflow-auto text-xs print:text-[10px]">
+        {/* Sticky Header */}
         <div className="sticky top-0 bg-white border-b p-2 flex justify-between items-center print:hidden z-10">
-          <h3 className="text-sm font-semibold">
-            {isSessionReport
-              ? `Session Report - ${sessionData.session.name}`
-              : `${terms[0].name} Report`}
-          </h3>
+          <h3 className="text-sm font-semibold">Report Card</h3>
           <div className="flex gap-2">
             <Button onClick={handleDownloadPDF} size="sm" variant="secondary">
               <Download className="h-4 w-4 mr-1" /> Download PDF
             </Button>
+
             <Button onClick={reactToPrintFn} size="sm">
               <Printer className="h-4 w-4 mr-1" /> Print
             </Button>
@@ -247,7 +215,6 @@ const ReportCard = ({ data, onClose }: Props) => {
             </Button>
           </div>
         </div>
-
         <div
           ref={contentRef}
           className="p-12 print-area print:p-4 print:text-xs"
@@ -281,29 +248,28 @@ const ReportCard = ({ data, onClose }: Props) => {
               <div className="flex-shrink-0">
                 <div className="w-28 aspect-square bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-lg flex flex-col items-center justify-center text-center shadow-lg">
                   <div className="p-2 font-bold text-xl border-b-2 border-white/30 w-full text-center">
-                    {terms[0].class?.grade_level || "N/A"}
+                    {classInfo?.grade_level || "N/A"}
                   </div>
                   <div className="p-2 font-semibold text-sm">
-                    {isSessionReport ? "SESSION" : terms[0]?.name || "Term"}
+                    {termData?.name || "Term"}
                   </div>
                 </div>
               </div>
             </div>
             <div className="bg-blue-50 py-3 px-6 rounded-lg">
               <h2 className="text-xl font-bold text-blue-800">
-                {isSessionReport
-                  ? "COMPLETE SESSION REPORT"
-                  : "CONTINUOUS ASSESSMENT REPORT"}
+                CONTINUOUS ASSESSMENT REPORT
               </h2>
               <p className="text-blue-600 font-semibold">
-                {sessionData.session.name} Academic Session
-                {!isSessionReport && ` - ${terms[0].name}`}
+                {data.sessions[0].session.name} Academic Session -{" "}
+                {termData.name}
               </p>
             </div>
           </div>
 
-          {/* Student Information */}
+          {/* Student Information Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-6 mb-8">
+            {/* Student Personal Data */}
             <div className="bg-gray-50 rounded-lg p-6">
               <h3 className="text-lg font-bold text-center bg-blue-600 text-white py-2 rounded mb-4">
                 STUDENT'S PERSONAL DATA
@@ -316,24 +282,24 @@ const ReportCard = ({ data, onClose }: Props) => {
                   </span>
                 </div>
                 <div className="flex justify-between border-b pb-2">
-                  <span className="font-semibold">First Name:</span>
+                  <span className="font-semibold uppercase">First Name:</span>
                   <span>{student.first_name}</span>
                 </div>
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-semibold">Class:</span>
-                  <span>{terms[0].class.name}</span>
+                  <span>{classInfo.name}</span>
                 </div>
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-semibold">Grade Level:</span>
-                  <span>{terms[0].class.grade_level}</span>
+                  <span>{classInfo.grade_level}</span>
                 </div>
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-semibold">Gender:</span>
                   <span>{student.gender}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold">Student ID:</span>
-                  <span>{student.student_id}</span>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-semibold">Email:</span>
+                  <span>{student.email}</span>
                 </div>
               </div>
             </div>
@@ -349,22 +315,19 @@ const ReportCard = ({ data, onClose }: Props) => {
                   <div>
                     <p className="font-semibold text-sm">School Days</p>
                     <p className="text-3xl font-bold text-green-600">
-                      {terms[0].total_days}
+                      {termData.total_days}
                     </p>
                   </div>
                   <div>
                     <p className="font-semibold text-sm">Present</p>
                     <p className="text-3xl font-bold text-blue-600">
-                      {data.attendance?.[0]?.days_present ||
-                        terms[0].total_days}
+                      {attendance?.days_present}
                     </p>
                   </div>
                   <div>
                     <p className="font-semibold text-sm">Absent</p>
                     <p className="text-3xl font-bold text-red-600">
-                      {terms[0].total_days -
-                        (data.attendance?.[0]?.days_present ||
-                          terms[0].total_days)}
+                      {termData.total_days - (attendance?.days_present || 0)}
                     </p>
                   </div>
                 </div>
@@ -378,15 +341,15 @@ const ReportCard = ({ data, onClose }: Props) => {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="font-semibold">Term Begins:</span>
-                    <span>{formatDate(terms[0].start_date)}</span>
+                    <span>{formatDate(termData.start_date)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-semibold">Term Ends:</span>
-                    <span>{formatDate(terms[0].end_date)}</span>
+                    <span>{formatDate(termData.end_date)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-semibold">Next Term:</span>
-                    <span>{formatDate(terms[0].next_term_start_date)}</span>
+                    <span>{formatDate(termData.next_term_start_date)}</span>
                   </div>
                 </div>
               </div>
@@ -484,12 +447,10 @@ const ReportCard = ({ data, onClose }: Props) => {
             </div>
           </div>
 
-          {/* Single Combined Academic Performance Table */}
+          {/* Academic Performance */}
           <div className="mb-8">
             <h3 className="text-lg font-bold text-center bg-red-600 text-white py-2 rounded mb-4">
-              {isSessionReport
-                ? "SESSION ACADEMIC PERFORMANCE"
-                : "ACADEMIC PERFORMANCE RECORD"}
+              ACADEMIC PERFORMANCE RECORD
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse border border-gray-300 text-sm">
@@ -497,90 +458,24 @@ const ReportCard = ({ data, onClose }: Props) => {
                   <tr>
                     <th className="border border-gray-300 p-2">S/N</th>
                     <th className="border border-gray-300 p-2">Subject</th>
-                    {isSessionReport ? (
-                      // Session report - show all terms
-                      terms.map((term, index) => (
-                        <React.Fragment key={index}>
-                          <th
-                            className="border border-gray-300 p-2 bg-blue-50"
-                            colSpan={3}
-                          >
-                            {term.name}
-                          </th>
-                        </React.Fragment>
-                      ))
-                    ) : (
-                      // Single term report
-                      <>
-                        <th className="border border-gray-300 p-2">CA (40%)</th>
-                        <th className="border border-gray-300 p-2">
-                          Exam (60%)
-                        </th>
-                        <th className="border border-gray-300 p-2">
-                          Total (100%)
-                        </th>
-                        <th className="border border-gray-300 p-2">Grade</th>
-                        <th className="border border-gray-300 p-2">Remark</th>
-                        <th className="border border-gray-300 p-2">Position</th>
-                        <th className="border border-gray-300 p-2">
-                          Class Avg
-                        </th>
-                      </>
-                    )}
-                    {isSessionReport && (
-                      <>
-                        <th className="border border-gray-300 p-2 bg-green-50">
-                          Session Avg
-                        </th>
-                        <th className="border border-gray-300 p-2 bg-green-50">
-                          Grade
-                        </th>
-                        <th className="border border-gray-300 p-2 bg-green-50">
-                          Remark
-                        </th>
-                      </>
-                    )}
+                    <th className="border border-gray-300 p-2">CA (40%)</th>
+                    <th className="border border-gray-300 p-2">Exam (60%)</th>
+                    <th className="border border-gray-300 p-2">Total (100%)</th>
+                    <th className="border border-gray-300 p-2">Grade</th>
+                    <th className="border border-gray-300 p-2">Remark</th>
+                    <th className="border border-gray-300 p-2">Position</th>
+                    <th className="border border-gray-300 p-2">Class Avg</th>
                   </tr>
-                  {isSessionReport && (
-                    <tr>
-                      <th className="border border-gray-300 p-2"></th>
-                      <th className="border border-gray-300 p-2"></th>
-                      {terms.map((_, index) => (
-                        <React.Fragment key={index}>
-                          <th className="border border-gray-300 p-2 text-xs">
-                            CA+Exam
-                          </th>
-                          <th className="border border-gray-300 p-2 text-xs">
-                            Grade
-                          </th>
-                          <th className="border border-gray-300 p-2 text-xs">
-                            Pos
-                          </th>
-                        </React.Fragment>
-                      ))}
-                      <th className="border border-gray-300 p-2"></th>
-                      <th className="border border-gray-300 p-2"></th>
-                      <th className="border border-gray-300 p-2"></th>
-                    </tr>
-                  )}
                 </thead>
                 <tbody>
-                  {combinedSubjects.map((subject, index) => {
-                    let sessionTotal = 0;
-                    let validTerms = 0;
-
-                    if (isSessionReport) {
-                      subject.terms.forEach((termScore) => {
-                        if (termScore) {
-                          sessionTotal += termScore.total_score;
-                          validTerms++;
-                        }
-                      });
-                    }
-
-                    const sessionAverage =
-                      validTerms > 0 ? sessionTotal / validTerms : 0;
-                    const sessionGrade = getGrade(sessionAverage);
+                  {scores.map((score, index) => {
+                    const grade = getGrade(score.total_score);
+                    const caScore =
+                      score.components.find((c) => c.component_name === "CA")
+                        ?.score || 0;
+                    const examScore =
+                      score.components.find((c) => c.component_name === "Exam")
+                        ?.score || 0;
 
                     return (
                       <tr
@@ -591,153 +486,210 @@ const ReportCard = ({ data, onClose }: Props) => {
                           {index + 1}
                         </td>
                         <td className="border border-gray-300 p-2 font-medium">
-                          {subject.subject_name}
+                          {score.subject_name}
                         </td>
-
-                        {isSessionReport ? (
-                          // Session report - show all terms
-                          <>
-                            {subject.terms.map((termScore, termIndex) => (
-                              <React.Fragment key={termIndex}>
-                                <td className="border border-gray-300 p-2 text-center">
-                                  {termScore ? termScore.total_score : "-"}
-                                </td>
-                                <td className="border border-gray-300 p-2 text-center font-bold text-blue-600">
-                                  {termScore
-                                    ? getGrade(termScore.total_score).grade
-                                    : "-"}
-                                </td>
-                                <td className="border border-gray-300 p-2 text-center">
-                                  {termScore
-                                    ? termScore.subject_position || "-"
-                                    : "-"}
-                                </td>
-                              </React.Fragment>
-                            ))}
-                            <td className="border border-gray-300 p-2 text-center font-bold bg-green-50">
-                              {sessionAverage.toFixed(1)}
-                            </td>
-                            <td className="border border-gray-300 p-2 text-center font-bold text-blue-600 bg-green-50">
-                              {sessionGrade.grade}
-                            </td>
-                            <td className="border border-gray-300 p-2 text-center bg-green-50">
-                              {sessionGrade.remark}
-                            </td>
-                          </>
-                        ) : (
-                          // Single term report
-                          (() => {
-                            const score = terms[0].scores.find(
-                              (s) => s.subject_name === subject.subject_name
-                            );
-                            const grade = getGrade(score.total_score);
-                            const caScore =
-                              score.components.find(
-                                (c) => c.component_name === "CA"
-                              )?.score || 0;
-                            const examScore =
-                              score.components.find(
-                                (c) => c.component_name === "Exam"
-                              )?.score || 0;
-
-                            return (
-                              <>
-                                <td className="border border-gray-300 p-2 text-center">
-                                  {caScore}
-                                </td>
-                                <td className="border border-gray-300 p-2 text-center">
-                                  {examScore}
-                                </td>
-                                <td className="border border-gray-300 p-2 text-center font-bold">
-                                  {score.total_score}
-                                </td>
-                                <td className="border border-gray-300 p-2 text-center font-bold text-blue-600">
-                                  {grade.grade}
-                                </td>
-                                <td className="border border-gray-300 p-2 text-center">
-                                  {grade.remark}
-                                </td>
-                                <td className="border border-gray-300 p-2 text-center">
-                                  {score.subject_position || "-"}
-                                </td>
-                                <td className="border border-gray-300 p-2 text-center">
-                                  {score.average}
-                                </td>
-                              </>
-                            );
-                          })()
-                        )}
+                        <td className="border border-gray-300 p-2 text-center">
+                          {caScore}
+                        </td>
+                        <td className="border border-gray-300 p-2 text-center">
+                          {examScore}
+                        </td>
+                        <td className="border border-gray-300 p-2 text-center font-bold">
+                          {score.total_score}
+                        </td>
+                        <td className="border border-gray-300 p-2 text-center font-bold text-blue-600">
+                          {grade.grade}
+                        </td>
+                        <td className="border border-gray-300 p-2 text-center">
+                          {grade.remark}
+                        </td>
+                        <td className="border border-gray-300 p-2 text-center">
+                          {score.subject_position || "-"}
+                        </td>
+                        <td className="border border-gray-300 p-2 text-center">
+                          {score.average}
+                        </td>
                       </tr>
                     );
                   })}
                 </tbody>
+                <tfoot className="bg-blue-100 font-bold">
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="border border-gray-300 p-2 text-center"
+                    >
+                      TOTAL SCORES
+                    </td>
+                    <td className="border border-gray-300 p-2 text-center text-lg">
+                      {totalScore}
+                    </td>
+                    <td className="border border-gray-300 p-2 text-center text-lg">
+                      {overallGrade.grade}
+                    </td>
+                    <td className="border border-gray-300 p-2 text-center">
+                      {overallGrade.remark}
+                    </td>
+                    <td className="border border-gray-300 p-2 text-center">
+                      {overallPosition}
+                    </td>
+                    <td className="border border-gray-300 p-2 text-center">
+                      {average.toFixed(1)}%
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>
 
-          {/* Session Summary for multi-term reports */}
-          {isSessionReport && sessionStats && (
-            <div className="mb-8">
-              <h3 className="text-lg font-bold text-center bg-purple-600 text-white py-2 rounded mb-4">
-                SESSION PERFORMANCE ANALYSIS
+          {/* Dynamic Summary Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-6 mb-8">
+            <div className="bg-blue-50 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-center bg-blue-600 text-white py-2 rounded mb-4">
+                PERFORMANCE SUMMARY
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-purple-50 rounded-lg p-4">
-                  <h4 className="font-bold text-purple-800 mb-3">
-                    Term-by-Term Progress
-                  </h4>
-                  <div className="space-y-2">
-                    {terms.map((term, index) => (
-                      <div
-                        key={index}
-                        className="flex justify-between items-center"
-                      >
-                        <span className="font-medium">{term.name}:</span>
-                        <span className="font-bold text-purple-600">
-                          {sessionStats.termAverages[index].toFixed(1)}%
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+              <div className="space-y-3">
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-semibold">Total Score:</span>
+                  <span className="font-bold">
+                    {totalScore}/{totalPossible}
+                  </span>
                 </div>
-                <div className="bg-purple-50 rounded-lg p-4">
-                  <h4 className="font-bold text-purple-800 mb-3">
-                    Session Insights
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <p>
-                      <strong>Best Performance:</strong>{" "}
-                      {terms[sessionStats.bestTermIndex].name}
-                    </p>
-                    <p>
-                      <strong>Consistency:</strong>{" "}
-                      {Math.max(...sessionStats.termAverages) -
-                        Math.min(...sessionStats.termAverages) <
-                      10
-                        ? "Consistent"
-                        : "Variable"}
-                    </p>
-                    <p>
-                      <strong>Trend:</strong>{" "}
-                      {sessionStats.improvement >= 0
-                        ? "Improving"
-                        : "Declining"}
-                    </p>
-                    <p>
-                      <strong>Overall Grade:</strong>{" "}
-                      {getGrade(sessionStats.sessionAverage).grade} -{" "}
-                      {getGrade(sessionStats.sessionAverage).remark}
-                    </p>
-                  </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-semibold">Average Score:</span>
+                  <span className="font-bold">{average.toFixed(1)}%</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-semibold">Overall Grade:</span>
+                  <span className="font-bold text-blue-600">
+                    {overallGrade.grade}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-semibold">Class Position:</span>
+                  <span className="font-bold">
+                    {overallPosition} of {totalStudents}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold">Subjects Offered:</span>
+                  <span className="font-bold">{scores.length}</span>
                 </div>
               </div>
             </div>
-          )}
+
+            <div className="bg-green-50 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-center bg-green-600 text-white py-2 rounded mb-4">
+                SUBJECT ANALYSIS
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-semibold">Excellent (A1):</span>
+                  <span className="font-bold text-green-600">
+                    {scores.filter((s) => s.total_score >= 75).length} subjects
+                  </span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-semibold">Good (B2-B3):</span>
+                  <span className="font-bold text-blue-600">
+                    {
+                      scores.filter(
+                        (s) => s.total_score >= 65 && s.total_score < 75
+                      ).length
+                    }{" "}
+                    subjects
+                  </span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-semibold">Credit (C4-C6):</span>
+                  <span className="font-bold text-yellow-600">
+                    {
+                      scores.filter(
+                        (s) => s.total_score >= 50 && s.total_score < 65
+                      ).length
+                    }{" "}
+                    subjects
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold">Pass/Fail (D7-F9):</span>
+                  <span className="font-bold text-red-600">
+                    {scores.filter((s) => s.total_score < 50).length} subjects
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-orange-50 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-center bg-orange-600 text-white py-2 rounded mb-4">
+                PERFORMANCE INSIGHTS
+              </h3>
+              <div className="space-y-2">
+                <div className="mb-3">
+                  <p className="font-semibold text-orange-800 mb-2">
+                    Overall Assessment:
+                  </p>
+                  <p className="text-sm italic bg-orange-100 p-2 rounded">
+                    "{overallRemark}"
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  {performanceInsights.map((insight, index) => (
+                    <div key={index} className="flex items-start">
+                      <span className="text-orange-600 mr-2">•</span>
+                      <span className="text-xs">{insight}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Recommendations Section */}
+          <div className="mb-8">
+            <h3 className="text-lg font-bold text-center bg-indigo-600 text-white py-2 rounded mb-4">
+              RECOMMENDATIONS FOR IMPROVEMENT
+            </h3>
+            <div className="bg-indigo-50 rounded-lg p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-bold text-indigo-800 mb-3">
+                    Academic Focus Areas:
+                  </h4>
+                  <ul className="space-y-2">
+                    {recommendations
+                      .slice(0, Math.ceil(recommendations.length / 2))
+                      .map((rec, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-indigo-600 mr-2">▸</span>
+                          <span className="text-sm">{rec}</span>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-bold text-indigo-800 mb-3">
+                    Next Steps:
+                  </h4>
+                  <ul className="space-y-2">
+                    {recommendations
+                      .slice(Math.ceil(recommendations.length / 2))
+                      .map((rec, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-indigo-600 mr-2">▸</span>
+                          <span className="text-sm">{rec}</span>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Footer */}
           <div className="text-center text-xs text-gray-500 pt-8 border-t mt-8">
             <p>
-              This report was generated on{" "}
+              This report was generated electronically on{" "}
               {new Date().toLocaleDateString("en-GB")} at{" "}
               {new Date().toLocaleTimeString()}
             </p>
