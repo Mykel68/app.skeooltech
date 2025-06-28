@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
 import { cookies } from "next/headers";
+import { backendClient } from "@/lib/backendClient";
 
 export async function GET(request: Request) {
   const backendUrl = process.env.MAIN_BACKEND_URL;
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const response = await axios.get(
+    const response = await backendClient.get(
       `${backendUrl}/api/student-results/results`,
       {
         headers: {

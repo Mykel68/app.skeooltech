@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,480 +14,43 @@ import {
 } from "@/components/ui/select";
 import { Download, Printer, TrendingUp, Award } from "lucide-react";
 import ReportCard from "../results/ReportCard";
-
-// Enhanced mock data with multiple sessions and 3 terms each
-const mockStudentData = {
-  student: {
-    first_name: "John",
-    last_name: "Doe",
-    email: "john.doe@school.edu",
-    gender: "Male",
-    student_id: "SS2024001",
-  },
-  school: {
-    name: "Excellence Secondary School",
-    address: "123 Education Avenue, Lagos State, Nigeria",
-    phone_number: "+234-801-234-5678",
-    motto: "Knowledge is Power",
-    users: [{ email: "info@excellenceschool.edu" }],
-  },
-  sessions: [
-    {
-      session: { name: "2023/2024" },
-      terms: [
-        {
-          name: "First Term",
-          start_date: "2023-09-15",
-          end_date: "2023-12-15",
-          next_term_start_date: "2024-01-15",
-          total_days: 65,
-          overall_position: 5,
-          totalStudents: 45,
-          class: { name: "SS2A", grade_level: "SS2" },
-          scores: [
-            {
-              subject_name: "Mathematics",
-              total_score: 85,
-              subject_position: 3,
-              average: 72,
-              components: [
-                { component_name: "CA", score: 34 },
-                { component_name: "Exam", score: 51 },
-              ],
-            },
-            {
-              subject_name: "English Language",
-              total_score: 78,
-              subject_position: 7,
-              average: 69,
-              components: [
-                { component_name: "CA", score: 31 },
-                { component_name: "Exam", score: 47 },
-              ],
-            },
-            {
-              subject_name: "Physics",
-              total_score: 82,
-              subject_position: 4,
-              average: 67,
-              components: [
-                { component_name: "CA", score: 33 },
-                { component_name: "Exam", score: 49 },
-              ],
-            },
-            {
-              subject_name: "Chemistry",
-              total_score: 76,
-              subject_position: 8,
-              average: 71,
-              components: [
-                { component_name: "CA", score: 30 },
-                { component_name: "Exam", score: 46 },
-              ],
-            },
-            {
-              subject_name: "Biology",
-              total_score: 88,
-              subject_position: 2,
-              average: 73,
-              components: [
-                { component_name: "CA", score: 35 },
-                { component_name: "Exam", score: 53 },
-              ],
-            },
-            {
-              subject_name: "Geography",
-              total_score: 71,
-              subject_position: 12,
-              average: 68,
-              components: [
-                { component_name: "CA", score: 28 },
-                { component_name: "Exam", score: 43 },
-              ],
-            },
-          ],
-        },
-        {
-          name: "Second Term",
-          start_date: "2024-01-15",
-          end_date: "2024-04-15",
-          next_term_start_date: "2024-04-29",
-          total_days: 63,
-          overall_position: 4,
-          totalStudents: 45,
-          class: { name: "SS2A", grade_level: "SS2" },
-          scores: [
-            {
-              subject_name: "Mathematics",
-              total_score: 89,
-              subject_position: 2,
-              average: 74,
-              components: [
-                { component_name: "CA", score: 36 },
-                { component_name: "Exam", score: 53 },
-              ],
-            },
-            {
-              subject_name: "English Language",
-              total_score: 81,
-              subject_position: 5,
-              average: 71,
-              components: [
-                { component_name: "CA", score: 32 },
-                { component_name: "Exam", score: 49 },
-              ],
-            },
-            {
-              subject_name: "Physics",
-              total_score: 85,
-              subject_position: 3,
-              average: 69,
-              components: [
-                { component_name: "CA", score: 34 },
-                { component_name: "Exam", score: 51 },
-              ],
-            },
-            {
-              subject_name: "Chemistry",
-              total_score: 79,
-              subject_position: 6,
-              average: 73,
-              components: [
-                { component_name: "CA", score: 31 },
-                { component_name: "Exam", score: 48 },
-              ],
-            },
-            {
-              subject_name: "Biology",
-              total_score: 91,
-              subject_position: 1,
-              average: 75,
-              components: [
-                { component_name: "CA", score: 37 },
-                { component_name: "Exam", score: 54 },
-              ],
-            },
-            {
-              subject_name: "Geography",
-              total_score: 74,
-              subject_position: 9,
-              average: 70,
-              components: [
-                { component_name: "CA", score: 29 },
-                { component_name: "Exam", score: 45 },
-              ],
-            },
-          ],
-        },
-        {
-          name: "Third Term",
-          start_date: "2024-04-29",
-          end_date: "2024-07-19",
-          next_term_start_date: "2024-09-16",
-          total_days: 60,
-          overall_position: 3,
-          totalStudents: 45,
-          class: { name: "SS2A", grade_level: "SS2" },
-          scores: [
-            {
-              subject_name: "Mathematics",
-              total_score: 92,
-              subject_position: 1,
-              average: 76,
-              components: [
-                { component_name: "CA", score: 38 },
-                { component_name: "Exam", score: 54 },
-              ],
-            },
-            {
-              subject_name: "English Language",
-              total_score: 84,
-              subject_position: 4,
-              average: 73,
-              components: [
-                { component_name: "CA", score: 33 },
-                { component_name: "Exam", score: 51 },
-              ],
-            },
-            {
-              subject_name: "Physics",
-              total_score: 87,
-              subject_position: 2,
-              average: 71,
-              components: [
-                { component_name: "CA", score: 35 },
-                { component_name: "Exam", score: 52 },
-              ],
-            },
-            {
-              subject_name: "Chemistry",
-              total_score: 82,
-              subject_position: 5,
-              average: 75,
-              components: [
-                { component_name: "CA", score: 32 },
-                { component_name: "Exam", score: 50 },
-              ],
-            },
-            {
-              subject_name: "Biology",
-              total_score: 94,
-              subject_position: 1,
-              average: 77,
-              components: [
-                { component_name: "CA", score: 39 },
-                { component_name: "Exam", score: 55 },
-              ],
-            },
-            {
-              subject_name: "Geography",
-              total_score: 77,
-              subject_position: 8,
-              average: 72,
-              components: [
-                { component_name: "CA", score: 30 },
-                { component_name: "Exam", score: 47 },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      session: { name: "2022/2023" },
-      terms: [
-        {
-          name: "First Term",
-          start_date: "2022-09-15",
-          end_date: "2022-12-15",
-          next_term_start_date: "2023-01-15",
-          total_days: 65,
-          overall_position: 8,
-          totalStudents: 42,
-          class: { name: "SS1B", grade_level: "SS1" },
-          scores: [
-            {
-              subject_name: "Mathematics",
-              total_score: 72,
-              subject_position: 8,
-              average: 68,
-              components: [
-                { component_name: "CA", score: 28 },
-                { component_name: "Exam", score: 44 },
-              ],
-            },
-            {
-              subject_name: "English Language",
-              total_score: 68,
-              subject_position: 12,
-              average: 65,
-              components: [
-                { component_name: "CA", score: 27 },
-                { component_name: "Exam", score: 41 },
-              ],
-            },
-            {
-              subject_name: "Physics",
-              total_score: 75,
-              subject_position: 6,
-              average: 63,
-              components: [
-                { component_name: "CA", score: 30 },
-                { component_name: "Exam", score: 45 },
-              ],
-            },
-            {
-              subject_name: "Chemistry",
-              total_score: 70,
-              subject_position: 10,
-              average: 67,
-              components: [
-                { component_name: "CA", score: 28 },
-                { component_name: "Exam", score: 42 },
-              ],
-            },
-            {
-              subject_name: "Biology",
-              total_score: 78,
-              subject_position: 5,
-              average: 69,
-              components: [
-                { component_name: "CA", score: 31 },
-                { component_name: "Exam", score: 47 },
-              ],
-            },
-            {
-              subject_name: "Geography",
-              total_score: 65,
-              subject_position: 15,
-              average: 64,
-              components: [
-                { component_name: "CA", score: 26 },
-                { component_name: "Exam", score: 39 },
-              ],
-            },
-          ],
-        },
-        {
-          name: "Second Term",
-          start_date: "2023-01-15",
-          end_date: "2023-04-15",
-          next_term_start_date: "2023-04-29",
-          total_days: 63,
-          overall_position: 6,
-          totalStudents: 42,
-          class: { name: "SS1B", grade_level: "SS1" },
-          scores: [
-            {
-              subject_name: "Mathematics",
-              total_score: 76,
-              subject_position: 6,
-              average: 70,
-              components: [
-                { component_name: "CA", score: 30 },
-                { component_name: "Exam", score: 46 },
-              ],
-            },
-            {
-              subject_name: "English Language",
-              total_score: 72,
-              subject_position: 9,
-              average: 67,
-              components: [
-                { component_name: "CA", score: 29 },
-                { component_name: "Exam", score: 43 },
-              ],
-            },
-            {
-              subject_name: "Physics",
-              total_score: 79,
-              subject_position: 4,
-              average: 65,
-              components: [
-                { component_name: "CA", score: 32 },
-                { component_name: "Exam", score: 47 },
-              ],
-            },
-            {
-              subject_name: "Chemistry",
-              total_score: 74,
-              subject_position: 7,
-              average: 69,
-              components: [
-                { component_name: "CA", score: 29 },
-                { component_name: "Exam", score: 45 },
-              ],
-            },
-            {
-              subject_name: "Biology",
-              total_score: 82,
-              subject_position: 3,
-              average: 71,
-              components: [
-                { component_name: "CA", score: 33 },
-                { component_name: "Exam", score: 49 },
-              ],
-            },
-            {
-              subject_name: "Geography",
-              total_score: 69,
-              subject_position: 11,
-              average: 66,
-              components: [
-                { component_name: "CA", score: 27 },
-                { component_name: "Exam", score: 42 },
-              ],
-            },
-          ],
-        },
-        {
-          name: "Third Term",
-          start_date: "2023-04-29",
-          end_date: "2023-07-19",
-          next_term_start_date: "2023-09-16",
-          total_days: 60,
-          overall_position: 5,
-          totalStudents: 42,
-          class: { name: "SS1B", grade_level: "SS1" },
-          scores: [
-            {
-              subject_name: "Mathematics",
-              total_score: 80,
-              subject_position: 4,
-              average: 72,
-              components: [
-                { component_name: "CA", score: 32 },
-                { component_name: "Exam", score: 48 },
-              ],
-            },
-            {
-              subject_name: "English Language",
-              total_score: 75,
-              subject_position: 7,
-              average: 69,
-              components: [
-                { component_name: "CA", score: 30 },
-                { component_name: "Exam", score: 45 },
-              ],
-            },
-            {
-              subject_name: "Physics",
-              total_score: 83,
-              subject_position: 3,
-              average: 67,
-              components: [
-                { component_name: "CA", score: 33 },
-                { component_name: "Exam", score: 50 },
-              ],
-            },
-            {
-              subject_name: "Chemistry",
-              total_score: 77,
-              subject_position: 6,
-              average: 71,
-              components: [
-                { component_name: "CA", score: 31 },
-                { component_name: "Exam", score: 46 },
-              ],
-            },
-            {
-              subject_name: "Biology",
-              total_score: 85,
-              subject_position: 2,
-              average: 73,
-              components: [
-                { component_name: "CA", score: 34 },
-                { component_name: "Exam", score: 51 },
-              ],
-            },
-            {
-              subject_name: "Geography",
-              total_score: 72,
-              subject_position: 9,
-              average: 68,
-              components: [
-                { component_name: "CA", score: 29 },
-                { component_name: "Exam", score: 43 },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  ],
-  attendance: [
-    { days_present: 58, total_days: 65 },
-    { days_present: 60, total_days: 63 },
-    { days_present: 57, total_days: 60 },
-  ],
-};
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 const ReportCardPage = () => {
   const [showReportCard, setShowReportCard] = useState(false);
   const [selectedData, setSelectedData] = useState(null);
-  const [studentId, setStudentId] = useState("SS2024001");
-  const [selectedSession, setSelectedSession] = useState("2023/2024");
+  const [studentId, setStudentId] = useState("");
+  const [selectedSession, setSelectedSession] = useState("");
   const [reportType, setReportType] = useState("session");
+
+  const { data: mockStudentData, isLoading } = useQuery({
+    queryKey: ["results"],
+    queryFn: async () => {
+      const response = await axios.get(`/api/result`);
+      // console.log("→ mockStudentData:", response.data);
+      return response.data.data;
+    },
+  });
+
+  useEffect(() => {
+    if (mockStudentData) {
+      if (!studentId) {
+        setStudentId(mockStudentData.student.student_id);
+      }
+      if (!selectedSession && mockStudentData.sessions.length > 0) {
+        setSelectedSession(mockStudentData.sessions[0].session.name);
+      }
+    }
+  }, [mockStudentData]);
+
+  if (isLoading || !mockStudentData) {
+    return (
+      <div className="p-8 text-center text-gray-600">
+        Loading student data...
+      </div>
+    );
+  }
 
   const currentSessionData = mockStudentData.sessions.find(
     (s) => s.session.name === selectedSession
@@ -502,7 +64,7 @@ const ReportCardPage = () => {
     let reportData = { ...mockStudentData };
 
     if (termData) {
-      // Show specific term only
+      // Specific term only
       const sessionIndex = mockStudentData.sessions.findIndex(
         (s) => s.session.name === selectedSession
       );
@@ -518,7 +80,7 @@ const ReportCardPage = () => {
         ],
       ];
     } else if (sessionData) {
-      // Show complete session
+      // Complete session
       const sessionIndex = mockStudentData.sessions.findIndex(
         (s) => s.session.name === selectedSession
       );
@@ -582,6 +144,7 @@ const ReportCardPage = () => {
                   value={studentId}
                   onChange={(e) => setStudentId(e.target.value)}
                   placeholder="Enter Student ID"
+                  disabled
                 />
               </div>
               <div>
@@ -594,7 +157,7 @@ const ReportCardPage = () => {
                     <SelectValue placeholder="Select Session" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockStudentData.sessions.map((session) => (
+                    {mockStudentData.sessions?.map((session) => (
                       <SelectItem
                         key={session.session.name}
                         value={session.session.name}
@@ -710,7 +273,6 @@ const ReportCardPage = () => {
                 </div>
               </div>
 
-              {/* Term Averages Chart */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <h4 className="font-semibold mb-3">Term-by-Term Progress</h4>
                 <div className="flex justify-between items-end h-20">
@@ -741,7 +303,6 @@ const ReportCardPage = () => {
           </CardHeader>
           <CardContent>
             {reportType === "session" ? (
-              // Complete Session Report
               <div className="text-center py-8">
                 <div className="bg-blue-50 rounded-lg p-6 mb-6">
                   <Award className="h-12 w-12 text-emerald-600 mx-auto mb-4" />
@@ -796,7 +357,6 @@ const ReportCardPage = () => {
                 </Button>
               </div>
             ) : (
-              // Individual Term Reports
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {currentSessionData?.terms.map((term, index) => {
                   const average = getTermAverage(term.scores);
