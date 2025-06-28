@@ -31,7 +31,7 @@ export const studentNav: NavItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
   { title: "Subjects", url: "/subjects", icon: IconBook },
   { title: "Results", url: "/results", icon: IconClipboardList },
-  { title: "Attendance", url: "/attendance", icon: IconReport }, // NEW
+  { title: "Attendance", url: "/attendance_", icon: IconReport }, // NEW
   { title: "Report Card", url: "/report-card", icon: IconReport }, // NEW
 ];
 
