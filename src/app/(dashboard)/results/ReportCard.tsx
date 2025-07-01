@@ -5,11 +5,79 @@ import { Download, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/store/userStore";
 import { useReactToPrint } from "react-to-print";
-import html2pdf from "html2pdf.js";
+import GradingSystem from "./GradingSystem";
 
 interface Props {
   data: any; // raw response passed in
   onClose: () => void;
+}
+
+export interface User {
+  last_name: string;
+  first_name: string;
+  gender: string;
+  email: string;
+}
+
+export interface SchoolUser {
+  email: string;
+}
+
+export interface School {
+  name: string;
+  address: string;
+  phone_number: string;
+  motto: string;
+  users: SchoolUser[];
+}
+
+export interface Attendance {
+  days_present: number;
+  total_days: number;
+}
+
+export interface ScoreComponent {
+  component_name: string;
+  score: number;
+}
+
+export interface Score {
+  subject_name: string;
+  total_score: number;
+  subject_position?: number | string;
+  average: number;
+  components: ScoreComponent[];
+}
+
+export interface ClassInfo {
+  name: string;
+  grade_level: string;
+}
+
+export interface TermData {
+  name: string;
+  start_date: string;
+  end_date: string;
+  next_term_start_date: string;
+  total_days: number;
+  scores: Score[];
+  class: ClassInfo;
+  overall_position: number;
+  totalStudents: number;
+}
+
+export interface Session {
+  session: {
+    name: string;
+  };
+  terms: TermData[];
+}
+
+export interface ReportData {
+  student: User;
+  school: School;
+  attendance?: Attendance[];
+  sessions: Session[];
 }
 
 function formatDate(dateString: string): string {
@@ -21,7 +89,7 @@ function formatDate(dateString: string): string {
   });
 }
 
-function getGrade(score) {
+function getGrade(score: number): { grade: string; remark: string } {
   if (score >= 75) return { grade: "A1", remark: "Excellent" };
   if (score >= 70) return { grade: "B2", remark: "Very Good" };
   if (score >= 65) return { grade: "B3", remark: "Good" };
@@ -33,7 +101,7 @@ function getGrade(score) {
   return { grade: "F9", remark: "Fail" };
 }
 
-function getOverallRemark(average) {
+function getOverallRemark(average: number) {
   if (average >= 75)
     return "Outstanding performance! Keep up the excellent work.";
   if (average >= 65)
@@ -45,7 +113,7 @@ function getOverallRemark(average) {
   return "Poor performance. Requires serious attention and extra support.";
 }
 
-function getPerformanceInsights(scores, average) {
+function getPerformanceInsights(scores: Score[], average: number): string[] {
   const excellentSubjects = scores.filter((s) => s.total_score >= 75);
   const goodSubjects = scores.filter(
     (s) => s.total_score >= 65 && s.total_score < 75
@@ -86,7 +154,11 @@ function getPerformanceInsights(scores, average) {
   return insights;
 }
 
-function getRecommendations(scores, average, attendance) {
+function getRecommendations(
+  scores: Score[],
+  average: number,
+  attendance?: Attendance
+): string[] {
   const recommendations = [];
   const weakSubjects = scores.filter((s) => s.total_score < 50);
   const attendanceRate = attendance
@@ -140,22 +212,6 @@ function getRecommendations(scores, average, attendance) {
 const ReportCard = ({ data, onClose }: Props) => {
   const schoolImage = useUserStore((s) => s.schoolImage);
 
-  const handleDownloadPDF = () => {
-    if (!contentRef.current) return;
-
-    const element = contentRef.current;
-
-    const options = {
-      margin: 0.2,
-      filename: `${student.first_name}_${student.last_name}_Report.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
-    };
-
-    html2pdf().set(options).from(element).save();
-  };
-
   // Safely guard against undefined data
   if (!data) {
     return (
@@ -203,10 +259,6 @@ const ReportCard = ({ data, onClose }: Props) => {
         <div className="sticky top-0 bg-white border-b p-2 flex justify-between items-center print:hidden z-10">
           <h3 className="text-sm font-semibold">Report Card</h3>
           <div className="flex gap-2">
-            <Button onClick={handleDownloadPDF} size="sm" variant="secondary">
-              <Download className="h-4 w-4 mr-1" /> Download PDF
-            </Button>
-
             <Button onClick={reactToPrintFn} size="sm">
               <Printer className="h-4 w-4 mr-1" /> Print
             </Button>
@@ -357,96 +409,7 @@ const ReportCard = ({ data, onClose }: Props) => {
           </div>
 
           {/* Grading System */}
-          <div className="mb-8">
-            <h3 className="text-lg font-bold text-center bg-purple-600 text-white py-2 rounded mb-4">
-              GRADING SYSTEM
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300 text-sm">
-                <thead className="bg-purple-100">
-                  <tr>
-                    <th className="border border-gray-300 p-2">Grade</th>
-                    <th className="border border-gray-300 p-2">A1</th>
-                    <th className="border border-gray-300 p-2">B2</th>
-                    <th className="border border-gray-300 p-2">B3</th>
-                    <th className="border border-gray-300 p-2">C4</th>
-                    <th className="border border-gray-300 p-2">C5</th>
-                    <th className="border border-gray-300 p-2">C6</th>
-                    <th className="border border-gray-300 p-2">D7</th>
-                    <th className="border border-gray-300 p-2">E8</th>
-                    <th className="border border-gray-300 p-2">F9</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="border border-gray-300 p-2 font-semibold">
-                      Score
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      75-100
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      70-74
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      65-69
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      60-64
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      55-59
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      50-54
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      45-49
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      40-44
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      0-39
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 p-2 font-semibold">
-                      Remark
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      Excellent
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      Very Good
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      Good
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      Credit
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      Credit
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      Credit
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      Pass
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      Pass
-                    </td>
-                    <td className="border border-gray-300 p-2 text-center">
-                      Fail
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
+          <GradingSystem />
           {/* Academic Performance */}
           <div className="mb-8">
             <h3 className="text-lg font-bold text-center bg-red-600 text-white py-2 rounded mb-4">
@@ -468,14 +431,16 @@ const ReportCard = ({ data, onClose }: Props) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {scores.map((score, index) => {
+                  {scores.map((score: Score, index: number) => {
                     const grade = getGrade(score.total_score);
                     const caScore =
-                      score.components.find((c) => c.component_name === "CA")
-                        ?.score || 0;
+                      score.components.find(
+                        (c: ScoreComponent) => c.component_name === "CA"
+                      )?.score || 0;
                     const examScore =
-                      score.components.find((c) => c.component_name === "Exam")
-                        ?.score || 0;
+                      score.components.find(
+                        (c: ScoreComponent) => c.component_name === "Exam"
+                      )?.score || 0;
 
                     return (
                       <tr
@@ -586,7 +551,8 @@ const ReportCard = ({ data, onClose }: Props) => {
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-semibold">Excellent (A1):</span>
                   <span className="font-bold text-green-600">
-                    {scores.filter((s) => s.total_score >= 75).length} subjects
+                    {scores.filter((s: Score) => s.total_score >= 75).length}{" "}
+                    subjects
                   </span>
                 </div>
                 <div className="flex justify-between border-b pb-2">
@@ -594,7 +560,7 @@ const ReportCard = ({ data, onClose }: Props) => {
                   <span className="font-bold text-blue-600">
                     {
                       scores.filter(
-                        (s) => s.total_score >= 65 && s.total_score < 75
+                        (s: Score) => s.total_score >= 65 && s.total_score < 75
                       ).length
                     }{" "}
                     subjects
@@ -605,7 +571,7 @@ const ReportCard = ({ data, onClose }: Props) => {
                   <span className="font-bold text-yellow-600">
                     {
                       scores.filter(
-                        (s) => s.total_score >= 50 && s.total_score < 65
+                        (s: Score) => s.total_score >= 50 && s.total_score < 65
                       ).length
                     }{" "}
                     subjects
@@ -614,7 +580,8 @@ const ReportCard = ({ data, onClose }: Props) => {
                 <div className="flex justify-between">
                   <span className="font-semibold">Pass/Fail (D7-F9):</span>
                   <span className="font-bold text-red-600">
-                    {scores.filter((s) => s.total_score < 50).length} subjects
+                    {scores.filter((s: Score) => s.total_score < 50).length}{" "}
+                    subjects
                   </span>
                 </div>
               </div>

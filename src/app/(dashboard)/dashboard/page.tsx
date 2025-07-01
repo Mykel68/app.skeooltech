@@ -32,7 +32,9 @@ type Data = {
     subject_id: string;
     name: string;
     short: string;
+    teacher_name: string;
   };
+  attendance_percentage: number;
 };
 
 type Subject = {
@@ -248,22 +250,26 @@ export default function StudentClassPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {(Data.subject_list ?? []).map((subject) => (
+                {Data.subject_list && (
                   <div
-                    key={subject.subject_id}
+                    key={Data.subject_list.subject_id}
                     className="border rounded-lg p-3 hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">{subject.name}</h4>
+                        <h4 className="font-medium">
+                          {Data.subject_list.name}
+                        </h4>
                         <p className="text-sm text-muted-foreground">
-                          {subject.teacher_name}
+                          {Data.subject_list.teacher_name}
                         </p>
                       </div>
-                      <Badge variant="secondary">{subject.short}</Badge>
+                      <Badge variant="secondary">
+                        {Data.subject_list.short}
+                      </Badge>
                     </div>
                   </div>
-                ))}
+                )}
               </div>
             </CardContent>
           </Card>
