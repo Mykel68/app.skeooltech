@@ -13,6 +13,7 @@ export function restoreUserFromCookie() {
     // If token expired, remove and bail
     if (decoded.exp * 1000 < Date.now()) {
       Cookies.remove("s_id");
+      localStorage.clear();
       return;
     }
 
