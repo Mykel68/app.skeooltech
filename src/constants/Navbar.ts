@@ -55,9 +55,9 @@ export const navData = {
   },
   parent: {
     navMain: [
-      { title: "Dashboard", url: "/home", icon: IconDashboard },
-      { title: "My Children", url: "/children", icon: IconUsers },
-      { title: "Performance", url: "/performance", icon: IconChartBar },
+      { title: "Dashboard", url: "/parent/home", icon: IconDashboard },
+      { title: "My Children", url: "/parent/children", icon: IconUsers },
+      { title: "Performance", url: "/parent/performance", icon: IconChartBar },
     ],
     documents: [],
     navSecondary: [{ title: "Get Help", url: "#", icon: IconHelp }],

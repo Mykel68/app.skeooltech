@@ -22,8 +22,8 @@ import {
   teacherNav,
   studentDocuments,
   teacherDocuments,
-  // studentNavSecondary,
-  // teacherNavSecondary,
+  parentNav,
+  parentDocuments,
 } from "@/lib/navData";
 import { usePathname } from "next/navigation";
 import axios from "axios";
@@ -49,10 +49,24 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const [hydrated, setHydrated] = useState(false);
   const user = useUserStore();
   const role = user?.role;
-  const navItems = role === "Student" ? studentNav : teacherNav;
-  // const navSecondary =
-  //   role === "Student" ? studentNavSecondary : teacherNavSecondary;
-  const documents = role === "Student" ? studentDocuments : teacherDocuments;
+
+  const navItems =
+    role === "Student"
+      ? studentNav
+      : role === "Teacher"
+      ? teacherNav
+      : role === "Parent"
+      ? parentNav
+      : [];
+
+  const documents =
+    role === "Student"
+      ? studentDocuments
+      : role === "Teacher"
+      ? teacherDocuments
+      : role === "Parent"
+      ? parentDocuments
+      : [];
 
   useEffect(() => {
     restoreUserFromCookie();

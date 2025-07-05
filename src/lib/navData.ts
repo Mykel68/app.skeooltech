@@ -52,6 +52,13 @@ export const teacherNav: NavItem[] = [
   { title: "Reports", url: "/reports", icon: IconReport }, // MOVED from documents
 ];
 
+// Parent main navigation
+export const parentNav: NavItem[] = [
+  { title: "Home", url: "/parent/home", icon: IconHome },
+  { title: "Children", url: "/parent/children", icon: IconUser }, // NEW
+  { title: "Performance", url: "/parent/performance", icon: IconReport }, // NEW
+];
+
 // Documents for student (empty array typed as NavItem[])
 // export const studentDocuments: NavItem[] = [];
 
@@ -63,6 +70,12 @@ export const teacherDocuments: NavItem[] = [
 
 // Secondary nav for students
 export const studentDocuments: NavItem[] = [
+  { name: "Settings", url: "#", icon: IconSettings },
+  { name: "Get Help", url: "#", icon: IconHelp },
+];
+
+// Secondary nav for parents
+export const parentDocuments: NavItem[] = [
   { name: "Settings", url: "#", icon: IconSettings },
   { name: "Get Help", url: "#", icon: IconHelp },
 ];
