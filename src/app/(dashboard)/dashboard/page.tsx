@@ -196,39 +196,55 @@ export default function StudentClassPage() {
   return (
     <div className="py-2 max-w-6xl mx-auto space-y-6">
       {/* Class Header */}
-      <Card>
-        <CardHeader>
+      <Card className="rounded-xl shadow-sm border-muted/30">
+        <CardHeader className="rounded-t-xl px-4 ">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl">Welcome, {studentName}</CardTitle>
-              <p className="text-muted-foreground">Your class dashboard</p>
+              <CardTitle className="text-2xl font-bold">
+                Welcome, {studentName}
+              </CardTitle>
+              <p className="text-muted-foreground text-sm">
+                Your class dashboard
+              </p>
             </div>
             <GraduationCap className="h-8 w-8 text-primary" />
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-6">
-            <div className="text-left">
-              <h3 className="text-xl font-semibold">{Data.class.name}</h3>
-              <Badge variant="outline" className="mt-1">
-                {Data.class.grade_level}
-              </Badge>
+
+        <CardContent className="px-6 ">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            {/* Class Info */}
+            <div className="flex items-center gap-4">
+              <div className="bg-muted rounded-lg p-4 flex flex-col items-start shadow-inner">
+                <h3 className="text-xl font-semibold">{Data.class.name}</h3>
+                <Badge variant="outline" className="mt-1">
+                  {Data.class.grade_level}
+                </Badge>
+              </div>
             </div>
-            <Separator orientation="vertical" className="h-12" />
+
+            <Separator orientation="horizontal" className="md:hidden" />
+            <Separator
+              orientation="vertical"
+              className="hidden md:block h-16"
+            />
+
+            {/* Stats */}
             <div className="flex gap-6">
-              <div className="text-center">
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <div className="bg-muted rounded-lg p-4 text-center w-32 shadow-inner">
+                <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-1">
                   <Users className="h-4 w-4" />
                   <span>Classmates</span>
                 </div>
-                <p className="text-lg font-semibold">{Data.totalStudents}</p>
+                <p className="text-lg font-bold">{Data.totalStudents}</p>
               </div>
-              <div className="text-center">
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+
+              <div className="bg-muted rounded-lg p-4 text-center w-32 shadow-inner">
+                <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-1">
                   <Calendar className="h-4 w-4" />
                   <span>Attendance</span>
                 </div>
-                <p className="text-lg font-semibold">
+                <p className="text-lg font-bold">
                   {Data.attendance_percentage}%
                 </p>
               </div>
@@ -250,26 +266,22 @@ export default function StudentClassPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {Data.subject_list && (
+                {Data.subject_list?.map((subject: Subject) => (
                   <div
-                    key={Data.subject_list.subject_id}
+                    key={subject.subject_id}
                     className="border rounded-lg p-3 hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">
-                          {Data.subject_list.name}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {Data.subject_list.teacher_name}
-                        </p>
+                        <h4 className="font-medium">{subject.name}</h4>
+                        {/* <p className="text-sm text-muted-foreground">
+              {subject.teacher_name || "No teacher assigned"}
+            </p> */}
                       </div>
-                      <Badge variant="secondary">
-                        {Data.subject_list.short}
-                      </Badge>
+                      <Badge variant="secondary">{subject.short}</Badge>
                     </div>
                   </div>
-                )}
+                ))}
               </div>
             </CardContent>
           </Card>
