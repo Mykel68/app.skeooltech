@@ -28,12 +28,7 @@ type Data = {
     grade_level: string;
   };
   totalStudents: number;
-  subject_list: {
-    subject_id: string;
-    name: string;
-    short: string;
-    teacher_name: string;
-  };
+  subject_list: Subject[];
   attendance_percentage: number;
 };
 
