@@ -4,7 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
-export default function TeacherLayout({
+export default function ParentDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
