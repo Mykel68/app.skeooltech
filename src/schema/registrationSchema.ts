@@ -12,7 +12,9 @@ export const registrationSchema = z.object({
     .string()
     .min(8, { message: "Password must be at least 8 characters" }),
   email: z.string().email({ message: "Invalid email address" }),
-  role: z.enum(["Student", "Teacher"], { required_error: "Role is required" }),
+  role: z.enum(["Student", "Teacher", "Parent"], {
+    required_error: "Role is required",
+  }),
   first_name: z
     .string()
     .max(50, { message: "First name must be at most 50 characters" })

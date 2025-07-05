@@ -508,7 +508,10 @@ export default function RegistrationPage() {
                       <Label>Role</Label>
                       <Select
                         onValueChange={(v) =>
-                          setValue("role", v as "Student" | "Teacher")
+                          setValue(
+                            "role",
+                            v as "Student" | "Teacher" | "Parent"
+                          )
                         }
                       >
                         <SelectTrigger
@@ -531,6 +534,12 @@ export default function RegistrationPage() {
                             <div className="flex items-center gap-2">
                               <Users className="h-4 w-4" />
                               Teacher
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Parent">
+                            <div className="flex items-center gap-2">
+                              <UserPlus className="h-4 w-4" />
+                              Parent
                             </div>
                           </SelectItem>
                         </SelectContent>
