@@ -74,7 +74,7 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
         } else if (role === "Student") {
           destination = is_approved ? "/dashboard" : "/awaiting";
         } else if (role === "Parent") {
-          destination = is_approved ? "/parent/home" : "/awaiting";
+          destination = is_approved ? "/parent/home" : "/link";
         } else if (role === "Admin") {
           toast.error("You are an Admin. Login on your admin portal.");
           return;
