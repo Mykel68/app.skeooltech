@@ -40,6 +40,7 @@ export function NavUser({
   const router = useRouter();
   const { isMobile } = useSidebar();
   const storeUser = useUserStore();
+  const role = useUserStore((s) => s.role);
 
   // Get initials for fallback
   const fallbackInitials =
@@ -114,9 +115,13 @@ export function NavUser({
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  router.push("/settings");
+                }}
+              >
                 <IconCreditCard />
-                Billing
+                Settings
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconNotification />
