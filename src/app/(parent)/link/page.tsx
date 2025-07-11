@@ -105,10 +105,10 @@ const LinkChildPage = ({ onChildLinked }: LinkChildPageProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
+          <div className="mx-auto mb-4 w-16 h-16 bg-green-600 rounded-full flex items-center justify-center">
             <Users className="w-8 h-8 text-white" />
           </div>
           <CardTitle className="text-2xl font-bold text-gray-800">
@@ -186,7 +186,7 @@ const LinkChildPage = ({ onChildLinked }: LinkChildPageProps) => {
 
                 <Button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full bg-green-600 hover:bg-blue-700"
                   disabled={linkChildMutation.isPending}
                 >
                   {linkChildMutation.isPending

@@ -65,35 +65,6 @@ const Index = () => {
     queryClient.clear();
   };
 
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
-              <GraduationCap className="w-8 h-8 text-white" />
-            </div>
-            <CardTitle className="text-2xl font-bold text-gray-800">
-              School Connect
-            </CardTitle>
-            <CardDescription>
-              Parent Portal - Stay connected with your child's education
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              onClick={handleLogin}
-              className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={loginMutation.isPending}
-            >
-              {loginMutation.isPending ? "Signing In..." : "Sign In as Parent"}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
