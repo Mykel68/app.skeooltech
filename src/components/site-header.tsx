@@ -1,65 +1,59 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Bell, Search, Settings } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import { useUserStore } from "@/store/userStore";
 
 export function SiteHeader() {
-  const [currentTime, setCurrentTime] = useState(new Date());
   const role = useUserStore((s) => s.role);
   const firstName = useUserStore((s) => s.firstName);
   const lastName = useUserStore((s) => s.lastName);
   const className = useUserStore((s) => s.class_name);
-  const classGradeLevel = useUserStore((s) => s.class_grade_level);
   const email = useUserStore((s) => s.email);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
+  // Helper to get nicely capitalized role
+  const formattedRole = role
+    ? `${role.charAt(0).toUpperCase()}${role.slice(1).toLowerCase()}`
+    : "Portal";
 
-    return () => clearInterval(interval); // cleanup
-  }, []);
-
-  const formattedDate = currentTime.toLocaleString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  // Optional: Role-based emoji
+  const roleEmoji =
+    role?.toLowerCase() === "student"
+      ? "🎓"
+      : role?.toLowerCase() === "teacher"
+      ? "🧑‍🏫"
+      : role?.toLowerCase() === "parent"
+      ? "👨‍👩‍👧‍👦"
+      : "📘";
 
   return (
-    <header className="sticky top-0 z-50 flex h-[--header-height] items-center border-b bg-background  py-4 px-4 sm:px-6 lg:px-8 shadow-sm">
+    <header className="sticky top-0 z-50 flex h-[--header-height] items-center border-b bg-white/90 backdrop-blur-md py-4 px-4 sm:px-6 lg:px-8 shadow-sm">
+      {/* Sidebar trigger */}
       <SidebarTrigger className="-ml-1" />
       <Separator orientation="vertical" className="mx-4 h-6" />
 
-      <div className="flex justify-between items-center w-full">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Today&apos;s Date
-          </h1>
-          <p className="text-sm text-gray-600">{formattedDate}</p>
+      {/* LEFT: Portal Name / Brand */}
+      <div className="flex items-center gap-2 font-bold text-emerald-700 text-lg">
+        <span>{roleEmoji}</span>
+        <span>{formattedRole} Portal</span>
+      </div>
+
+      <div className="flex-1" />
+
+      {/* RIGHT: User Info */}
+      <div className="flex items-center space-x-4">
+        <div className="hidden sm:flex flex-col items-end text-right">
+          <p className="text-sm font-semibold text-gray-900 truncate max-w-[140px]">
+            {firstName} {lastName}
+          </p>
+          <p className="text-xs text-gray-500 truncate max-w-[160px]">
+            {role?.toLowerCase() === "student" ? className : email}
+          </p>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium text-gray-900">
-              {firstName} {lastName}
-            </p>
-            <p className="text-xs text-gray-600">{`${
-              role === "Student" ? className : email
-            }`}</p>{" "}
-          </div>
-
-          <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md">
-            {`${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase()}
-          </div>
+        {/* Avatar */}
+        <div className="h-10 w-10 bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full flex items-center justify-center text-white font-bold shadow">
+          {`${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase()}
         </div>
       </div>
     </header>
