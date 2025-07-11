@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,7 +15,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Form,
@@ -24,82 +24,73 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { GraduationCap, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { toast } from "sonner";
+import { useUserStore } from "@/store/userStore";
+import { useRouter } from "next/navigation";
 
 const linkChildSchema = z.object({
-  studentId: z
-    .string()
-    .min(1, "Student ID is required")
-    .max(20, "Student ID too long"),
-  linkingCode: z
-    .string()
-    .min(6, "Linking code must be at least 6 characters")
-    .max(10, "Linking code too long"),
+  admission_number: z.string().max(20, "Admission number too long").optional(),
+  linkingCode: z.string().max(10, "Linking code too long").optional(),
 });
 
 type LinkChildForm = z.infer<typeof linkChildSchema>;
 
-interface LinkChildPageProps {
-  onChildLinked: () => void;
-}
-
-// Mock API function
-const mockLinkChild = async (data: {
-  studentId?: string;
+const linkChild = async (data: {
+  admission_number?: string;
   linkingCode?: string;
-}): Promise<{ student: { name: string; grade: string; id: string } }> => {
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-
-  // Simulate validation
-  if (data.studentId === "404" || data.linkingCode === "INVALID") {
-    throw new Error("Student not found or invalid code");
-  }
-
-  return {
-    student: {
-      name: data.studentId ? `Student ${data.studentId}` : "John Doe",
-      grade: "Grade 8",
-      id: data.studentId || "STU001",
-    },
-  };
+}) => {
+  const response = await axios.post("/api/parent/link-child", data, {
+    withCredentials: true,
+  });
+  return response.data;
 };
 
-const LinkChildPage = ({ onChildLinked }: LinkChildPageProps) => {
-  const [linkMethod, setLinkMethod] = useState<"id" | "code">("id");
+const LinkChildPage = () => {
+  const [linkMethod, setLinkMethod] = useState<"admission" | "code">(
+    "admission"
+  );
+  const setUser = useUserStore((state) => state.setUser);
+  const router = useRouter();
 
   const form = useForm<LinkChildForm>({
     resolver: zodResolver(linkChildSchema),
     defaultValues: {
-      studentId: "",
+      admission_number: "",
       linkingCode: "",
     },
   });
 
   const linkChildMutation = useMutation({
-    mutationFn: mockLinkChild,
-    onSuccess: (data) => {
-      localStorage.setItem("parentHasChildren", "true");
-      localStorage.setItem("parentFirstLogin", "false");
-      localStorage.setItem("linkedChildren", JSON.stringify([data.student]));
-
-      toast.success(
-        `${data.student.name} from ${data.student.grade} has been added to your account.`
-      );
-
-      setTimeout(() => {
-        onChildLinked();
-      }, 1000);
+    mutationFn: linkChild,
+    onSuccess: () => {
+      toast.success("Child account successfully linked!");
+      setUser({
+        is_approved: true,
+      });
+      router.push("/parent/home");
     },
-    onError: (error) => {
-      toast.error(error.message);
+    onError: (error: any) => {
+      const message =
+        error?.response?.data?.message ||
+        error.message ||
+        "Failed to link child.";
+      toast.error(message);
     },
   });
 
   const onSubmit = (data: LinkChildForm) => {
-    if (linkMethod === "id") {
-      linkChildMutation.mutate({ studentId: data.studentId });
+    if (linkMethod === "admission") {
+      if (!data.admission_number) {
+        toast.error("Please enter the Admission Number.");
+        return;
+      }
+      linkChildMutation.mutate({ admission_number: data.admission_number });
     } else {
+      if (!data.linkingCode) {
+        toast.error("Please enter the linking code.");
+        return;
+      }
       linkChildMutation.mutate({ linkingCode: data.linkingCode });
     }
   };
@@ -121,12 +112,14 @@ const LinkChildPage = ({ onChildLinked }: LinkChildPageProps) => {
         </CardHeader>
         <CardContent>
           <Tabs
-            defaultValue="id"
+            defaultValue="admission"
             className="w-full"
-            onValueChange={(value) => setLinkMethod(value as "id" | "code")}
+            onValueChange={(value) =>
+              setLinkMethod(value as "admission" | "code")
+            }
           >
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="id">Student ID</TabsTrigger>
+              <TabsTrigger value="admission">Admission Number</TabsTrigger>
               <TabsTrigger value="code">Linking Code</TabsTrigger>
             </TabsList>
 
@@ -135,16 +128,16 @@ const LinkChildPage = ({ onChildLinked }: LinkChildPageProps) => {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-6"
               >
-                <TabsContent value="id" className="space-y-4">
+                <TabsContent value="admission" className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="studentId"
+                    name="admission_number"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Student ID</FormLabel>
+                        <FormLabel>Admission Number</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter your child's student ID"
+                            placeholder="Enter your child's admission number"
                             {...field}
                             className="text-center font-mono"
                           />
@@ -154,7 +147,7 @@ const LinkChildPage = ({ onChildLinked }: LinkChildPageProps) => {
                     )}
                   />
                   <p className="text-sm text-gray-600 text-center">
-                    You can find the Student ID on report cards or school
+                    You can find the admission number on report cards or school
                     documents
                   </p>
                 </TabsContent>
@@ -186,7 +179,7 @@ const LinkChildPage = ({ onChildLinked }: LinkChildPageProps) => {
 
                 <Button
                   type="submit"
-                  className="w-full bg-green-600 hover:bg-blue-700"
+                  className="w-full bg-green-600 hover:bg-green-700"
                   disabled={linkChildMutation.isPending}
                 >
                   {linkChildMutation.isPending

@@ -56,7 +56,7 @@ interface ParentDashboardProps {
   onLogout: () => void;
 }
 
-const ParentDashboard = ({ onLogout }: ParentDashboardProps) => {
+const ParentDashboard = () => {
   const [selectedChild, setSelectedChild] = useState<string>("");
   const [showAddChild, setShowAddChild] = useState(false);
 
