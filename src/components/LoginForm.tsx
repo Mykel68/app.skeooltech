@@ -91,11 +91,15 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
       }
     } catch (error: any) {
       console.error("[LoginForm] Error:", error);
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          "Login failed. Please check your credentials."
-      );
+      if (axios.isAxiosError(error)) {
+        const backendMessage =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Login failed.";
+        toast.error(backendMessage);
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
     }
   };
 

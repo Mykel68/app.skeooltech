@@ -22,29 +22,44 @@ export async function POST(request: Request) {
 
     const cookie = `s_id=${token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Strict; Secure`;
 
-    return new NextResponse(JSON.stringify({ token }), {
-      status: 200,
-      headers: {
-        "Set-Cookie": cookie,
-      },
-    });
+    return NextResponse.json(
+      { token },
+      {
+        status: 200,
+        headers: {
+          "Set-Cookie": cookie,
+        },
+      }
+    );
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("[API Route] Zod validation error:", error.errors);
-      return NextResponse.json({ errors: error.errors }, { status: 400 });
+      return NextResponse.json(
+        {
+          message: "Validation failed.",
+          errors: error.errors,
+        },
+        { status: 400 }
+      );
     }
 
     if (axios.isAxiosError(error)) {
       console.error("[API Route] Axios error:", error.response?.data);
+
+      const backendMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Login failed.";
+
       return NextResponse.json(
-        { error: error.response?.data?.message || "Login failed" },
+        { message: backendMessage },
         { status: error.response?.status || 500 }
       );
     }
 
     console.error("[API Route] Unexpected error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { message: "Internal server error." },
       { status: 500 }
     );
   }
