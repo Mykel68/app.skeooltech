@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GraduationCap, Users, Plus } from "lucide-react";
+import { Users, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 interface Child {
@@ -25,53 +26,44 @@ interface Child {
   upcomingEvents: string[];
 }
 
-// Mock API functions
-const mockApi = {
-  getChildren: async (): Promise<Child[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    const stored = localStorage.getItem("linkedChildren");
-    if (stored) {
-      const children = JSON.parse(stored);
-      return children.map((child: any, index: number) => ({
-        ...child,
-        averageGrade: ["A-", "B+", "A", "B-"][index % 4],
-        attendance: ["98%", "94%", "96%", "92%"][index % 4],
-        recentActivity: [
-          "Submitted Math homework",
-          "Participated in Science project",
-          "Attended parent-teacher conference",
-        ],
-        upcomingEvents: [
-          "Math test on Friday",
-          "Science fair next week",
-          "Field trip permission slip due",
-        ],
-      }));
-    }
-    return [];
-  },
-};
+// API CALL: get linked children from backend
+const fetchLinkedChildren = async (): Promise<Child[]> => {
+  const { data } = await axios.get("/api/parent/get-link-child", {
+    withCredentials: true,
+  });
 
-interface ParentDashboardProps {
-  onLogout: () => void;
-}
+  return data.data.children.map((child: any, index: number) => ({
+    id: child.id,
+    name: child.name,
+    grade: child.admission_number, // using admission_number for badge
+    averageGrade: ["A-", "B+", "A", "B-"][index % 4],
+    attendance: ["98%", "94%", "96%", "92%"][index % 4],
+    recentActivity: [
+      "Submitted Math homework",
+      "Participated in Science project",
+      "Attended parent-teacher conference",
+    ],
+    upcomingEvents: [
+      "Math test on Friday",
+      "Science fair next week",
+      "Field trip permission slip due",
+    ],
+  }));
+};
 
 const ParentDashboard = () => {
   const [selectedChild, setSelectedChild] = useState<string>("");
-  const [showAddChild, setShowAddChild] = useState(false);
 
   const queryClient = useQueryClient();
 
-  const { data: children = [], isLoading } = useQuery({
+  const {
+    data: children = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["children"],
-    queryFn: mockApi.getChildren,
+    queryFn: fetchLinkedChildren,
   });
-
-  const handleChildAdded = () => {
-    queryClient.invalidateQueries({ queryKey: ["children"] });
-    setShowAddChild(false);
-    toast.success("Child Added Successfully!");
-  };
 
   if (isLoading) {
     return (
@@ -84,37 +76,21 @@ const ParentDashboard = () => {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center text-red-600">
+          <p>Failed to load your linked children. Please try again later.</p>
+        </div>
+      </div>
+    );
+  }
+
   const currentChild =
     children.find((child) => child.id === selectedChild) || children[0];
 
   return (
     <div className="min-h-screen ">
-      {/* <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <GraduationCap className="w-8 h-8 text-blue-600 mr-3" />
-              <h1 className="text-xl font-bold text-gray-800">
-                School Connect
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={() => setShowAddChild(true)}
-                className="flex items-center space-x-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Child</span>
-              </Button>
-              <Button variant="outline" onClick={onLogout}>
-                Sign Out
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header> */}
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
@@ -254,12 +230,6 @@ const ParentDashboard = () => {
           </div>
         )}
       </main>
-
-      {/* <AddChildDialog
-        open={showAddChild}
-        onClose={() => setShowAddChild(false)}
-        onChildAdded={handleChildAdded}
-      /> */}
     </div>
   );
 };
