@@ -13,16 +13,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useUserStore } from "@/store/userStore";
 
 export default function GenerateLinkCodePage() {
   const [generatedCode, setGeneratedCode] = useState<string>("");
+  const userId = useUserStore((s) => s.userId);
 
   // Mutation to call your backend
   const generateCodeMutation = useMutation({
     mutationFn: async () => {
       const { data } = await axios.post(
         "/api/student/generate-link-code",
-        {},
+        {
+          student_user_id: userId,
+        },
         {
           withCredentials: true,
         }

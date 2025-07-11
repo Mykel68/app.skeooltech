@@ -31,14 +31,14 @@ import { useRouter } from "next/navigation";
 
 const linkChildSchema = z.object({
   admission_number: z.string().max(20, "Admission number too long").optional(),
-  linkingCode: z.string().max(10, "Linking code too long").optional(),
+  code: z.string().max(10, "Linking code too long").optional(),
 });
 
 type LinkChildForm = z.infer<typeof linkChildSchema>;
 
 const linkChild = async (data: {
   admission_number?: string;
-  linkingCode?: string;
+  code?: string;
 }) => {
   const response = await axios.post("/api/parent/link-child", data, {
     withCredentials: true,
@@ -57,7 +57,7 @@ const LinkChildPage = () => {
     resolver: zodResolver(linkChildSchema),
     defaultValues: {
       admission_number: "",
-      linkingCode: "",
+      code: "",
     },
   });
 
@@ -87,11 +87,11 @@ const LinkChildPage = () => {
       }
       linkChildMutation.mutate({ admission_number: data.admission_number });
     } else {
-      if (!data.linkingCode) {
+      if (!data.code) {
         toast.error("Please enter the linking code.");
         return;
       }
-      linkChildMutation.mutate({ linkingCode: data.linkingCode });
+      linkChildMutation.mutate({ code: data.code });
     }
   };
 
@@ -155,7 +155,7 @@ const LinkChildPage = () => {
                 <TabsContent value="code" className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="linkingCode"
+                    name="code"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Linking Code</FormLabel>
