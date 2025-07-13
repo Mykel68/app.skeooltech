@@ -64,18 +64,21 @@ export const parentNav: NavItem[] = [
 
 // Documents for teacher
 export const teacherDocuments: NavItem[] = [
+  { name: "Updates", url: "/updates", icon: IconClipboardList }, // NEW
   { name: "Settings", url: "#", icon: IconSettings },
   { name: "Get Help", url: "#", icon: IconHelp },
 ];
 
 // Secondary nav for students
 export const studentDocuments: NavItem[] = [
+  { name: "Updates", url: "/updates", icon: IconClipboardList }, // NEW
   { name: "Settings", url: "#", icon: IconSettings },
   { name: "Get Help", url: "#", icon: IconHelp },
 ];
 
 // Secondary nav for parents
 export const parentDocuments: NavItem[] = [
+  { name: "Updates", url: "/updates", icon: IconClipboardList }, // NEW
   { name: "Settings", url: "#", icon: IconSettings },
   { name: "Get Help", url: "#", icon: IconHelp },
 ];
