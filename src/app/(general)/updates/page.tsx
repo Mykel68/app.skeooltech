@@ -1,297 +1,589 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useUserStore } from "@/store/userStore";
+import axios from "axios";
+import {
+  Bell,
+  BellRing,
+  Search,
+  Filter,
+  Calendar,
+  User,
+  GraduationCap,
+  AlertTriangle,
+  PartyPopper,
+  BookOpen,
+  Mail,
+  MailOpen,
+  Clock,
+  CheckCircle,
+  Circle,
+  ChevronDown,
+  Sparkles,
+  MessageCircle,
+} from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-// Fake API for demo — replace with your real functions
-const fetchMessages = async () => {
-  await new Promise((r) => setTimeout(r, 500));
-  return [
-    {
-      id: "1",
-      subject: "Welcome!",
-      content: "Hello there.",
-      sender: { name: "Admin", role: "admin" },
-      sentAt: new Date().toISOString(),
-      isRead: false,
-      priority: "high",
-      category: "announcement",
-    },
-  ];
+// Mock data for demo
+const mockMessages = [
+  {
+    message_id: "1",
+    title: "Welcome Back to School!",
+    content:
+      "We hope you had a wonderful break! As we start the new semester, please remember to check your class schedules and make sure you have all required materials. If you have any questions, don't hesitate to reach out to your teachers or the main office.",
+    message_type: "announcement",
+    target_role: "students",
+    class_id: null,
+    created_at: new Date().toISOString(),
+    isRead: false,
+  },
+  {
+    message_id: "2",
+    title: "Math Assignment Due Tomorrow",
+    content:
+      "Dear students, please remember that your algebra homework from Chapter 5 is due tomorrow at 9 AM. Make sure to show all your work and double-check your answers. If you're having trouble with any problems, please visit me during office hours.",
+    message_type: "academic",
+    target_role: "students",
+    class_id: "Math 101",
+    created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+    isRead: true,
+  },
+  {
+    message_id: "3",
+    title: "Science Fair Next Week",
+    content:
+      "Exciting news! Our annual science fair is scheduled for next Friday from 2-5 PM in the main gymnasium. All students are invited to participate or attend. Projects should be submitted by Wednesday for judging. Prizes will be awarded for creativity, scientific method, and presentation.",
+    message_type: "event",
+    target_role: "students",
+    class_id: null,
+    created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+    isRead: false,
+  },
+  {
+    message_id: "4",
+    title: "Emergency Drill Scheduled",
+    content:
+      "We will be conducting a fire drill this Thursday at 10:30 AM. Please familiarize yourself with the evacuation routes posted in each classroom. When the alarm sounds, exit the building calmly and proceed to your designated assembly area. Wait for further instructions from your teacher.",
+    message_type: "emergency",
+    target_role: "all",
+    class_id: null,
+    created_at: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
+    isRead: true,
+  },
+  {
+    message_id: "5",
+    title: "Library Hours Extended",
+    content:
+      "Good news! The library will now be open until 8 PM on weekdays and 6 PM on weekends. This extended schedule will continue throughout the semester to give you more time to study and work on projects. The library staff is here to help with research and assignments.",
+    message_type: "announcement",
+    target_role: "students",
+    class_id: null,
+    created_at: new Date(Date.now() - 432000000).toISOString(), // 5 days ago
+    isRead: false,
+  },
+  {
+    message_id: "6",
+    title: "History Essay Guidelines",
+    content:
+      "For your upcoming history essay on World War II, please follow these guidelines: 1000-1500 words, minimum 3 scholarly sources, MLA format, and include a works cited page. The essay should analyze the impact of the war on civilian populations. Due date is extended to next Monday.",
+    message_type: "academic",
+    target_role: "students",
+    class_id: "History 201",
+    created_at: new Date(Date.now() - 604800000).toISOString(), // 1 week ago
+    isRead: true,
+  },
+];
+
+const fetchMessages = async (schoolId: string) => {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  return mockMessages;
 };
 
-const markAsRead = async (id) => {
-  await new Promise((r) => setTimeout(r, 200));
-  console.log(`Marked ${id} as read`);
-};
-
-const deleteMessage = async (id) => {
-  await new Promise((r) => setTimeout(r, 200));
-  console.log(`Deleted ${id}`);
+const apiMarkAsRead = async (messageId: string) => {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  // In a real app, this would make an API call
+  console.log(`Marking message ${messageId} as read`);
 };
 
 export default function MessageList() {
-  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [selectedMessage, setSelectedMessage] = useState<any>(null);
   const [filter, setFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
+  const schoolId = useUserStore((s) => s.schoolId!);
+  const user = useUserStore((s) => s.user);
   const queryClient = useQueryClient();
 
+  // Fetch messages
   const {
     data: messages = [],
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["messages"],
-    queryFn: fetchMessages,
+    queryKey: ["messages", schoolId],
+    queryFn: () => fetchMessages(schoolId),
+    enabled: !!schoolId,
     staleTime: 5 * 60 * 1000,
   });
 
+  // Mark as read mutation
   const markAsReadMutation = useMutation({
-    mutationFn: markAsRead,
-    onSuccess: (_, id) => {
-      queryClient.setQueryData(["messages"], (old) =>
-        old?.map((m) => (m.id === id ? { ...m, isRead: true } : m))
+    mutationFn: apiMarkAsRead,
+    onSuccess: (_, messageId) => {
+      queryClient.setQueryData<any>(["messages", schoolId], (old) =>
+        old?.map((m) =>
+          m.message_id === messageId ? { ...m, isRead: true } : m
+        )
       );
     },
   });
 
-  const deleteMessageMutation = useMutation({
-    mutationFn: deleteMessage,
-    onSuccess: (_, id) => {
-      queryClient.setQueryData(["messages"], (old) =>
-        old?.filter((m) => m.id !== id)
-      );
-      if (selectedMessage?.id === id) setSelectedMessage(null);
-    },
-  });
+  // Enhanced filtering with search
+  const filteredMessages = useMemo(() => {
+    return messages.filter((m) => {
+      const matchesRead =
+        filter === "all" ||
+        (filter === "read" && m.isRead) ||
+        (filter === "unread" && !m.isRead);
+      const matchesCategory =
+        categoryFilter === "all" || m.message_type === categoryFilter;
+      const matchesSearch =
+        searchQuery === "" ||
+        m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.content.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesRead && matchesCategory && matchesSearch;
+    });
+  }, [messages, filter, categoryFilter, searchQuery]);
 
-  const filteredMessages = messages.filter((m) => {
-    const matchesRead =
-      filter === "all" ||
-      (filter === "read" && m.isRead) ||
-      (filter === "unread" && !m.isRead);
-    const matchesCategory =
-      categoryFilter === "all" || m.category === categoryFilter;
-    return matchesRead && matchesCategory;
-  });
+  const unreadCount = messages.filter((m) => !m.isRead).length;
 
-  const formatDate = (date) =>
-    new Date(date).toLocaleString("en-US", {
-      year: "numeric",
+  const formatDate = (date: string) => {
+    const messageDate = new Date(date);
+    const now = new Date();
+    const diffTime = now.getTime() - messageDate.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) return "Today";
+    if (diffDays === 2) return "Yesterday";
+    if (diffDays <= 7) return `${diffDays} days ago`;
+
+    return messageDate.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-      hour: "2-digit",
+      year:
+        messageDate.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+    });
+  };
+
+  const formatTime = (date: string) => {
+    return new Date(date).toLocaleTimeString("en-US", {
+      hour: "numeric",
       minute: "2-digit",
     });
+  };
 
-  const getPriorityColor = (priority) =>
-    priority === "high"
-      ? "text-red-600"
-      : priority === "medium"
-      ? "text-yellow-600"
-      : "text-green-600";
-
-  const getCategoryBadge = (category) => {
-    const colors = {
-      announcement: "bg-green-100 text-green-800",
-      academic: "bg-purple-100 text-purple-800",
-      event: "bg-green-100 text-green-800",
-      emergency: "bg-red-100 text-red-800",
+  const getCategoryConfig = (category: string) => {
+    const configs = {
+      announcement: {
+        icon: Bell,
+        bgColor: "bg-info-soft",
+        textColor: "text-info",
+        label: "Announcement",
+      },
+      academic: {
+        icon: GraduationCap,
+        bgColor: "bg-academic-soft",
+        textColor: "text-academic",
+        label: "Academic",
+      },
+      event: {
+        icon: PartyPopper,
+        bgColor: "bg-event-soft",
+        textColor: "text-event",
+        label: "Event",
+      },
+      emergency: {
+        icon: AlertTriangle,
+        bgColor: "bg-emergency-soft",
+        textColor: "text-emergency",
+        label: "Emergency",
+      },
     };
-    return colors[category] || "bg-gray-100 text-gray-800";
+    return (
+      configs[category] || {
+        icon: MessageCircle,
+        bgColor: "bg-muted",
+        textColor: "text-muted-foreground",
+        label: category,
+      }
+    );
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
   };
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      <div className="min-h-screen bg-muted/20 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+          <p className="text-muted-foreground">Loading your messages...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center text-red-600 p-8">
-        Error loading messages.
+      <div className="min-h-screen bg-muted/20 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
+                <AlertTriangle className="w-8 h-8 text-destructive" />
+              </div>
+              <h3 className="text-lg font-semibold">Unable to load messages</h3>
+              <p className="text-muted-foreground">
+                Please check your connection and try again.
+              </p>
+              <Button onClick={() => window.location.reload()}>
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto ">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="bg-green-600 text-white p-6">
-          <h1 className="text-2xl font-bold">Messages</h1>
-          <p className="text-green-100 mt-1">
-            View announcements and updates from school administration
-          </p>
-        </div>
-
-        <div className="p-4 border-b bg-gray-50 flex gap-4 items-center flex-wrap">
-          <div className="flex items-center space-x-2">
-            <label className="text-sm font-medium text-gray-700">Status:</label>
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm"
-            >
-              <option value="all">All</option>
-              <option value="unread">Unread Only</option>
-              <option value="read">Read Only</option>
-            </select>
-          </div>
-          <div className="flex items-center space-x-2">
-            <label className="text-sm font-medium text-gray-700">
-              Category:
-            </label>
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm"
-            >
-              <option value="all">All</option>
-              <option value="announcement">Announcements</option>
-              <option value="academic">Academic</option>
-              <option value="event">Events</option>
-              <option value="emergency">Emergency</option>
-            </select>
-          </div>
-          <div className="ml-auto text-sm text-gray-600">
-            {filteredMessages.length} messages
-          </div>
-        </div>
-
-        <div className="flex h-[600px]">
-          <div className="w-1/2 border-r overflow-y-auto">
-            {filteredMessages.length === 0 ? (
-              <div className="text-center text-gray-500 p-8">
-                No messages found
+    <div className="min-h-screen bg-muted/20">
+      <div className="max-w-7xl mx-auto p-4 space-y-6">
+        {/* Header with personalized greeting */}
+        <Card className="bg-green-500 shadow-medium">
+          <CardHeader className="pb-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="w-5 h-5 text-primary-foreground" />
+                  <h1 className="text-2xl font-bold text-primary-foreground">
+                    {getGreeting()}, {user?.name || "Student"}!
+                  </h1>
+                </div>
+                <p className="text-primary-foreground/80">
+                  {unreadCount > 0
+                    ? `You have ${unreadCount} unread message${
+                        unreadCount > 1 ? "s" : ""
+                      }`
+                    : "You're all caught up! 🎉"}
+                </p>
               </div>
-            ) : (
-              <div className="divide-y">
-                {filteredMessages.map((m) => (
-                  <div
-                    key={m.id}
-                    className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      selectedMessage?.id === m.id
-                        ? "bg-green-50 border-r-4 border-green-600"
-                        : ""
-                    } ${!m.isRead ? "bg-green-25" : ""}`}
-                    onClick={() => {
-                      setSelectedMessage(m);
-                      if (!m.isRead) markAsReadMutation.mutate(m.id);
-                    }}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1">
-                          {!m.isRead && (
-                            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                          )}
-                          <h3
-                            className={`text-sm font-medium truncate ${
-                              !m.isRead ? "text-gray-900" : "text-gray-700"
-                            }`}
-                          >
-                            {m.subject}
-                          </h3>
+              <div className="flex items-center space-x-2">
+                <div className="relative">
+                  <Bell className="w-6 h-6 text-primary-foreground" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse-soft">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Filters and Search */}
+        <Card className="shadow-soft">
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row gap-4 items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search messages..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Filter className="w-4 h-4 text-muted-foreground" />
+                  <Select value={filter} onValueChange={setFilter}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="unread">Unread</SelectItem>
+                      <SelectItem value="read">Read</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Select
+                  value={categoryFilter}
+                  onValueChange={setCategoryFilter}
+                >
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="announcement">Announcements</SelectItem>
+                    <SelectItem value="academic">Academic</SelectItem>
+                    <SelectItem value="event">Events</SelectItem>
+                    <SelectItem value="emergency">Emergency</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <div className="text-sm text-muted-foreground">
+                  {filteredMessages.length} messages
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Messages Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-400px)] min-h-[600px]">
+          {/* Messages List */}
+          <Card className="shadow-medium">
+            <CardHeader className="pb-0">
+              <h2 className="text-lg font-semibold flex items-center space-x-2">
+                <Mail className="w-5 h-5" />
+                <span>Messages</span>
+              </h2>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-y-auto h-full">
+                {filteredMessages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                      <Mail className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">
+                      No messages found
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {searchQuery
+                        ? "Try adjusting your search or filters"
+                        : "You're all caught up!"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {filteredMessages.map((message, index) => {
+                      const config = getCategoryConfig(message.message_type);
+                      const Icon = config.icon;
+
+                      return (
+                        <div
+                          key={message.message_id}
+                          className={`p-4 cursor-pointer transition-all duration-200 hover:bg-green-200 border-l-4 ${
+                            selectedMessage?.message_id === message.message_id
+                              ? "bg-primary-soft border-l-primary"
+                              : `border-l-transparent ${
+                                  !message.isRead ? "bg-accent/30" : ""
+                                }`
+                          }`}
+                          onClick={() => {
+                            setSelectedMessage(message);
+                            if (!message.isRead) {
+                              markAsReadMutation.mutate(message.message_id);
+                            }
+                          }}
+                          style={{ animationDelay: `${index * 0.1}s` }}
+                        >
+                          <div className="flex items-start space-x-3">
+                            <div
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center ${config.bgColor}`}
+                            >
+                              <Icon className={`w-5 h-5 ${config.textColor}`} />
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center space-x-2">
+                                  {!message.isRead && (
+                                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse-soft"></div>
+                                  )}
+                                  <h3
+                                    className={`font-medium truncate ${
+                                      !message.isRead
+                                        ? "text-foreground"
+                                        : "text-muted-foreground"
+                                    }`}
+                                  >
+                                    {message.title}
+                                  </h3>
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                  {formatTime(message.created_at)}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center space-x-2 mb-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  {config.label}
+                                </Badge>
+                                {message.target_role && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {message.target_role}
+                                  </Badge>
+                                )}
+                              </div>
+
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {message.content}
+                              </p>
+
+                              <div className="flex items-center justify-between mt-2">
+                                <span className="text-xs text-muted-foreground">
+                                  {formatDate(message.created_at)}
+                                </span>
+                                {message.isRead ? (
+                                  <CheckCircle className="w-4 h-4 text-success" />
+                                ) : (
+                                  <Circle className="w-4 h-4 text-muted-foreground" />
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span className="text-xs text-gray-600">
-                            {m.sender.name}
-                          </span>
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full ${getCategoryBadge(
-                              m.category
-                            )}`}
-                          >
-                            {m.category}
-                          </span>
-                          <span
-                            className={`text-xs font-medium ${getPriorityColor(
-                              m.priority
-                            )}`}
-                          >
-                            {m.priority.toUpperCase()}
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-500 truncate">
-                          {m.content}
-                        </p>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs text-gray-500">
-                            {formatDate(m.sentAt)}
-                          </span>
-                          {m.attachments?.length ? (
-                            <span className="text-xs text-gray-500 flex items-center">
-                              📎 {m.attachments.length}
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Message Detail */}
+          <Card className="shadow-medium">
+            <CardContent className="p-0 h-full">
+              {selectedMessage ? (
+                <div className="flex flex-col h-full">
+                  <div className="p-6 border-b bg-gradient-card">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h2 className="text-xl font-semibold mb-2">
+                          {selectedMessage.title}
+                        </h2>
+                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                          <div className="flex items-center space-x-1">
+                            <Calendar className="w-4 h-4" />
+                            <span>
+                              {formatDate(selectedMessage.created_at)}
                             </span>
-                          ) : null}
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Clock className="w-4 h-4" />
+                            <span>
+                              {formatTime(selectedMessage.created_at)}
+                            </span>
+                          </div>
                         </div>
                       </div>
+                      <div className="flex items-center space-x-2">
+                        {selectedMessage.isRead ? (
+                          <Badge
+                            variant="secondary"
+                            className="bg-success-soft text-success"
+                          >
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Read
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="secondary"
+                            className="bg-warning-soft text-warning"
+                          >
+                            <Circle className="w-3 h-3 mr-1" />
+                            Unread
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
 
-          <div className="w-1/2 flex flex-col">
-            {selectedMessage ? (
-              <>
-                <div className="p-6 border-b bg-gray-50 flex items-start justify-between">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                      {selectedMessage.subject}
-                    </h2>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                      <span>From: {selectedMessage.sender.name}</span>
-                      <span>Role: {selectedMessage.sender.role}</span>
-                      <span>{formatDate(selectedMessage.sentAt)}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${getCategoryBadge(
-                          selectedMessage.category
-                        )}`}
-                      >
-                        {selectedMessage.category}
-                      </span>
-                      <span
-                        className={`text-xs font-medium ${getPriorityColor(
-                          selectedMessage.priority
-                        )}`}
-                      >
-                        {selectedMessage.priority.toUpperCase()} PRIORITY
-                      </span>
+                    <div className="flex items-center space-x-3">
+                      {(() => {
+                        const config = getCategoryConfig(
+                          selectedMessage.message_type
+                        );
+                        const Icon = config.icon;
+                        return (
+                          <Badge
+                            className={`${config.bgColor} ${config.textColor}`}
+                          >
+                            <Icon className="w-3 h-3 mr-1" />
+                            {config.label}
+                          </Badge>
+                        );
+                      })()}
+
+                      {selectedMessage.target_role && (
+                        <Badge variant="outline">
+                          <User className="w-3 h-3 mr-1" />
+                          {selectedMessage.target_role}
+                        </Badge>
+                      )}
+
+                      {selectedMessage.class_id && (
+                        <Badge variant="outline">
+                          <BookOpen className="w-3 h-3 mr-1" />
+                          {selectedMessage.class_id}
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                  <button
-                    onClick={() =>
-                      deleteMessageMutation.mutate(selectedMessage.id)
-                    }
-                    className="text-red-600 hover:text-red-800 p-2"
-                    title="Delete message"
-                  >
-                    🗑️
-                  </button>
+
+                  <div className="flex-1 p-6 overflow-y-auto">
+                    <div className="prose prose-sm max-w-none">
+                      <p className="whitespace-pre-wrap text-foreground leading-relaxed">
+                        {selectedMessage.content}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex-1 p-6 overflow-y-auto">
-                  <p className="whitespace-pre-wrap text-gray-700">
-                    {selectedMessage.content}
-                  </p>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                      <MailOpen className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">
+                        Select a message
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Choose a message from the list to view its content
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </>
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <div className="text-6xl mb-4">📬</div>
-                  <p>Select a message to view its content</p>
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
