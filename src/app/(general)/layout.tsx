@@ -12,15 +12,15 @@ export default function TeacherLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const user = useUserStore();
-  const role = user?.role;
+  // const router = useRouter();
+  // const user = useUserStore();
+  // const role = user?.role;
 
-  useEffect(() => {
-    if (!role) {
-      router.replace("/");
-    }
-  }, [role, router]);
+  // useEffect(() => {
+  //   if (!role) {
+  //     router.replace("/");
+  //   }
+  // }, [role, router]);
 
   return (
     <SidebarProvider
