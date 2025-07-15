@@ -36,97 +36,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Mock data for demo
-const mockMessages = [
-  {
-    message_id: "1",
-    title: "Welcome Back to School!",
-    content:
-      "We hope you had a wonderful break! As we start the new semester, please remember to check your class schedules and make sure you have all required materials. If you have any questions, don't hesitate to reach out to your teachers or the main office.",
-    message_type: "announcement",
-    target_role: "students",
-    class_id: null,
-    created_at: new Date().toISOString(),
-    isRead: false,
-  },
-  {
-    message_id: "2",
-    title: "Math Assignment Due Tomorrow",
-    content:
-      "Dear students, please remember that your algebra homework from Chapter 5 is due tomorrow at 9 AM. Make sure to show all your work and double-check your answers. If you're having trouble with any problems, please visit me during office hours.",
-    message_type: "academic",
-    target_role: "students",
-    class_id: "Math 101",
-    created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-    isRead: true,
-  },
-  {
-    message_id: "3",
-    title: "Science Fair Next Week",
-    content:
-      "Exciting news! Our annual science fair is scheduled for next Friday from 2-5 PM in the main gymnasium. All students are invited to participate or attend. Projects should be submitted by Wednesday for judging. Prizes will be awarded for creativity, scientific method, and presentation.",
-    message_type: "event",
-    target_role: "students",
-    class_id: null,
-    created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-    isRead: false,
-  },
-  {
-    message_id: "4",
-    title: "Emergency Drill Scheduled",
-    content:
-      "We will be conducting a fire drill this Thursday at 10:30 AM. Please familiarize yourself with the evacuation routes posted in each classroom. When the alarm sounds, exit the building calmly and proceed to your designated assembly area. Wait for further instructions from your teacher.",
-    message_type: "emergency",
-    target_role: "all",
-    class_id: null,
-    created_at: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
-    isRead: true,
-  },
-  {
-    message_id: "5",
-    title: "Library Hours Extended",
-    content:
-      "Good news! The library will now be open until 8 PM on weekdays and 6 PM on weekends. This extended schedule will continue throughout the semester to give you more time to study and work on projects. The library staff is here to help with research and assignments.",
-    message_type: "announcement",
-    target_role: "students",
-    class_id: null,
-    created_at: new Date(Date.now() - 432000000).toISOString(), // 5 days ago
-    isRead: false,
-  },
-  {
-    message_id: "6",
-    title: "History Essay Guidelines",
-    content:
-      "For your upcoming history essay on World War II, please follow these guidelines: 1000-1500 words, minimum 3 scholarly sources, MLA format, and include a works cited page. The essay should analyze the impact of the war on civilian populations. Due date is extended to next Monday.",
-    message_type: "academic",
-    target_role: "students",
-    class_id: "History 201",
-    created_at: new Date(Date.now() - 604800000).toISOString(), // 1 week ago
-    isRead: true,
-  },
-];
-
 const fetchMessages = async (schoolId: string) => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return mockMessages;
+  const res = await axios.get(`/api/message/get/${schoolId}`);
+  return res.data.data.messages;
 };
 
 const apiMarkAsRead = async (messageId: string) => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  // In a real app, this would make an API call
-  console.log(`Marking message ${messageId} as read`);
+  const { data } = await axios.post(`/api/message/read/${messageId}`, {});
+  return data.data.result;
 };
 
 export default function MessageList() {
-  const [selectedMessage, setSelectedMessage] = useState<any>(null);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
+    null
+  );
+
   const [filter, setFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   const schoolId = useUserStore((s) => s.schoolId!);
-  const user = useUserStore((s) => s.user);
+  const user = useUserStore((s) => s.firstName);
   const queryClient = useQueryClient();
 
   // Fetch messages
@@ -144,11 +74,9 @@ export default function MessageList() {
   // Mark as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: apiMarkAsRead,
-    onSuccess: (_, messageId) => {
+    onSuccess: (updatedMessage, messageId) => {
       queryClient.setQueryData<any>(["messages", schoolId], (old) =>
-        old?.map((m) =>
-          m.message_id === messageId ? { ...m, isRead: true } : m
-        )
+        old?.map((m) => (m.message_id === messageId ? updatedMessage : m))
       );
     },
   });
@@ -189,6 +117,11 @@ export default function MessageList() {
         messageDate.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
     });
   };
+
+  const selectedMessage = useMemo(
+    () => messages.find((m) => m.message_id === selectedMessageId) || null,
+    [messages, selectedMessageId]
+  );
 
   const formatTime = (date: string) => {
     return new Date(date).toLocaleTimeString("en-US", {
@@ -286,7 +219,7 @@ export default function MessageList() {
                 <div className="flex items-center space-x-2">
                   <Sparkles className="w-5 h-5 text-primary-foreground" />
                   <h1 className="text-2xl font-bold text-primary-foreground">
-                    {getGreeting()}, {user?.name || "Student"}!
+                    {getGreeting()}, {user || "Student"}!
                   </h1>
                 </div>
                 <p className="text-primary-foreground/80">
@@ -407,7 +340,7 @@ export default function MessageList() {
                                 }`
                           }`}
                           onClick={() => {
-                            setSelectedMessage(message);
+                            setSelectedMessageId(message.message_id);
                             if (!message.isRead) {
                               markAsReadMutation.mutate(message.message_id);
                             }
@@ -548,10 +481,10 @@ export default function MessageList() {
                         </Badge>
                       )}
 
-                      {selectedMessage.class_id && (
+                      {selectedMessage.grade_level && (
                         <Badge variant="outline">
                           <BookOpen className="w-3 h-3 mr-1" />
-                          {selectedMessage.class_id}
+                          {selectedMessage.grade_level}
                         </Badge>
                       )}
                     </div>
