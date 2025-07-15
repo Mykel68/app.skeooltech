@@ -23,6 +23,7 @@ import {
   ChevronDown,
   Sparkles,
   MessageCircle,
+  X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,11 @@ const fetchMessages = async (schoolId: string) => {
 
 const apiMarkAsRead = async (messageId: string) => {
   const { data } = await axios.post(`/api/message/read/${messageId}`, {});
+  return data.data.result;
+};
+
+const apiDeleteMessage = async (messageId: string) => {
+  const { data } = await axios.delete(`/api/message/remove/${messageId}`);
   return data.data.result;
 };
 
@@ -78,6 +84,16 @@ export default function MessageList() {
       queryClient.setQueryData<any>(["messages", schoolId], (old) =>
         old?.map((m) => (m.message_id === messageId ? updatedMessage : m))
       );
+    },
+  });
+
+  const deleteMessageMutation = useMutation({
+    mutationFn: apiDeleteMessage,
+    onSuccess: (_, deletedId) => {
+      queryClient.setQueryData<any>(["messages", schoolId], (old) =>
+        old?.filter((m) => m.message_id !== deletedId)
+      );
+      setSelectedMessageId(null);
     },
   });
 
@@ -458,7 +474,7 @@ export default function MessageList() {
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-3 mb-4">
                       {(() => {
                         const config = getCategoryConfig(
                           selectedMessage.message_type
@@ -473,20 +489,39 @@ export default function MessageList() {
                           </Badge>
                         );
                       })()}
-
                       {selectedMessage.target_role && (
                         <Badge variant="outline">
                           <User className="w-3 h-3 mr-1" />
                           {selectedMessage.target_role}
                         </Badge>
                       )}
-
                       {selectedMessage.grade_level && (
                         <Badge variant="outline">
                           <BookOpen className="w-3 h-3 mr-1" />
                           {selectedMessage.grade_level}
                         </Badge>
                       )}
+
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setSelectedMessageId(null)}
+                      >
+                        <X />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          if (selectedMessage) {
+                            deleteMessageMutation.mutate(
+                              selectedMessage.message_id
+                            );
+                          }
+                        }}
+                      >
+                        Delete
+                      </Button>
                     </div>
                   </div>
 

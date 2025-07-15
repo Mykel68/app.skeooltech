@@ -105,6 +105,45 @@
   --shadow-xl: 2px 2px 10px -3.5px hsl(0 0% 10.1961% / 0.18),
     2px 8px 10px -4.5px hsl(0 0% 10.1961% / 0.18);
   --shadow-2xl: 2px 2px 10px -3.5px hsl(0 0% 10.1961% / 0.45);
+
+  --success: 142 76% 36%;
+  --success-foreground: 0 0% 100%;
+  --success-soft: 142 76% 95%;
+
+  --warning: 25 95% 53%;
+  --warning-foreground: 0 0% 100%;
+  --warning-soft: 34 89% 93%;
+
+  --info: 217 91% 60%;
+  --info-foreground: 0 0% 100%;
+  --info-soft: 217 91% 95%;
+
+  --emergency: 0 84% 60%;
+  --emergency-foreground: 0 0% 100%;
+  --emergency-soft: 0 84% 95%;
+
+  --academic: 262 83% 58%;
+  --academic-foreground: 0 0% 100%;
+  --academic-soft: 262 83% 95%;
+
+  --event: 142 76% 36%;
+  --event-foreground: 0 0% 100%;
+  --event-soft: 142 76% 95%;
+
+  --gradient-primary: linear-gradient(
+    135deg,
+    hsl(217 91% 60%),
+    hsl(217 91% 70%)
+  );
+  --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(220 13% 98%));
+  --gradient-accent: linear-gradient(135deg, hsl(34 89% 93%), hsl(34 89% 98%));
+
+  --shadow-soft: 0 1px 3px 0 hsl(0 0% 0% / 0.1);
+  --shadow-medium: 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+  --shadow-large: 0 20px 25px -5px hsl(0 0% 0% / 0.1);
+
+  --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 @theme inline {
@@ -158,6 +197,41 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+
+  --success: var(--success);
+  --success-foreground: var(--success-foreground);
+  --success-soft: var(--success-soft);
+
+  --warning: var(--warning);
+  --warning-foreground: var(--warning-foreground);
+  --warning-soft: var(--warning-soft);
+
+  --info: var(--info);
+  --info-foreground: var(--info-foreground);
+  --info-soft: var(--info-soft);
+
+  --emergency: var(--emergency);
+  --emergency-foreground: var(--emergency-foreground);
+  --emergency-soft: var(--emergency-soft);
+
+  --academic: var(--academic);
+  --academic-foreground: var(--academic-foreground);
+  --academic-soft: var(--academic-soft);
+
+  --event: var(--event);
+  --event-foreground: var(--event-foreground);
+  --event-soft: var(--event-soft);
+
+  --gradient-primary: var(--gradient-primary);
+  --gradient-card: var(--gradient-card);
+  --gradient-accent: var(--gradient-accent);
+
+  --shadow-soft: var(--shadow-soft);
+  --shadow-medium: var(--shadow-medium);
+  --shadow-large: var(--shadow-large);
+
+  --transition-smooth: var(--transition-smooth);
+  --transition-bounce: var(--transition-bounce);
 }
 
 @layer base {
