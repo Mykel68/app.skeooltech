@@ -81,7 +81,7 @@ export default function MessageList() {
   const markAsReadMutation = useMutation({
     mutationFn: apiMarkAsRead,
     onSuccess: (updatedMessage, messageId) => {
-      queryClient.setQueryData<any>(["messages", schoolId], (old) =>
+      queryClient.setQueryData(["messages", schoolId], (old: any[]) =>
         old?.map((m) => (m.message_id === messageId ? updatedMessage : m))
       );
     },
@@ -90,7 +90,7 @@ export default function MessageList() {
   const deleteMessageMutation = useMutation({
     mutationFn: apiDeleteMessage,
     onSuccess: (_, deletedId) => {
-      queryClient.setQueryData<any>(["messages", schoolId], (old) =>
+      queryClient.setQueryData<any>(["messages", schoolId], (old: any[]) =>
         old?.filter((m) => m.message_id !== deletedId)
       );
       setSelectedMessageId(null);
@@ -99,7 +99,7 @@ export default function MessageList() {
 
   // Enhanced filtering with search
   const filteredMessages = useMemo(() => {
-    return messages.filter((m) => {
+    return messages.filter((m: any) => {
       const matchesRead =
         filter === "all" ||
         (filter === "read" && m.isRead) ||
@@ -114,7 +114,7 @@ export default function MessageList() {
     });
   }, [messages, filter, categoryFilter, searchQuery]);
 
-  const unreadCount = messages.filter((m) => !m.isRead).length;
+  const unreadCount = messages.filter((m: any) => !m.isRead).length;
 
   const formatDate = (date: string) => {
     const messageDate = new Date(date);
@@ -135,7 +135,7 @@ export default function MessageList() {
   };
 
   const selectedMessage = useMemo(
-    () => messages.find((m) => m.message_id === selectedMessageId) || null,
+    () => messages.find((m: any) => m.message_id === selectedMessageId) || null,
     [messages, selectedMessageId]
   );
 
@@ -174,7 +174,7 @@ export default function MessageList() {
       },
     };
     return (
-      configs[category] || {
+      configs[category as keyof typeof configs] || {
         icon: MessageCircle,
         bgColor: "bg-muted",
         textColor: "text-muted-foreground",
@@ -341,7 +341,7 @@ export default function MessageList() {
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {filteredMessages.map((message, index) => {
+                    {filteredMessages.map((message: any, index: number) => {
                       const config = getCategoryConfig(message.message_type);
                       const Icon = config.icon;
 
