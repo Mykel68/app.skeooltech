@@ -55,7 +55,7 @@ export const teacherNav: NavItem[] = [
 // Parent main navigation
 export const parentNav: NavItem[] = [
   { title: "Home", url: "/parent/home", icon: IconHome },
-  { title: "Updates", url: "/parent/updates", icon: IconClipboardList }, // NEW
+  { title: "Updates", url: "/updates", icon: IconClipboardList }, // NEW
   { title: "Results", url: "/parent/results", icon: IconReport }, // NEW
 ];
 
