@@ -25,7 +25,7 @@ export async function GET(
     if (axios.isAxiosError(error)) {
       return NextResponse.json(
         {
-          error: error.response?.data || "Failed to fetch school profile",
+          error: error.response?.data || "Failed to fetch classes without auth",
         },
         { status: error.response?.status || 500 }
       );

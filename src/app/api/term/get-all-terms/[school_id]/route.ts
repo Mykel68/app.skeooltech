@@ -36,7 +36,7 @@ export async function GET(
       return NextResponse.json(
         {
           error:
-            error.response?.data?.message || "Failed to fetch school profile",
+            error.response?.data?.message || "Failed to fetch school terms",
         },
         { status: error.response?.status || 500 }
       );

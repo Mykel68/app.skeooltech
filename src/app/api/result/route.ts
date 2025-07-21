@@ -35,7 +35,7 @@ export async function GET(request: Request) {
       console.error("Backend error:", err.response?.data);
       return NextResponse.json(
         {
-          error: err.response?.data?.message || "Verification failed",
+          error: err.response?.data?.message || "Failed to fetch results",
         },
         { status: err.response?.status || 500 }
       );

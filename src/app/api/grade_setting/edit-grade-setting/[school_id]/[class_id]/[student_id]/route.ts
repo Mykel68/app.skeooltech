@@ -49,7 +49,7 @@ export async function PUT(
       console.error("Backend error:", err.response?.data);
       return NextResponse.json(
         {
-          error: err.response?.data?.message || "Verification failed",
+          error: err.response?.data?.message || "Failed to edit grade settings",
         },
         { status: err.response?.status || 500 }
       );

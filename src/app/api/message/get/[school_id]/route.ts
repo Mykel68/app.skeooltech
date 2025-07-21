@@ -43,8 +43,7 @@ export async function GET(
     if (axios.isAxiosError(error)) {
       return NextResponse.json(
         {
-          error:
-            error.response?.data?.message || "Failed to fetch school profile",
+          error: error.response?.data?.message || "Failed to fetch messages",
         },
         { status: error.response?.status || 500 }
       );

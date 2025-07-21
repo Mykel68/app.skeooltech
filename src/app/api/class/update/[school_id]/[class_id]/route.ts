@@ -35,8 +35,7 @@ export async function PUT(
     if (axios.isAxiosError(error)) {
       return NextResponse.json(
         {
-          error:
-            error.response?.data?.message || "Failed to fetch school profile",
+          error: error.response?.data?.message || "Failed to update class",
         },
         { status: error.response?.status || 500 }
       );
