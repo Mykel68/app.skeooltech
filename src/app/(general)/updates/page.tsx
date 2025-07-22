@@ -592,6 +592,15 @@ export default function MessageList() {
                             {selectedMessage.grade_level}
                           </Badge>
                         )}
+                        <div className="flex w-56  item-center justify-end">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setSelectedMessageId(null)}
+                          >
+                            <X />
+                          </Button>
+                        </div>
                       </div>
 
                       <div className="flex items-center space-x-2">
