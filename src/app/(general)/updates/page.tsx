@@ -26,6 +26,7 @@ import {
   X,
   Menu,
   ArrowLeft,
+  Download,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getFileTypeLabel, isValidHttpUrl } from "@/utils/helper";
 
 const fetchMessages = async (schoolId: string) => {
   const res = await axios.get(`/api/message/get/${schoolId}`);
@@ -489,7 +491,16 @@ export default function MessageList() {
                                 </div>
 
                                 <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-                                  {message.content}
+                                  {/* {message.content} */}
+                                  {isValidHttpUrl(message.content) ? (
+                                    <span className="text-green-600 underline">
+                                      [{getFileTypeLabel(message.content)}]
+                                    </span>
+                                  ) : (
+                                    <p className="text-gray-600 mb-4 line-clamp-2">
+                                      {message.content}
+                                    </p>
+                                  )}
                                 </p>
 
                                 <div className="flex items-center justify-between mt-3">
@@ -604,7 +615,14 @@ export default function MessageList() {
                     <div className="flex-1 p-6 overflow-y-auto">
                       <div className="prose prose-lg max-w-none">
                         <p className="whitespace-pre-wrap text-gray-800 leading-relaxed text-base">
-                          {selectedMessage.content}
+                          {/* {selectedMessage.content} */}
+                          {isValidHttpUrl(selectedMessage.content) ? (
+                            renderPreview(selectedMessage.content)
+                          ) : (
+                            <p className="text-gray-700 whitespace-pre-wrap">
+                              {selectedMessage.content}
+                            </p>
+                          )}
                         </p>
                       </div>
                     </div>
@@ -731,3 +749,53 @@ export default function MessageList() {
     </div>
   );
 }
+
+const renderPreview = (url: string) => {
+  const extension = url.split(".").pop()?.toLowerCase();
+
+  if (!extension) return null;
+
+  if (["jpg", "jpeg", "png", "webp", "gif"].includes(extension)) {
+    return (
+      <img
+        src={url}
+        alt="attachment"
+        className="max-w-full rounded-lg border"
+      />
+    );
+  }
+
+  if (extension === "pdf") {
+    return (
+      <iframe
+        src={url}
+        className="w-full h-[500px] border rounded-lg"
+        title="PDF Viewer"
+      />
+    );
+  }
+
+  if (["doc", "docx", "ppt", "pptx", "xls", "xlsx"].includes(extension)) {
+    return (
+      <iframe
+        src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+          url
+        )}`}
+        className="w-full h-[500px] border rounded-lg"
+        title="Office Document Viewer"
+      />
+    );
+  }
+
+  // Default fallback
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-green-600 hover:underline break-all"
+    >
+      {url}
+    </a>
+  );
+};
