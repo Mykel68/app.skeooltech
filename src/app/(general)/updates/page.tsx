@@ -24,6 +24,8 @@ import {
   Sparkles,
   MessageCircle,
   X,
+  Menu,
+  ArrowLeft,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -56,10 +58,10 @@ export default function MessageList() {
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
     null
   );
-
   const [filter, setFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showMobileDetail, setShowMobileDetail] = useState(false);
 
   const schoolId = useUserStore((s) => s.schoolId!);
   const user = useUserStore((s) => s.firstName);
@@ -94,6 +96,7 @@ export default function MessageList() {
         old?.filter((m) => m.message_id !== deletedId)
       );
       setSelectedMessageId(null);
+      setShowMobileDetail(false);
     },
   });
 
@@ -150,34 +153,34 @@ export default function MessageList() {
     const configs = {
       announcement: {
         icon: Bell,
-        bgColor: "bg-info-soft",
-        textColor: "text-info",
+        bgColor: "bg-green-50 dark:bg-green-950/30",
+        textColor: "text-green-600 dark:text-green-400",
         label: "Announcement",
       },
-      academic: {
+      message: {
         icon: GraduationCap,
-        bgColor: "bg-academic-soft",
-        textColor: "text-academic",
+        bgColor: "bg-purple-50 dark:bg-purple-950/30",
+        textColor: "text-purple-600 dark:text-purple-400",
         label: "Academic",
       },
-      event: {
+      urgent: {
         icon: PartyPopper,
-        bgColor: "bg-event-soft",
-        textColor: "text-event",
+        bgColor: "bg-pink-50 dark:bg-pink-950/30",
+        textColor: "text-pink-600 dark:text-pink-400",
         label: "Event",
       },
-      emergency: {
+      newsletter: {
         icon: AlertTriangle,
-        bgColor: "bg-emergency-soft",
-        textColor: "text-emergency",
+        bgColor: "bg-red-50 dark:bg-red-950/30",
+        textColor: "text-red-600 dark:text-red-400",
         label: "Emergency",
       },
     };
     return (
       configs[category as keyof typeof configs] || {
         icon: MessageCircle,
-        bgColor: "bg-muted",
-        textColor: "text-muted-foreground",
+        bgColor: "bg-gray-50 dark:bg-gray-800",
+        textColor: "text-gray-600 dark:text-gray-400",
         label: category,
       }
     );
@@ -190,12 +193,35 @@ export default function MessageList() {
     return "Good evening";
   };
 
+  const handleMessageSelect = (messageId: string, isRead: boolean) => {
+    setSelectedMessageId(messageId);
+    setShowMobileDetail(true);
+    if (!isRead) {
+      markAsReadMutation.mutate(messageId);
+    }
+  };
+
+  const handleBackToList = () => {
+    setShowMobileDetail(false);
+    setSelectedMessageId(null);
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-muted/20 flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-          <p className="text-muted-foreground">Loading your messages...</p>
+      <div className="min-h-screen  flex items-center justify-center p-4">
+        <div className="flex flex-col items-center space-y-6 text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600"></div>
+            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500/20 to-purple-500/20"></div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-lg font-medium text-gray-800 dark:text-gray-200">
+              Loading your messages
+            </p>
+            <p className="text-gray-600 dark:text-gray-400">
+              Please wait while we fetch your latest updates...
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -203,18 +229,26 @@ export default function MessageList() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-muted/20 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
-                <AlertTriangle className="w-8 h-8 text-destructive" />
+      <div className="min-h-screen  flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardContent className="pt-8 pb-8">
+            <div className="text-center space-y-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+                <AlertTriangle className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-lg font-semibold">Unable to load messages</h3>
-              <p className="text-muted-foreground">
-                Please check your connection and try again.
-              </p>
-              <Button onClick={() => window.location.reload()}>
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold text-gray-800">
+                  Connection Error
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  We couldn't load your messages. Please check your internet
+                  connection and try again.
+                </p>
+              </div>
+              <Button
+                onClick={() => window.location.reload()}
+                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-8 py-3 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105"
+              >
                 Try Again
               </Button>
             </div>
@@ -225,88 +259,126 @@ export default function MessageList() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/20">
-      <div className="max-w-7xl mx-auto p-4 space-y-6">
-        {/* Header with personalized greeting */}
-        <Card className="bg-green-500 shadow-medium">
-          <CardHeader className="pb-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2">
-                  <Sparkles className="w-5 h-5 text-primary-foreground" />
-                  <h1 className="text-2xl font-bold text-primary-foreground">
+    <div className="min-h-screen ">
+      <div className="max-w-8xl mx-auto p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
+        {/* Enhanced Header */}
+        <Card className="bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 shadow-2xl border-0 overflow-hidden relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+          <CardHeader className="pb-4 sm:pb-6 relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white">
                     {getGreeting()}, {user || "Student"}!
                   </h1>
                 </div>
-                <p className="text-primary-foreground/80">
+                <p className="text-white/90 text-sm sm:text-base font-medium">
                   {unreadCount > 0
                     ? `You have ${unreadCount} unread message${
                         unreadCount > 1 ? "s" : ""
-                      }`
-                    : "You're all caught up! 🎉"}
+                      } waiting for you`
+                    : "You're all caught up! Great job staying organized 🎉"}
                 </p>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="relative">
-                  <Bell className="w-6 h-6 text-primary-foreground" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse-soft">
-                      {unreadCount}
-                    </span>
-                  )}
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2 bg-white/20 rounded-full px-4 py-2 backdrop-blur-sm">
+                  <Bell className="w-5 h-5 text-white" />
+                  <span className="text-white font-semibold">
+                    {messages.length}
+                  </span>
                 </div>
+                {unreadCount > 0 && (
+                  <div className="flex items-center space-x-2 bg-red-500 rounded-full px-4 py-2 shadow-lg animate-pulse">
+                    <BellRing className="w-5 h-5 text-white" />
+                    <span className="text-white font-bold">{unreadCount}</span>
+                  </div>
+                )}
               </div>
             </div>
           </CardHeader>
         </Card>
 
-        {/* Filters and Search */}
-        <Card className="shadow-soft">
-          <CardContent className="p-4">
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        {/* Enhanced Filters */}
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col space-y-4">
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
-                  placeholder="Search messages..."
+                  placeholder="Search messages by title or content..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-12 pr-4 py-3 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-500 transition-all duration-200 rounded-xl text-base"
                 />
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-200 rounded-full"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
 
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Filter className="w-4 h-4 text-muted-foreground" />
-                  <Select value={filter} onValueChange={setFilter}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="unread">Unread</SelectItem>
-                      <SelectItem value="read">Read</SelectItem>
-                    </SelectContent>
-                  </Select>
+              {/* Filter Controls */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <Filter className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm font-medium text-gray-700">
+                      Filters:
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Select value={filter} onValueChange={setFilter}>
+                      <SelectTrigger className="w-full sm:w-32 bg-white border-gray-200 hover:border-blue-300">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Messages</SelectItem>
+                        <SelectItem value="unread">Unread Only</SelectItem>
+                        <SelectItem value="read">Read Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Select
+                      value={categoryFilter}
+                      onValueChange={setCategoryFilter}
+                    >
+                      <SelectTrigger className="w-full sm:w-40 bg-white border-gray-200 hover:border-blue-300">
+                        <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        <SelectItem value="announcement">
+                          📢 Announcements
+                        </SelectItem>
+                        <SelectItem value="message">📧 Messages</SelectItem>
+                        <SelectItem value="notices">📌 Notices</SelectItem>
+                        <SelectItem value="newsletter">
+                          📰 Newsletter
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <Select
-                  value={categoryFilter}
-                  onValueChange={setCategoryFilter}
-                >
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="announcement">Announcements</SelectItem>
-                    <SelectItem value="academic">Academic</SelectItem>
-                    <SelectItem value="event">Events</SelectItem>
-                    <SelectItem value="emergency">Emergency</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <div className="text-sm text-muted-foreground">
-                  {filteredMessages.length} messages
+                <div className="flex items-center space-x-2 text-sm">
+                  <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full font-medium">
+                    {filteredMessages.length} messages
+                  </span>
+                  {searchQuery && (
+                    <Badge variant="outline" className="text-xs">
+                      Filtered
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -314,244 +386,346 @@ export default function MessageList() {
         </Card>
 
         {/* Messages Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-400px)] min-h-[600px]">
-          {/* Messages List */}
-          <Card className="shadow-medium">
-            <CardHeader className="pb-0">
-              <h2 className="text-lg font-semibold flex items-center space-x-2">
-                <Mail className="w-5 h-5" />
-                <span>Messages</span>
-              </h2>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-y-auto h-full">
-                {filteredMessages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-                      <Mail className="w-8 h-8 text-muted-foreground" />
+        <div className="relative">
+          {/* Desktop Layout */}
+          <div className="hidden lg:grid lg:grid-cols-5 gap-6 h-[calc(100vh-400px)] min-h-[600px]">
+            {/* Messages List - Takes 2/5 of the width */}
+            <Card className="lg:col-span-2 shadow-xl border-0 bg-white/90 backdrop-blur-sm overflow-hidden ">
+              <CardHeader className="pb-3 border-b bg-gradient-to-r from-gray-50 to-gray-100">
+                <h2 className="text-lg font-bold flex items-center space-x-2 text-gray-800">
+                  <Mail className="w-5 h-5 text-green-500" />
+                  <span>Inbox</span>
+                </h2>
+              </CardHeader>
+              <CardContent className="p-0 overflow-y-auto">
+                <div className="overflow-y-auto h-full">
+                  {filteredMessages.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                      <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mb-6">
+                        <Mail className="w-10 h-10 text-blue-500" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2 text-gray-800">
+                        {searchQuery
+                          ? "No matching messages"
+                          : "All caught up!"}
+                      </h3>
+                      <p className="text-gray-600">
+                        {searchQuery
+                          ? "Try adjusting your search terms or filters"
+                          : "You have no messages at the moment"}
+                      </p>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">
-                      No messages found
-                    </h3>
-                    <p className="text-muted-foreground">
-                      {searchQuery
-                        ? "Try adjusting your search or filters"
-                        : "You're all caught up!"}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    {filteredMessages.map((message: any, index: number) => {
-                      const config = getCategoryConfig(message.message_type);
-                      const Icon = config.icon;
+                  ) : (
+                    <div className="divide-y divide-gray-100">
+                      {filteredMessages.map((message: any, index: number) => {
+                        const config = getCategoryConfig(message.message_type);
+                        const Icon = config.icon;
+                        const isSelected =
+                          selectedMessage?.message_id === message.message_id;
 
-                      return (
-                        <div
-                          key={message.message_id}
-                          className={`p-4 cursor-pointer transition-all duration-200 hover:bg-green-200 border-l-4 ${
-                            selectedMessage?.message_id === message.message_id
-                              ? "bg-primary-soft border-l-primary"
-                              : `border-l-transparent ${
-                                  !message.isRead ? "bg-accent/30" : ""
-                                }`
-                          }`}
-                          onClick={() => {
-                            setSelectedMessageId(message.message_id);
-                            if (!message.isRead) {
-                              markAsReadMutation.mutate(message.message_id);
+                        return (
+                          <div
+                            key={message.message_id}
+                            className={`p-4 cursor-pointer transition-all duration-300 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 border-l-4 group ${
+                              isSelected
+                                ? "bg-gradient-to-r from-green-100 to-emerald-100 border-l-green-500 shadow-md"
+                                : `border-l-transparent ${
+                                    !message.isRead
+                                      ? "bg-gradient-to-r from-yellow-50 to-amber-50"
+                                      : "hover:border-l-green-200"
+                                  }`
+                            }`}
+                            onClick={() =>
+                              handleMessageSelect(
+                                message.message_id,
+                                message.isRead
+                              )
                             }
-                          }}
-                          style={{ animationDelay: `${index * 0.1}s` }}
-                        >
-                          <div className="flex items-start space-x-3">
-                            <div
-                              className={`w-10 h-10 rounded-lg flex items-center justify-center ${config.bgColor}`}
-                            >
-                              <Icon className={`w-5 h-5 ${config.textColor}`} />
-                            </div>
+                          >
+                            <div className="flex items-start space-x-3">
+                              <div
+                                className={`w-12 h-12 rounded-xl flex items-center justify-center ${config.bgColor} group-hover:scale-110 transition-transform duration-200`}
+                              >
+                                <Icon
+                                  className={`w-6 h-6 ${config.textColor}`}
+                                />
+                              </div>
 
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <div className="flex items-center space-x-2">
-                                  {!message.isRead && (
-                                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse-soft"></div>
-                                  )}
-                                  <h3
-                                    className={`font-medium truncate ${
-                                      !message.isRead
-                                        ? "text-foreground"
-                                        : "text-muted-foreground"
-                                    }`}
-                                  >
-                                    {message.title}
-                                  </h3>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center space-x-2">
+                                    {!message.isRead && (
+                                      <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full animate-pulse"></div>
+                                    )}
+                                    <h3
+                                      className={`font-semibold truncate ${
+                                        !message.isRead
+                                          ? "text-gray-900"
+                                          : "text-gray-700"
+                                      }`}
+                                    >
+                                      {message.title}
+                                    </h3>
+                                  </div>
+                                  <span className="text-xs text-gray-500 font-medium">
+                                    {formatTime(message.created_at)}
+                                  </span>
                                 </div>
-                                <span className="text-xs text-muted-foreground">
-                                  {formatTime(message.created_at)}
-                                </span>
-                              </div>
 
-                              <div className="flex items-center space-x-2 mb-2">
-                                <Badge variant="secondary" className="text-xs">
-                                  {config.label}
-                                </Badge>
-                                {message.target_role && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {message.target_role}
+                                <div className="flex items-center space-x-2 mb-3">
+                                  <Badge
+                                    className={`text-xs ${config.bgColor} ${config.textColor} border-0`}
+                                  >
+                                    {config.label}
                                   </Badge>
-                                )}
-                              </div>
+                                  {message.target_role && (
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {message.target_role}
+                                    </Badge>
+                                  )}
+                                </div>
 
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                {message.content}
-                              </p>
+                                <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                                  {message.content}
+                                </p>
 
-                              <div className="flex items-center justify-between mt-2">
-                                <span className="text-xs text-muted-foreground">
-                                  {formatDate(message.created_at)}
-                                </span>
-                                {message.isRead ? (
-                                  <CheckCircle className="w-4 h-4 text-success" />
-                                ) : (
-                                  <Circle className="w-4 h-4 text-muted-foreground" />
-                                )}
+                                <div className="flex items-center justify-between mt-3">
+                                  <span className="text-xs text-gray-500 font-medium">
+                                    {formatDate(message.created_at)}
+                                  </span>
+                                  {message.isRead ? (
+                                    <CheckCircle className="w-4 h-4 text-green-500" />
+                                  ) : (
+                                    <Circle className="w-4 h-4 text-gray-400" />
+                                  )}
+                                </div>
                               </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Message Detail - Takes 3/5 of the width */}
+            <Card className="lg:col-span-3 shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+              <CardContent className="p-0 h-full">
+                {selectedMessage ? (
+                  <div className="flex flex-col h-full">
+                    <div className="p-6 border-b bg-gradient-to-r from-gray-50 to-gray-100">
+                      <div className="flex items-start justify-between mb-6">
+                        <div className="flex-1">
+                          <h2 className="text-2xl font-bold mb-3 text-gray-900 leading-tight">
+                            {selectedMessage.title}
+                          </h2>
+                          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                            <div className="flex items-center space-x-2">
+                              <Calendar className="w-4 h-4 text-blue-500" />
+                              <span className="font-medium">
+                                {formatDate(selectedMessage.created_at)}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Clock className="w-4 h-4 text-green-500" />
+                              <span className="font-medium">
+                                {formatTime(selectedMessage.created_at)}
+                              </span>
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Message Detail */}
-          <Card className="shadow-medium">
-            <CardContent className="p-0 h-full">
-              {selectedMessage ? (
-                <div className="flex flex-col h-full">
-                  <div className="p-6 border-b bg-gradient-card">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h2 className="text-xl font-semibold mb-2">
-                          {selectedMessage.title}
-                        </h2>
-                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                          <div className="flex items-center space-x-1">
-                            <Calendar className="w-4 h-4" />
-                            <span>
-                              {formatDate(selectedMessage.created_at)}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Clock className="w-4 h-4" />
-                            <span>
-                              {formatTime(selectedMessage.created_at)}
-                            </span>
-                          </div>
+                        <div className="flex items-center space-x-3">
+                          {selectedMessage.isRead ? (
+                            <Badge className="bg-green-100 text-green-800 border-green-200 px-3 py-1">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Read
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 px-3 py-1">
+                              <Circle className="w-3 h-3 mr-1" />
+                              Unread
+                            </Badge>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        {selectedMessage.isRead ? (
-                          <Badge
-                            variant="secondary"
-                            className="bg-success-soft text-success"
-                          >
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Read
+
+                      <div className="flex flex-wrap items-center gap-3 mb-4">
+                        {(() => {
+                          const config = getCategoryConfig(
+                            selectedMessage.message_type
+                          );
+                          const Icon = config.icon;
+                          return (
+                            <Badge
+                              className={`${config.bgColor} ${config.textColor} px-3 py-1 text-sm border-0`}
+                            >
+                              <Icon className="w-4 h-4 mr-2" />
+                              {config.label}
+                            </Badge>
+                          );
+                        })()}
+                        {selectedMessage.target_role && (
+                          <Badge variant="outline" className="px-3 py-1">
+                            <User className="w-4 h-4 mr-2" />
+                            {selectedMessage.target_role}
                           </Badge>
-                        ) : (
-                          <Badge
-                            variant="secondary"
-                            className="bg-warning-soft text-warning"
-                          >
-                            <Circle className="w-3 h-3 mr-1" />
-                            Unread
+                        )}
+                        {selectedMessage.grade_level && (
+                          <Badge variant="outline" className="px-3 py-1">
+                            <BookOpen className="w-4 h-4 mr-2" />
+                            {selectedMessage.grade_level}
                           </Badge>
                         )}
                       </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            if (selectedMessage) {
+                              deleteMessageMutation.mutate(
+                                selectedMessage.message_id
+                              );
+                            }
+                          }}
+                          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
+                        >
+                          Delete Message
+                        </Button>
+                      </div>
                     </div>
 
-                    <div className="flex items-center space-x-3 mb-4">
-                      {(() => {
-                        const config = getCategoryConfig(
-                          selectedMessage.message_type
-                        );
-                        const Icon = config.icon;
-                        return (
-                          <Badge
-                            className={`${config.bgColor} ${config.textColor}`}
-                          >
-                            <Icon className="w-3 h-3 mr-1" />
-                            {config.label}
-                          </Badge>
-                        );
-                      })()}
-                      {selectedMessage.target_role && (
-                        <Badge variant="outline">
-                          <User className="w-3 h-3 mr-1" />
-                          {selectedMessage.target_role}
-                        </Badge>
-                      )}
-                      {selectedMessage.grade_level && (
-                        <Badge variant="outline">
-                          <BookOpen className="w-3 h-3 mr-1" />
-                          {selectedMessage.grade_level}
-                        </Badge>
-                      )}
+                    <div className="flex-1 p-6 overflow-y-auto">
+                      <div className="prose prose-lg max-w-none">
+                        <p className="whitespace-pre-wrap text-gray-800 leading-relaxed text-base">
+                          {selectedMessage.content}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center space-y-6">
+                      <div className="w-24 h-24 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mx-auto">
+                        <MailOpen className="w-12 h-12 text-green-500" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-bold text-gray-800">
+                          Select a message to read
+                        </h3>
+                        <p className="text-gray-600 max-w-md">
+                          Choose any message from your inbox to view its full
+                          content and details
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setSelectedMessageId(null)}
-                      >
-                        <X />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => {
-                          if (selectedMessage) {
-                            deleteMessageMutation.mutate(
-                              selectedMessage.message_id
-                            );
-                          }
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
+          {/* Mobile/Tablet Layout */}
+          <div className="lg:hidden">
+            {(!showMobileDetail || !selectedMessage) && (
+              <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm h-[calc(100vh-300px)] min-h-[500px]">
+                <CardHeader className="pb-3 border-b bg-gradient-to-r from-gray-50 to-gray-100">
+                  <h2 className="text-lg font-bold flex items-center space-x-2 text-gray-800">
+                    <Mail className="w-5 h-5 text-blue-500" />
+                    <span>Messages ({filteredMessages.length})</span>
+                  </h2>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-y-auto h-full">
+                    {filteredMessages.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                        <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mb-6">
+                          <Mail className="w-10 h-10 text-green-500" />
+                        </div>
+                        <h3 className="text-lg font-semibold mb-2 text-gray-800">
+                          {searchQuery
+                            ? "No matching messages"
+                            : "All caught up!"}
+                        </h3>
+                        <p className="text-gray-600 text-center">
+                          {searchQuery
+                            ? "Try adjusting your search terms or filters"
+                            : "You have no messages at the moment"}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-gray-100">
+                        {filteredMessages.map((message: any, index: number) => {
+                          const config = getCategoryConfig(
+                            message.message_type
+                          );
+                          const Icon = config.icon;
 
-                  <div className="flex-1 p-6 overflow-y-auto">
-                    <div className="prose prose-sm max-w-none">
-                      <p className="whitespace-pre-wrap text-foreground leading-relaxed">
-                        {selectedMessage.content}
-                      </p>
-                    </div>
+                          return (
+                            <div
+                              key={message.message_id}
+                              className={`p-4 cursor-pointer transition-all duration-200 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 active:scale-[0.98] ${
+                                !message.isRead
+                                  ? "bg-gradient-to-r from-yellow-50 to-amber-50"
+                                  : ""
+                              }`}
+                              onClick={() =>
+                                handleMessageSelect(
+                                  message.message_id,
+                                  message.isRead
+                                )
+                              }
+                            >
+                              <div className="flex items-start space-x-3">
+                                <div
+                                  className={`w-12 h-12 rounded-xl flex items-center justify-center ${config.bgColor} flex-shrink-0`}
+                                >
+                                  <Icon
+                                    className={`w-6 h-6 ${config.textColor}`}
+                                  />
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <div className="flex items-center space-x-2 flex-1">
+                                      {!message.isRead && (
+                                        <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex-shrink-0"></div>
+                                      )}
+                                      <h3
+                                        className={`font-semibold text-sm sm:text-base truncate ${
+                                          message.isRead
+                                            ? "text-gray-800"
+                                            : "text-gray-600"
+                                        }`}
+                                      >
+                                        {message.title}
+                                      </h3>
+                                    </div>
+                                    <p className="text-xs text-gray-600">
+                                      {formatDate(message.created_at)}
+                                    </p>
+                                  </div>
+                                  <p className="text-sm text-gray-600 line-clamp-2">
+                                    {message.content}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center space-y-4">
-                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-                      <MailOpen className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">
-                        Select a message
-                      </h3>
-                      <p className="text-muted-foreground">
-                        Choose a message from the list to view its content
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </div>
