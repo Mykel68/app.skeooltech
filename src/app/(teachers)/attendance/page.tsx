@@ -19,6 +19,24 @@ import EmptyState from "./EmptyState";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
+type DailyStats = {
+  mode: "daily";
+  totalStudents: number;
+  presentStudents: number;
+  absentStudents: number;
+  attendanceRate: string;
+};
+
+type ManualStats = {
+  mode: "manual";
+  totalStudents: number;
+  recordedStudents: number;
+  totalDaysRecorded: number;
+  averageAttendance: string;
+};
+
+type AttendanceStats = DailyStats | ManualStats;
+
 interface Student {
   user_id: string;
   first_name: string;
@@ -233,7 +251,7 @@ export default function AttendancePage() {
     submitAttendanceMutation.mutate();
   };
 
-  const getAttendanceStats = () => {
+  const getAttendanceStats = (): ManualStats => {
     const students = data?.students || [];
     const totalStudents = students.length;
     const recordedStudents = Object.keys(attendanceRecords).length;
@@ -247,6 +265,7 @@ export default function AttendancePage() {
         : "0";
 
     return {
+      mode: "manual",
       totalStudents,
       recordedStudents,
       totalDaysRecorded,
@@ -254,7 +273,7 @@ export default function AttendancePage() {
     };
   };
 
-  const getDailyStats = () => {
+  const getDailyStats = (): DailyStats => {
     const students = data?.students || [];
     const totalStudents = students.length;
     const presentStudents =
@@ -262,6 +281,7 @@ export default function AttendancePage() {
     const absentStudents = totalStudents - presentStudents;
 
     return {
+      mode: "daily",
       totalStudents,
       presentStudents,
       absentStudents,
@@ -278,7 +298,9 @@ export default function AttendancePage() {
   if (error) return <ErrorState />;
 
   const { classDetails, students } = data;
-  const stats = isDailyMode ? getDailyStats() : getAttendanceStats();
+  const stats: AttendanceStats = isDailyMode
+    ? getDailyStats()
+    : getAttendanceStats();
 
   return (
     <div className="min-h-screen p-1 lg:px-10 ">
@@ -325,7 +347,7 @@ export default function AttendancePage() {
         </div>
 
         {/* Daily Mode Content */}
-        {isDailyMode && (
+        {isDailyMode && stats.mode === "daily" && (
           <>
             {/* Date Selection */}
             <div className="bg-white rounded-lg shadow-sm border mb-6 p-6">
@@ -377,19 +399,19 @@ export default function AttendancePage() {
                 {
                   label: "Present",
                   icon: CheckCircle,
-                  value: stats.presentStudents,
+                  value: stats.presentStudents || 0,
                   color: "text-green-600",
                 },
                 {
                   label: "Absent",
                   icon: Users,
-                  value: stats.absentStudents,
+                  value: stats.absentStudents || 0,
                   color: "text-red-600",
                 },
                 {
                   label: "Attendance Rate",
                   icon: Calendar,
-                  value: `${stats.attendanceRate}%`,
+                  value: `${stats.attendanceRate || 0}%`,
                   color: "text-blue-600",
                 },
               ].map(
@@ -516,7 +538,7 @@ export default function AttendancePage() {
         )}
 
         {/* Manual Mode Content (Your existing code) */}
-        {!isDailyMode && (
+        {!isDailyMode && stats.mode === "manual" && (
           <>
             {/* Total Days */}
             <div className="bg-white rounded-lg shadow-sm border mb-6 p-6">
