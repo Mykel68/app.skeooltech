@@ -9,117 +9,146 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+
+const fetchDailyAttendance = async () => {
+  const res = await axios.get("/api/attendance/daily");
+  return res.data.data;
+};
+
+const fetchMonthlyStats = async () => {
+  const res = await axios.get("/api/attendance/monthly");
+  return res.data.data;
+};
 
 export default function Attendance() {
-  const dailyAttendance = [
-    {
-      date: "2024-01-22",
-      day: "Monday",
-      status: "present",
-      markedBy: "Ms. Johnson",
-      time: "08:30 AM",
-    },
-    {
-      date: "2024-01-19",
-      day: "Friday",
-      status: "present",
-      markedBy: "Ms. Johnson",
-      time: "08:30 AM",
-    },
-    {
-      date: "2024-01-18",
-      day: "Thursday",
-      status: "absent",
-      markedBy: "Ms. Johnson",
-      time: "08:30 AM",
-      reason: "Sick leave",
-    },
-    {
-      date: "2024-01-17",
-      day: "Wednesday",
-      status: "present",
-      markedBy: "Ms. Johnson",
-      time: "08:30 AM",
-    },
-    {
-      date: "2024-01-16",
-      day: "Tuesday",
-      status: "late",
-      markedBy: "Ms. Johnson",
-      time: "08:45 AM",
-    },
-    {
-      date: "2024-01-15",
-      day: "Monday",
-      status: "present",
-      markedBy: "Ms. Johnson",
-      time: "08:30 AM",
-    },
-    {
-      date: "2024-01-12",
-      day: "Friday",
-      status: "present",
-      markedBy: "Ms. Johnson",
-      time: "08:30 AM",
-    },
-    {
-      date: "2024-01-11",
-      day: "Thursday",
-      status: "present",
-      markedBy: "Ms. Johnson",
-      time: "08:30 AM",
-    },
-    {
-      date: "2024-01-10",
-      day: "Wednesday",
-      status: "present",
-      markedBy: "Ms. Johnson",
-      time: "08:30 AM",
-    },
-    {
-      date: "2024-01-09",
-      day: "Tuesday",
-      status: "absent",
-      markedBy: "Ms. Johnson",
-      time: "08:30 AM",
-      reason: "Medical appointment",
-    },
-  ];
+  // const dailyAttendance = [
+  //   {
+  //     date: "2024-01-22",
+  //     day: "Monday",
+  //     status: "present",
+  //     markedBy: "Ms. Johnson",
+  //     time: "08:30 AM",
+  //   },
+  //   {
+  //     date: "2024-01-19",
+  //     day: "Friday",
+  //     status: "present",
+  //     markedBy: "Ms. Johnson",
+  //     time: "08:30 AM",
+  //   },
+  //   {
+  //     date: "2024-01-18",
+  //     day: "Thursday",
+  //     status: "absent",
+  //     markedBy: "Ms. Johnson",
+  //     time: "08:30 AM",
+  //     reason: "Sick leave",
+  //   },
+  //   {
+  //     date: "2024-01-17",
+  //     day: "Wednesday",
+  //     status: "present",
+  //     markedBy: "Ms. Johnson",
+  //     time: "08:30 AM",
+  //   },
+  //   {
+  //     date: "2024-01-16",
+  //     day: "Tuesday",
+  //     status: "late",
+  //     markedBy: "Ms. Johnson",
+  //     time: "08:45 AM",
+  //   },
+  //   {
+  //     date: "2024-01-15",
+  //     day: "Monday",
+  //     status: "present",
+  //     markedBy: "Ms. Johnson",
+  //     time: "08:30 AM",
+  //   },
+  //   {
+  //     date: "2024-01-12",
+  //     day: "Friday",
+  //     status: "present",
+  //     markedBy: "Ms. Johnson",
+  //     time: "08:30 AM",
+  //   },
+  //   {
+  //     date: "2024-01-11",
+  //     day: "Thursday",
+  //     status: "present",
+  //     markedBy: "Ms. Johnson",
+  //     time: "08:30 AM",
+  //   },
+  //   {
+  //     date: "2024-01-10",
+  //     day: "Wednesday",
+  //     status: "present",
+  //     markedBy: "Ms. Johnson",
+  //     time: "08:30 AM",
+  //   },
+  //   {
+  //     date: "2024-01-09",
+  //     day: "Tuesday",
+  //     status: "absent",
+  //     markedBy: "Ms. Johnson",
+  //     time: "08:30 AM",
+  //     reason: "Medical appointment",
+  //   },
+  // ];
 
-  const monthlyStats = [
-    {
-      month: "January 2024",
-      present: 18,
-      absent: 2,
-      late: 1,
-      total: 21,
-      percentage: 86,
-    },
-    {
-      month: "December 2023",
-      present: 19,
-      absent: 1,
-      late: 0,
-      total: 20,
-      percentage: 95,
-    },
-    {
-      month: "November 2023",
-      present: 20,
-      absent: 2,
-      late: 1,
-      total: 23,
-      percentage: 87,
-    },
-    {
-      month: "October 2023",
-      present: 21,
-      absent: 1,
-      late: 0,
-      total: 22,
-      percentage: 95,
-    },
-  ];
+  // const monthlyStats = [
+  //   {
+  //     month: "January 2024",
+  //     present: 18,
+  //     absent: 2,
+  //     late: 1,
+  //     total: 21,
+  //     percentage: 86,
+  //   },
+  //   {
+  //     month: "December 2023",
+  //     present: 19,
+  //     absent: 1,
+  //     late: 0,
+  //     total: 20,
+  //     percentage: 95,
+  //   },
+  //   {
+  //     month: "November 2023",
+  //     present: 20,
+  //     absent: 2,
+  //     late: 1,
+  //     total: 23,
+  //     percentage: 87,
+  //   },
+  //   {
+  //     month: "October 2023",
+  //     present: 21,
+  //     absent: 1,
+  //     late: 0,
+  //     total: 22,
+  //     percentage: 95,
+  //   },
+  // ];
+
+  const { data: dailyAttendance = [], isLoading: loadingDaily } = useQuery({
+    queryKey: ["dailyAttendance"],
+    queryFn: fetchDailyAttendance,
+  });
+
+  const { data: monthlyStats = [], isLoading: loadingMonthly } = useQuery({
+    queryKey: ["monthlyStats"],
+    queryFn: fetchMonthlyStats,
+  });
+
+  // const totalDays = monthlyStats.reduce((sum, month) => sum + month.total, 0);
+  // const presentDays = monthlyStats.reduce(
+  //   (sum, month) => sum + month.present,
+  //   0
+  // );
+  // const overallPercentage = Math.round((presentDays / totalDays) * 100);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
