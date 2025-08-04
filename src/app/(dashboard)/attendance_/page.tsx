@@ -1,3 +1,5 @@
+"use client";
+
 import { Calendar, Check, X, Clock, TrendingUp } from "lucide-react";
 import {
   Card,
@@ -11,144 +13,26 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-
-const fetchDailyAttendance = async () => {
-  const res = await axios.get("/api/attendance/daily");
-  return res.data.data;
-};
-
-const fetchMonthlyStats = async () => {
-  const res = await axios.get("/api/attendance/monthly");
-  return res.data.data;
-};
+import { useUserStore } from "@/store/userStore";
 
 export default function Attendance() {
-  // const dailyAttendance = [
-  //   {
-  //     date: "2024-01-22",
-  //     day: "Monday",
-  //     status: "present",
-  //     markedBy: "Ms. Johnson",
-  //     time: "08:30 AM",
-  //   },
-  //   {
-  //     date: "2024-01-19",
-  //     day: "Friday",
-  //     status: "present",
-  //     markedBy: "Ms. Johnson",
-  //     time: "08:30 AM",
-  //   },
-  //   {
-  //     date: "2024-01-18",
-  //     day: "Thursday",
-  //     status: "absent",
-  //     markedBy: "Ms. Johnson",
-  //     time: "08:30 AM",
-  //     reason: "Sick leave",
-  //   },
-  //   {
-  //     date: "2024-01-17",
-  //     day: "Wednesday",
-  //     status: "present",
-  //     markedBy: "Ms. Johnson",
-  //     time: "08:30 AM",
-  //   },
-  //   {
-  //     date: "2024-01-16",
-  //     day: "Tuesday",
-  //     status: "late",
-  //     markedBy: "Ms. Johnson",
-  //     time: "08:45 AM",
-  //   },
-  //   {
-  //     date: "2024-01-15",
-  //     day: "Monday",
-  //     status: "present",
-  //     markedBy: "Ms. Johnson",
-  //     time: "08:30 AM",
-  //   },
-  //   {
-  //     date: "2024-01-12",
-  //     day: "Friday",
-  //     status: "present",
-  //     markedBy: "Ms. Johnson",
-  //     time: "08:30 AM",
-  //   },
-  //   {
-  //     date: "2024-01-11",
-  //     day: "Thursday",
-  //     status: "present",
-  //     markedBy: "Ms. Johnson",
-  //     time: "08:30 AM",
-  //   },
-  //   {
-  //     date: "2024-01-10",
-  //     day: "Wednesday",
-  //     status: "present",
-  //     markedBy: "Ms. Johnson",
-  //     time: "08:30 AM",
-  //   },
-  //   {
-  //     date: "2024-01-09",
-  //     day: "Tuesday",
-  //     status: "absent",
-  //     markedBy: "Ms. Johnson",
-  //     time: "08:30 AM",
-  //     reason: "Medical appointment",
-  //   },
-  // ];
+  const schoolId = useUserStore((s) => s.schoolId!);
+  const userId = useUserStore((s) => s.userId!);
 
-  // const monthlyStats = [
-  //   {
-  //     month: "January 2024",
-  //     present: 18,
-  //     absent: 2,
-  //     late: 1,
-  //     total: 21,
-  //     percentage: 86,
-  //   },
-  //   {
-  //     month: "December 2023",
-  //     present: 19,
-  //     absent: 1,
-  //     late: 0,
-  //     total: 20,
-  //     percentage: 95,
-  //   },
-  //   {
-  //     month: "November 2023",
-  //     present: 20,
-  //     absent: 2,
-  //     late: 1,
-  //     total: 23,
-  //     percentage: 87,
-  //   },
-  //   {
-  //     month: "October 2023",
-  //     present: 21,
-  //     absent: 1,
-  //     late: 0,
-  //     total: 22,
-  //     percentage: 95,
-  //   },
-  // ];
+  const fetchAttendance = async () => {
+    const res = await axios.get(
+      `/api/attendance/student/${schoolId}/${userId}`
+    );
+    return res.data.data;
+  };
 
-  const { data: dailyAttendance = [], isLoading: loadingDaily } = useQuery({
-    queryKey: ["dailyAttendance"],
-    queryFn: fetchDailyAttendance,
-  });
+  const { data: attendanceData = { daily: [], monthly: [] }, isLoading } =
+    useQuery({
+      queryKey: ["attendance"],
+      queryFn: fetchAttendance,
+    });
 
-  const { data: monthlyStats = [], isLoading: loadingMonthly } = useQuery({
-    queryKey: ["monthlyStats"],
-    queryFn: fetchMonthlyStats,
-  });
-
-  // const totalDays = monthlyStats.reduce((sum, month) => sum + month.total, 0);
-  // const presentDays = monthlyStats.reduce(
-  //   (sum, month) => sum + month.present,
-  //   0
-  // );
-  // const overallPercentage = Math.round((presentDays / totalDays) * 100);
+  const { daily: dailyAttendance, monthly: monthlyStats } = attendanceData;
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -179,13 +63,18 @@ export default function Attendance() {
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
+  const totalDays =
+    monthlyStats?.length > 0
+      ? monthlyStats.reduce((sum: number, m: any) => sum + m.total, 0)
+      : 0;
 
-  const totalDays = monthlyStats.reduce((sum, month) => sum + month.total, 0);
-  const presentDays = monthlyStats.reduce(
-    (sum, month) => sum + month.present,
-    0
-  );
-  const overallPercentage = Math.round((presentDays / totalDays) * 100);
+  const presentDays =
+    monthlyStats?.length > 0
+      ? monthlyStats.reduce((sum: number, m: any) => sum + m.present, 0)
+      : 0;
+
+  const overallPercentage =
+    totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
 
   return (
     <div className="p-6 space-y-6">
@@ -223,10 +112,12 @@ export default function Attendance() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {monthlyStats[0].percentage}%
+              {monthlyStats?.[0]?.percentage ?? "—"}%
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {monthlyStats[0].present} of {monthlyStats[0].total} days
+              {monthlyStats?.[0]
+                ? `${monthlyStats[0].present} of ${monthlyStats[0].total} days`
+                : "No data for this month"}
             </p>
           </CardContent>
         </Card>
@@ -237,7 +128,7 @@ export default function Attendance() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-destructive">
-              {monthlyStats[0].absent}
+              {monthlyStats[0]?.absent}
             </div>
             <p className="text-xs text-muted-foreground mt-1">This month</p>
           </CardContent>
@@ -249,7 +140,7 @@ export default function Attendance() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-warning">
-              {monthlyStats[0].late}
+              {monthlyStats[0]?.late}
             </div>
             <p className="text-xs text-muted-foreground mt-1">This month</p>
           </CardContent>
@@ -272,7 +163,7 @@ export default function Attendance() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {dailyAttendance.map((record, index) => (
+                {dailyAttendance.map((record: any, index: number) => (
                   <div
                     key={index}
                     className="flex items-center justify-between p-4 rounded-lg border"
@@ -318,7 +209,7 @@ export default function Attendance() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {monthlyStats.map((month, index) => (
+                {monthlyStats.map((month: any, index: number) => (
                   <div key={index} className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
