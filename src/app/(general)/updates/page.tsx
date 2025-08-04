@@ -404,7 +404,7 @@ export default function MessageList() {
                   {filteredMessages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full p-8 text-center">
                       <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mb-6">
-                        <Mail className="w-10 h-10 text-blue-500" />
+                        <Mail className="w-10 h-10 text-green-500" />
                       </div>
                       <h3 className="text-lg font-semibold mb-2 text-gray-800">
                         {searchQuery

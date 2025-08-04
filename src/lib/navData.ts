@@ -49,7 +49,7 @@ export const teacherNav: NavItem[] = [
   // { title: "Students", url: "/students", icon: IconUser }, // NEW
   // { title: "Gradebook", url: "/gradebook", icon: IconClipboardList },
   { title: "Attendance", url: "/attendance", icon: IconReport }, // MOVED from documents
-  { title: "Reports", url: "/reports", icon: IconReport }, // MOVED from documents
+  // { title: "Reports", url: "/reports", icon: IconReport }, // MOVED from documents
 ];
 
 // Parent main navigation
