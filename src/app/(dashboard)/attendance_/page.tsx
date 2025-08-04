@@ -26,13 +26,39 @@ export default function Attendance() {
     return res.data.data;
   };
 
-  const { data: attendanceData = { daily: [], monthly: [] }, isLoading } =
-    useQuery({
-      queryKey: ["attendance"],
-      queryFn: fetchAttendance,
+  const {
+    data: attendanceData = { dailyAttendance: [], monthlyStats: [] },
+    isLoading,
+  } = useQuery({
+    queryKey: ["attendance"],
+    queryFn: fetchAttendance,
+  });
+
+  const { dailyAttendance, monthlyStats } = attendanceData;
+
+  // ✅ Transform raw daily data
+  const dailyRecords = dailyAttendance.map((record: any) => {
+    const dateObj = new Date(record.date);
+    const day = dateObj.toLocaleDateString("en-US", { weekday: "long" });
+    const formattedDate = dateObj.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    const formattedTime = dateObj.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
 
-  const { daily: dailyAttendance, monthly: monthlyStats } = attendanceData;
+    return {
+      day,
+      date: formattedDate,
+      time: formattedTime,
+      markedBy: "Class Teacher", // Optional: update if your backend includes this
+      reason: null, // Optional: update if your backend includes this
+      status: record.present ? "present" : "absent",
+    };
+  });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -63,14 +89,18 @@ export default function Attendance() {
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
+
   const totalDays =
     monthlyStats?.length > 0
-      ? monthlyStats.reduce((sum: number, m: any) => sum + m.total, 0)
+      ? monthlyStats.reduce((sum: number, m: any) => sum + parseInt(m.total), 0)
       : 0;
 
   const presentDays =
     monthlyStats?.length > 0
-      ? monthlyStats.reduce((sum: number, m: any) => sum + m.present, 0)
+      ? monthlyStats.reduce(
+          (sum: number, m: any) => sum + parseInt(m.present),
+          0
+        )
       : 0;
 
   const overallPercentage =
@@ -163,7 +193,7 @@ export default function Attendance() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {dailyAttendance.map((record: any, index: number) => (
+                {dailyRecords.map((record: any, index: number) => (
                   <div
                     key={index}
                     className="flex items-center justify-between p-4 rounded-lg border"
