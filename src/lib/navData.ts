@@ -46,8 +46,8 @@ export const studentNav: NavItem[] = [
 export const teacherNav: NavItem[] = [
   { title: "Home", url: "/home", icon: IconHome },
   { title: "Subjects", url: "/classes", icon: IconBook },
-  { title: "Students", url: "/students", icon: IconUser }, // NEW
-  { title: "Gradebook", url: "/gradebook", icon: IconClipboardList },
+  // { title: "Students", url: "/students", icon: IconUser }, // NEW
+  // { title: "Gradebook", url: "/gradebook", icon: IconClipboardList },
   { title: "Attendance", url: "/attendance", icon: IconReport }, // MOVED from documents
   { title: "Reports", url: "/reports", icon: IconReport }, // MOVED from documents
 ];

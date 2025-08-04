@@ -121,17 +121,22 @@ export default function AttendancePage() {
       const res = await axios.get(
         `/api/attendance/daily/${schoolId}/${sessionId}/${termId}/${data.classDetails.class.class_id}/${selectedDate}`
       );
-      const dailyData = res.data.data || {};
 
-      // Initialize daily attendance state
+      const attendanceArray = res.data.data?.attendance || [];
+
       const initialDaily: Record<string, boolean> = {};
       data.students.forEach((student) => {
-        initialDaily[student.user_id] = dailyData[student.user_id] || false;
+        const record = attendanceArray.find(
+          (entry: any) => entry.student_id === student.user_id
+        );
+        initialDaily[student.user_id] = record?.present ?? false;
       });
+
       setDailyAttendance(initialDaily);
 
-      return dailyData;
+      return initialDaily;
     },
+
     enabled:
       !!isDailyMode && !!data?.classDetails.class.class_id && !!selectedDate,
   });
