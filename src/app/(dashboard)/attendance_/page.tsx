@@ -76,9 +76,7 @@ export default function Attendance() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "present":
-        return (
-          <Badge className="bg-success text-success-foreground">Present</Badge>
-        );
+        return <Badge className="bg-green-500 text-green-50">Present</Badge>;
       case "absent":
         return <Badge variant="destructive">Absent</Badge>;
       case "late":
