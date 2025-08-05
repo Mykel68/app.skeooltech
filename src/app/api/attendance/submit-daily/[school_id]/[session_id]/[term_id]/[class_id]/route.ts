@@ -3,7 +3,7 @@ import axios from "axios";
 import { cookies } from "next/headers";
 import { backendClient } from "@/lib/backendClient";
 
-export async function POST(
+export async function PUT(
   request: Request,
   context: {
     params: Promise<{
@@ -41,7 +41,7 @@ export async function POST(
   };
 
   try {
-    const response = await backendClient.post(
+    const response = await backendClient.put(
       `${backendUrl}/api/attendance/daily`,
       finalBody,
       {

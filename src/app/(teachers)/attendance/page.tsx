@@ -148,7 +148,7 @@ export default function AttendancePage() {
 
       const requests = Object.entries(dailyAttendance).map(
         ([studentId, isPresent]) => {
-          return axios.post(
+          return axios.put(
             `/api/attendance/submit-daily/${schoolId}/${sessionId}/${termId}/${classId}`,
             {
               school_id: schoolId,
@@ -452,63 +452,86 @@ export default function AttendancePage() {
               </div>
 
               <div className="p-6 space-y-3">
-                {students.map((student, i) => (
-                  <div
-                    key={student.user_id}
-                    className={`flex items-center justify-between p-4 border rounded-lg transition-all ${
-                      dailyAttendance[student.user_id]
-                        ? "border-green-200 bg-green-50"
-                        : "border-gray-200 hover:bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-xs font-medium text-green-600">
-                        {i + 1}
-                      </div>
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <span className="text-green-600 font-semibold text-sm">
-                          {student.first_name[0]}
-                          {student.last_name[0]}
-                        </span>
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-gray-900">
-                          {student.first_name} {student.last_name}
-                        </h3>
-                        <p className="text-sm text-gray-500">{student.email}</p>
-                      </div>
-                    </div>
+                {students.map((student, i) => {
+                  const attendance = dailyAttendance[student.user_id];
 
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() =>
-                            handleDailyAttendanceChange(student.user_id, true)
-                          }
-                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                            dailyAttendance[student.user_id]
-                              ? "bg-green-600 text-white"
-                              : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                  return (
+                    <div
+                      key={student.user_id}
+                      className={`flex items-center justify-between p-4 border rounded-lg transition-all ${
+                        attendance === true
+                          ? "border-green-200 bg-green-50"
+                          : attendance === false
+                          ? "border-red-200 bg-red-50"
+                          : "border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                            attendance === false
+                              ? "bg-red-100 text-red-600"
+                              : "bg-green-100 text-green-600"
                           }`}
                         >
-                          Present
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleDailyAttendanceChange(student.user_id, false)
-                          }
-                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                            !dailyAttendance[student.user_id]
-                              ? "bg-red-600 text-white"
-                              : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                          {i + 1}
+                        </div>
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            attendance === false
+                              ? "bg-red-100 text-red-600"
+                              : "bg-green-100 text-green-600"
                           }`}
                         >
-                          Absent
-                        </button>
+                          <span className="font-semibold text-sm">
+                            {student.first_name[0]}
+                            {student.last_name[0]}
+                          </span>
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">
+                            {student.first_name} {student.last_name}
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            {student.email}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() =>
+                              handleDailyAttendanceChange(student.user_id, true)
+                            }
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                              attendance === true
+                                ? "bg-green-600 text-white"
+                                : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                            }`}
+                          >
+                            Present
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleDailyAttendanceChange(
+                                student.user_id,
+                                false
+                              )
+                            }
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                              attendance === false
+                                ? "bg-red-600 text-white"
+                                : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                            }`}
+                          >
+                            Absent
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="p-6 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
