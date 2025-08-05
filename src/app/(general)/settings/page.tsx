@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useUserStore } from "@/store/userStore";
+import { logout } from "@/utils/logout";
 import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
@@ -22,7 +23,7 @@ export default function SettingsPage() {
   };
 
   const handleLogout = () => {
-    // Your logout utility
+    logout();
     router.push("/");
   };
 
