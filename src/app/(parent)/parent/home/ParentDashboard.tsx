@@ -13,8 +13,17 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Plus } from "lucide-react";
+import { Users, Plus, Award } from "lucide-react";
 import { toast } from "sonner";
+
+interface Score {
+  component_name: string;
+  score: number;
+}
+
+interface Result {
+  scores: Score[];
+}
 
 interface Child {
   id: string;
@@ -22,33 +31,39 @@ interface Child {
   grade: string;
   averageGrade: string;
   attendance: string;
+  results: Result[];
   recentActivity: string[];
   upcomingEvents: string[];
 }
 
 // API CALL: get linked children from backend
 const fetchLinkedChildren = async (): Promise<Child[]> => {
-  const { data } = await axios.get("/api/parent/get-link-child", {
-    withCredentials: true,
-  });
+  const { data } = await axios.get("/api/parent/get-link-child");
 
-  return data.data.children.map((child: any, index: number) => ({
-    id: child.id,
-    name: child.name,
-    grade: child.admission_number, // using admission_number for badge
-    averageGrade: ["A-", "B+", "A", "B-"][index % 4],
-    attendance: ["98%", "94%", "96%", "92%"][index % 4],
-    recentActivity: [
-      "Submitted Math homework",
-      "Participated in Science project",
-      "Attended parent-teacher conference",
-    ],
-    upcomingEvents: [
-      "Math test on Friday",
-      "Science fair next week",
-      "Field trip permission slip due",
-    ],
-  }));
+  const childrenData = data.data.children;
+
+  return childrenData.students.map((student: any) => {
+    const scores = student.results?.[0]?.scores || [];
+
+    const average =
+      scores.length > 0
+        ? (
+            scores.reduce((acc: number, curr: any) => acc + curr.score, 0) /
+            scores.length
+          ).toFixed(1)
+        : "0";
+
+    return {
+      id: student.user_id,
+      name: student.full_name,
+      grade: student.class,
+      averageGrade: `${average}%`,
+      attendance: "N/A", // Replace when real attendance data is available
+      results: student.results ?? [],
+      recentActivity: [], // Optional: add real activities later
+      upcomingEvents: [],
+    };
+  });
 };
 
 const ParentDashboard = () => {
@@ -94,7 +109,7 @@ const ParentDashboard = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Your Children
+            Your Ward<span className="text-[1rem]">(s)</span>
           </h2>
           <div className="flex flex-wrap gap-3">
             {children.map((child) => (
@@ -162,6 +177,67 @@ const ParentDashboard = () => {
                 </CardContent>
               </Card>
             </div>
+
+            <Card className="shadow-medium">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="w-5 h-5 text-primary" />
+                  Subject Performance
+                </CardTitle>
+                <CardDescription>
+                  Detailed breakdown of {currentChild.name}'s scores by
+                  assessment type
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {currentChild.results?.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {currentChild.results[0]?.scores.map((score, index) => (
+                      <div
+                        key={index}
+                        className="p-4 bg-muted/30 rounded-lg border border-muted"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h4 className="font-semibold text-foreground">
+                              {score.component_name}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                              Assessment Score
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-primary">
+                              {score.score}%
+                            </div>
+                            <Badge
+                              variant={
+                                score.score >= 80
+                                  ? "default"
+                                  : score.score >= 60
+                                  ? "secondary"
+                                  : "destructive"
+                              }
+                              className="text-xs mt-1"
+                            >
+                              {score.score >= 80
+                                ? "Excellent"
+                                : score.score >= 60
+                                ? "Good"
+                                : "Needs Work"}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    No score data available yet.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
 
             <Tabs defaultValue="activity" className="w-full">
               <TabsList>
