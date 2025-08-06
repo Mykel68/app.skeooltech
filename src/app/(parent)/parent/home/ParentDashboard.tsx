@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,8 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Plus, Award } from "lucide-react";
-import { toast } from "sonner";
+import { Users, Award } from "lucide-react";
 
 interface Score {
   component_name: string;
@@ -25,6 +24,11 @@ interface Result {
   scores: Score[];
 }
 
+interface Activity {
+  title: string;
+  date: string;
+}
+
 interface Child {
   id: string;
   name: string;
@@ -32,7 +36,7 @@ interface Child {
   averageGrade: string;
   attendance: string;
   results: Result[];
-  recentActivity: string[];
+  recentActivity: Activity[];
   upcomingEvents: string[];
 }
 
@@ -41,6 +45,8 @@ const fetchLinkedChildren = async (): Promise<Child[]> => {
   const { data } = await axios.get("/api/parent/get-link-child");
 
   const childrenData = data.data.children;
+
+  const announcements = childrenData.school?.announcements || [];
 
   return childrenData.students.map((student: any) => {
     const scores = student.results?.[0]?.scores || [];
@@ -58,9 +64,12 @@ const fetchLinkedChildren = async (): Promise<Child[]> => {
       name: student.full_name,
       grade: student.class,
       averageGrade: `${average}%`,
-      attendance: "N/A", // Replace when real attendance data is available
+      attendance: "N/A",
       results: student.results ?? [],
-      recentActivity: [], // Optional: add real activities later
+      recentActivity: announcements.map((a: any) => ({
+        title: a.title,
+        date: a.sent_at,
+      })),
       upcomingEvents: [],
     };
   });
@@ -68,8 +77,6 @@ const fetchLinkedChildren = async (): Promise<Child[]> => {
 
 const ParentDashboard = () => {
   const [selectedChild, setSelectedChild] = useState<string>("");
-
-  const queryClient = useQueryClient();
 
   const {
     data: children = [],
@@ -208,9 +215,9 @@ const ParentDashboard = () => {
                           </div>
                           <div className="text-right">
                             <div className="text-2xl font-bold text-primary">
-                              {score.score}%
+                              {score.score}
                             </div>
-                            <Badge
+                            {/* <Badge
                               variant={
                                 score.score >= 80
                                   ? "default"
@@ -225,7 +232,7 @@ const ParentDashboard = () => {
                                 : score.score >= 60
                                 ? "Good"
                                 : "Needs Work"}
-                            </Badge>
+                            </Badge> */}
                           </div>
                         </div>
                       </div>
@@ -263,9 +270,11 @@ const ParentDashboard = () => {
                         >
                           <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                           <div>
-                            <p className="text-sm font-medium">{activity}</p>
+                            <p className="text-sm font-medium">
+                              {activity.title}
+                            </p>
                             <p className="text-xs text-gray-500">
-                              {index + 1} day{index === 0 ? "" : "s"} ago
+                              {new Date(activity.date).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
