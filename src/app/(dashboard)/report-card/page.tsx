@@ -201,222 +201,241 @@ const ReportCardPage = () => {
           </p>
         </div>
 
-        {/* Session Selection Card */}
-        <Card className="mb-8 border shadow-sm rounded-xl">
-          <CardHeader className="bg-emerald-50/50 border-b px-6 py-4">
-            <CardTitle className="flex items-center gap-3 text-emerald-900">
-              <div className="w-9 h-9 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold">
-                S
-              </div>
-              <span className="text-lg font-semibold">Select Session</span>
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent className="px-6 py-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label className="text-sm text-gray-700">
-                  Academic Session
-                </Label>
-                <Select
-                  value={selectedSession}
-                  onValueChange={setSelectedSession}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Session" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mockStudentData.sessions.map((session) => (
-                      <SelectItem
-                        key={session.session.name}
-                        value={session.session.name}
-                      >
-                        {session.session.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm text-gray-700">Report Type</Label>
-                <Select
-                  value={reportType}
-                  onValueChange={(v) =>
-                    setReportType(v as "session" | "individual")
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Report Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="session">Complete Session</SelectItem>
-                    <SelectItem value="individual">Individual Terms</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Student Details Card */}
-        <Card className="mb-8 border shadow-sm rounded-xl">
-          <CardHeader className="bg-emerald-50/50 border-b px-6 py-4">
-            <CardTitle className="flex items-center gap-3 text-emerald-900">
-              <Award className="h-6 w-6 text-emerald-600" />
-              <span className="text-lg font-semibold">Student Details</span>
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent className="px-6 py-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-              {[
-                {
-                  label: "Full Name",
-                  value: `${mockStudentData.student.first_name} ${mockStudentData.student.last_name}`,
-                },
-                { label: "Current Class", value: currentClass.name },
-                { label: "Grade Level", value: currentClass.grade_level },
-                {
-                  label: "Student ID",
-                  value: mockStudentData.student.student_id,
-                },
-              ].map((item, idx) => (
-                <div key={idx} className="flex flex-col space-y-1">
-                  <span className="text-xs uppercase tracking-wide text-gray-500">
-                    {item.label}
-                  </span>
-                  <span className="text-base font-medium text-gray-900">
-                    {item.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Session Performance Overview */}
-        {currentSessionData && (
+        {/* Small screen warning */}
+        <div className="block lg:hidden min-h-screen flex items-center justify-center px-4">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-red-600 mb-2">
+              Screen Too Small
+            </h2>
+            <p className="text-gray-600">
+              For the best experience, please view this report card on a device
+              with a larger screen.
+            </p>
+          </div>
+        </div>
+        {/* Large screen view only */}
+        <div className="hidden lg:block">
+          {/* Session Selection Card */}
           <Card className="mb-8 border shadow-sm rounded-xl">
             <CardHeader className="bg-emerald-50/50 border-b px-6 py-4">
-              <CardTitle className="flex items-center gap-2 text-emerald-900">
-                <TrendingUp className="h-5 w-5 text-emerald-600" />
-                <span className="text-lg font-semibold">
-                  Session Performance Overview - {selectedSession}
-                </span>
+              <CardTitle className="flex items-center gap-3 text-emerald-900">
+                <div className="w-9 h-9 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold">
+                  S
+                </div>
+                <span className="text-lg font-semibold">Select Session</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-6 py-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-emerald-50 rounded-lg p-4 text-center">
-                  <p className="text-sm font-semibold text-gray-600">
-                    Session Average
-                  </p>
-                  <p className="text-3xl font-bold text-emerald-600">
-                    {sessionStats.overall.toFixed(1)}%
-                  </p>
-                </div>
-                <div className="bg-green-50 rounded-lg p-4 text-center">
-                  <p className="text-sm font-semibold text-gray-600">
-                    Best Term
-                  </p>
-                  <p className="text-3xl font-bold text-green-600">
-                    {sessionStats.bestTerm.toFixed(1)}%
-                  </p>
-                </div>
-                <div className="bg-purple-50 rounded-lg p-4 text-center">
-                  <p className="text-sm font-semibold text-gray-600">
-                    Improvement
-                  </p>
-                  <p
-                    className={`text-3xl font-bold ${
-                      sessionStats.improvement >= 0
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {sessionStats.improvement >= 0 ? "+" : ""}
-                    {sessionStats.improvement.toFixed(1)}%
-                  </p>
-                </div>
-                <div className="bg-orange-50 rounded-lg p-4 text-center">
-                  <p className="text-sm font-semibold text-gray-600">
-                    Total Terms
-                  </p>
-                  <p className="text-3xl font-bold text-orange-600">
-                    {currentSessionData.terms.length}
-                  </p>
-                </div>
-              </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-semibold mb-3">Term-by-Term Progress</h4>
-                <div className="flex justify-between items-end h-20">
-                  {sessionStats.averages.map((avg, index) => (
-                    <div key={index} className="flex flex-col items-center">
-                      <div
-                        className="bg-emerald-500 rounded-t w-12 mb-2 transition-all"
-                        style={{ height: `${(avg / 100) * 60}px` }}
-                      ></div>
-                      <span className="text-xs font-semibold">
-                        {currentSessionData.terms[index].name}
-                      </span>
-                      <span className="text-xs text-gray-600">
-                        {avg.toFixed(1)}%
-                      </span>
-                    </div>
-                  ))}
+            <CardContent className="px-6 py-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-700">
+                    Academic Session
+                  </Label>
+                  <Select
+                    value={selectedSession}
+                    onValueChange={setSelectedSession}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Session" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockStudentData.sessions.map((session) => (
+                        <SelectItem
+                          key={session.session.name}
+                          value={session.session.name}
+                        >
+                          {session.session.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-700">Report Type</Label>
+                  <Select
+                    value={reportType}
+                    onValueChange={(v) =>
+                      setReportType(v as "session" | "individual")
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Report Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="session">Complete Session</SelectItem>
+                      <SelectItem value="individual">
+                        Individual Terms
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardContent>
           </Card>
-        )}
 
-        {/* Report Generation */}
-        <Card className="border shadow-sm rounded-xl">
-          <CardHeader className="bg-emerald-50/50 border-b px-6 py-4">
-            <CardTitle className="text-emerald-900">Generate Reports</CardTitle>
-          </CardHeader>
-          <CardContent className="px-6 py-6">
-            {reportType === "session" ? (
-              <div className="text-center py-8">
-                <Button
-                  onClick={() => handleViewReport(null, currentSessionData)}
-                  size="lg"
-                  className="bg-emerald-600 hover:bg-emerald-700"
-                >
-                  <Download className="h-5 w-5 mr-2" />
-                  Generate & Print Complete Session Report
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {currentSessionData?.terms.map((term, index) => (
-                  <Card
-                    key={index}
-                    className="border-2 hover:border-emerald-300 transition-all cursor-pointer"
-                  >
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg text-emerald-800">
-                        {term.name}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Button
-                        onClick={() => handleViewReport(term)}
-                        className="w-full"
-                        variant="outline"
-                      >
-                        <Printer className="h-4 w-4 mr-2" />
-                        Print {term.name} Report
-                      </Button>
-                    </CardContent>
-                  </Card>
+          {/* Student Details Card */}
+          <Card className="mb-8 border shadow-sm rounded-xl">
+            <CardHeader className="bg-emerald-50/50 border-b px-6 py-4">
+              <CardTitle className="flex items-center gap-3 text-emerald-900">
+                <Award className="h-6 w-6 text-emerald-600" />
+                <span className="text-lg font-semibold">Student Details</span>
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent className="px-6 py-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                {[
+                  {
+                    label: "Full Name",
+                    value: `${mockStudentData.student.first_name} ${mockStudentData.student.last_name}`,
+                  },
+                  { label: "Current Class", value: currentClass.name },
+                  { label: "Grade Level", value: currentClass.grade_level },
+                  {
+                    label: "Student ID",
+                    value: mockStudentData.student.student_id,
+                  },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex flex-col space-y-1">
+                    <span className="text-xs uppercase tracking-wide text-gray-500">
+                      {item.label}
+                    </span>
+                    <span className="text-base font-medium text-gray-900">
+                      {item.value}
+                    </span>
+                  </div>
                 ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Session Performance Overview */}
+          {currentSessionData && (
+            <Card className="mb-8 border shadow-sm rounded-xl">
+              <CardHeader className="bg-emerald-50/50 border-b px-6 py-4">
+                <CardTitle className="flex items-center gap-2 text-emerald-900">
+                  <TrendingUp className="h-5 w-5 text-emerald-600" />
+                  <span className="text-lg font-semibold">
+                    Session Performance Overview - {selectedSession}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-6 py-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-emerald-50 rounded-lg p-4 text-center">
+                    <p className="text-sm font-semibold text-gray-600">
+                      Session Average
+                    </p>
+                    <p className="text-3xl font-bold text-emerald-600">
+                      {sessionStats.overall.toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="bg-green-50 rounded-lg p-4 text-center">
+                    <p className="text-sm font-semibold text-gray-600">
+                      Best Term
+                    </p>
+                    <p className="text-3xl font-bold text-green-600">
+                      {sessionStats.bestTerm.toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="bg-purple-50 rounded-lg p-4 text-center">
+                    <p className="text-sm font-semibold text-gray-600">
+                      Improvement
+                    </p>
+                    <p
+                      className={`text-3xl font-bold ${
+                        sessionStats.improvement >= 0
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {sessionStats.improvement >= 0 ? "+" : ""}
+                      {sessionStats.improvement.toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="bg-orange-50 rounded-lg p-4 text-center">
+                    <p className="text-sm font-semibold text-gray-600">
+                      Total Terms
+                    </p>
+                    <p className="text-3xl font-bold text-orange-600">
+                      {currentSessionData.terms.length}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold mb-3">Term-by-Term Progress</h4>
+                  <div className="flex justify-between items-end h-20">
+                    {sessionStats.averages.map((avg, index) => (
+                      <div key={index} className="flex flex-col items-center">
+                        <div
+                          className="bg-emerald-500 rounded-t w-12 mb-2 transition-all"
+                          style={{ height: `${(avg / 100) * 60}px` }}
+                        ></div>
+                        <span className="text-xs font-semibold">
+                          {currentSessionData.terms[index].name}
+                        </span>
+                        <span className="text-xs text-gray-600">
+                          {avg.toFixed(1)}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Report Generation */}
+          <Card className="border shadow-sm rounded-xl">
+            <CardHeader className="bg-emerald-50/50 border-b px-6 py-4">
+              <CardTitle className="text-emerald-900">
+                Generate Reports
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-6 py-6">
+              {reportType === "session" ? (
+                <div className="text-center py-8">
+                  <Button
+                    onClick={() => handleViewReport(null, currentSessionData)}
+                    size="lg"
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    <Download className="h-5 w-5 mr-2" />
+                    Generate & Print Complete Session Report
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {currentSessionData?.terms.map((term, index) => (
+                    <Card
+                      key={index}
+                      className="border-2 hover:border-emerald-300 transition-all cursor-pointer"
+                    >
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg text-emerald-800">
+                          {term.name}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <Button
+                          onClick={() => handleViewReport(term)}
+                          className="w-full"
+                          variant="outline"
+                        >
+                          <Printer className="h-4 w-4 mr-2" />
+                          Print {term.name} Report
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {showReportCard && selectedData && (

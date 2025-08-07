@@ -28,6 +28,7 @@ import {
   ArrowLeft,
   Download,
 } from "lucide-react";
+
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,8 +40,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { getFileTypeLabel, isValidHttpUrl } from "@/utils/helper";
 
+/* ==================== API ==================== */
 const fetchMessages = async (schoolId: string) => {
   const res = await axios.get(`/api/message/get/${schoolId}`);
   return res.data.data.messages;
@@ -56,7 +59,9 @@ const apiDeleteMessage = async (messageId: string) => {
   return data.data.result;
 };
 
+/* ==================== Component ==================== */
 export default function MessageList() {
+  /* ----------- UI state ----------- */
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
     null
   );
@@ -65,11 +70,12 @@ export default function MessageList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileDetail, setShowMobileDetail] = useState(false);
 
+  /* ----------- Store & query client ----------- */
   const schoolId = useUserStore((s) => s.schoolId!);
   const user = useUserStore((s) => s.firstName);
   const queryClient = useQueryClient();
 
-  // Fetch messages
+  /* ----------- Data fetching ----------- */
   const {
     data: messages = [],
     isLoading,
@@ -81,7 +87,7 @@ export default function MessageList() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Mark as read mutation
+  /* ----------- Mutations ----------- */
   const markAsReadMutation = useMutation({
     mutationFn: apiMarkAsRead,
     onSuccess: (updatedMessage, messageId) => {
@@ -102,7 +108,7 @@ export default function MessageList() {
     },
   });
 
-  // Enhanced filtering with search
+  /* ----------- Computed values ----------- */
   const filteredMessages = useMemo(() => {
     return messages.filter((m: any) => {
       const matchesRead =
@@ -121,6 +127,11 @@ export default function MessageList() {
 
   const unreadCount = messages.filter((m: any) => !m.isRead).length;
 
+  const selectedMessage = useMemo(
+    () => messages.find((m: any) => m.message_id === selectedMessageId) || null,
+    [messages, selectedMessageId]
+  );
+
   const formatDate = (date: string) => {
     const messageDate = new Date(date);
     const now = new Date();
@@ -138,11 +149,6 @@ export default function MessageList() {
         messageDate.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
     });
   };
-
-  const selectedMessage = useMemo(
-    () => messages.find((m: any) => m.message_id === selectedMessageId) || null,
-    [messages, selectedMessageId]
-  );
 
   const formatTime = (date: string) => {
     return new Date(date).toLocaleTimeString("en-US", {
@@ -195,6 +201,7 @@ export default function MessageList() {
     return "Good evening";
   };
 
+  /* ----------- Handlers ----------- */
   const handleMessageSelect = (messageId: string, isRead: boolean) => {
     setSelectedMessageId(messageId);
     setShowMobileDetail(true);
@@ -208,9 +215,283 @@ export default function MessageList() {
     setSelectedMessageId(null);
   };
 
+  /* ----------- Render helpers ----------- */
+  const renderMessageList = () => (
+    <Card
+      className={`${
+        /* On desktop (lg) the card lives in a grid column */
+        "lg:col-span-2"
+      } flex flex-col h-full shadow-xl border-0 bg-white/90 backdrop-blur-sm overflow-hidden`}
+    >
+      <CardHeader className="pb-3 border-b bg-gradient-to-r from-gray-50 to-gray-100">
+        <h2 className="text-lg font-bold flex items-center space-x-2 text-gray-800">
+          <Mail className="w-5 h-5 text-green-500" />
+          <span>Inbox</span>
+        </h2>
+      </CardHeader>
+      <CardContent className="flex-1 p-0 overflow-y-auto">
+        {filteredMessages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mb-6">
+              <Mail className="w-10 h-10 text-green-500" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2 text-gray-800">
+              {searchQuery ? "No matching messages" : "All caught up!"}
+            </h3>
+            <p className="text-gray-600">
+              {searchQuery
+                ? "Try adjusting your search terms or filters"
+                : "You have no messages at the moment"}
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {filteredMessages.map((message: any) => {
+              const cfg = getCategoryConfig(message.message_type);
+              const Icon = cfg.icon;
+              const isSelected =
+                selectedMessage?.message_id === message.message_id;
+
+              return (
+                <button
+                  key={message.message_id}
+                  className={`w-full text-left p-4 transition-all duration-300 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 border-l-4 group
+                    ${
+                      isSelected
+                        ? "bg-gradient-to-r from-green-100 to-emerald-100 border-l-green-500 shadow-md"
+                        : `border-l-transparent ${
+                            !message.isRead
+                              ? "bg-gradient-to-r from-yellow-50 to-amber-50"
+                              : "hover:border-l-green-200"
+                          }`
+                    }`}
+                  onClick={() =>
+                    handleMessageSelect(message.message_id, message.isRead)
+                  }
+                >
+                  <div className="flex items-start space-x-3">
+                    <div
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center ${cfg.bgColor} group-hover:scale-110 transition-transform duration-200`}
+                    >
+                      <Icon className={`w-6 h-6 ${cfg.textColor}`} />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          {!message.isRead && (
+                            <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full animate-pulse"></div>
+                          )}
+                          <h3
+                            className={`font-semibold truncate ${
+                              !message.isRead
+                                ? "text-gray-900"
+                                : "text-gray-700"
+                            }`}
+                          >
+                            {message.title}
+                          </h3>
+                        </div>
+                        <span className="text-xs text-gray-500 font-medium">
+                          {formatTime(message.created_at)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center space-x-2 mb-3">
+                        <Badge
+                          className={`text-xs ${cfg.bgColor} ${cfg.textColor} border-0`}
+                        >
+                          {cfg.label}
+                        </Badge>
+                        {message.target_role && (
+                          <Badge variant="outline" className="text-xs">
+                            {message.target_role}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                        {isValidHttpUrl(message.content) ? (
+                          <span className="text-green-600 underline">
+                            [{getFileTypeLabel(message.content)}]
+                          </span>
+                        ) : (
+                          message.content
+                        )}
+                      </p>
+
+                      <div className="flex items-center justify-between mt-3">
+                        <span className="text-xs text-gray-500 font-medium">
+                          {formatDate(message.created_at)}
+                        </span>
+                        {message.isRead ? (
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <Circle className="w-4 h-4 text-gray-400" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const renderMessageDetail = () => (
+    <Card
+      className={`${
+        /* Desktop layout lives in col‑span‑3, mobile layout just flex‑1 */
+        "lg:col-span-3"
+      } flex flex-col h-full shadow-xl border-0 bg-white/90 backdrop-blur-sm overflow-hidden`}
+    >
+      <CardContent className="flex-1 flex flex-col p-0 h-full">
+        {selectedMessage ? (
+          <>
+            {/* Header – on mobile we also show a back button */}
+            <div className="p-6 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex items-start justify-between">
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold mb-3 text-gray-900 leading-tight">
+                  {selectedMessage.title}
+                </h2>
+                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="w-4 h-4 text-blue-500" />
+                    <span className="font-medium">
+                      {formatDate(selectedMessage.created_at)}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Clock className="w-4 h-4 text-green-500" />
+                    <span className="font-medium">
+                      {formatTime(selectedMessage.created_at)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Badge */}
+              <div className="flex items-center space-x-3">
+                {selectedMessage.isRead ? (
+                  <Badge className="bg-green-100 text-green-800 border-green-200 px-3 py-1">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Read
+                  </Badge>
+                ) : (
+                  <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 px-3 py-1">
+                    <Circle className="w-3 h-3 mr-1" />
+                    Unread
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Category / Tags */}
+            <div className="flex flex-wrap items-center gap-3 px-6 pt-4 pb-2">
+              {(() => {
+                const cfg = getCategoryConfig(selectedMessage.message_type);
+                const Icon = cfg.icon;
+                return (
+                  <Badge
+                    className={`${cfg.bgColor} ${cfg.textColor} px-3 py-1 text-sm border-0 flex items-center gap-1`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {cfg.label}
+                  </Badge>
+                );
+              })()}
+              {selectedMessage.target_role && (
+                <Badge
+                  variant="outline"
+                  className="px-3 py-1 flex items-center gap-1"
+                >
+                  <User className="w-4 h-4" />
+                  {selectedMessage.target_role}
+                </Badge>
+              )}
+              {selectedMessage.grade_level && (
+                <Badge
+                  variant="outline"
+                  className="px-3 py-1 flex items-center gap-1"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  {selectedMessage.grade_level}
+                </Badge>
+              )}
+              {/* Close (mobile) */}
+              <div className="ml-auto flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleBackToList}
+                  className="lg:hidden"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSelectedMessageId(null)}
+                >
+                  <X />
+                </Button>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="px-6 py-2">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() =>
+                  deleteMessageMutation.mutate(selectedMessage.message_id)
+                }
+                className="bg-red-500 hover:bg-red-600 text-white"
+              >
+                Delete Message
+              </Button>
+            </div>
+
+            {/* Message body */}
+            <div className="flex-1 p-6 overflow-y-auto">
+              <div className="prose prose-lg max-w-none">
+                {isValidHttpUrl(selectedMessage.content) ? (
+                  renderPreview(selectedMessage.content)
+                ) : (
+                  <p className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+                    {selectedMessage.content}
+                  </p>
+                )}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center space-y-6">
+              <div className="w-24 h-24 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mx-auto">
+                <MailOpen className="w-12 h-12 text-green-500" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800">
+                Select a message to read
+              </h3>
+              <p className="text-gray-600 max-w-md">
+                Choose any message from your inbox to view its full content and
+                details
+              </p>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  /* ----------- UI rendering ----------- */
   if (isLoading) {
     return (
-      <div className="min-h-screen  flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
         <div className="flex flex-col items-center space-y-6 text-center">
           <div className="relative">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600"></div>
@@ -231,7 +512,7 @@ export default function MessageList() {
 
   if (error) {
     return (
-      <div className="min-h-screen  flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
         <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm">
           <CardContent className="pt-8 pb-8">
             <div className="text-center space-y-6">
@@ -261,9 +542,9 @@ export default function MessageList() {
   }
 
   return (
-    <div className="min-h-screen ">
-      <div className="max-w-8xl mx-auto p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
-        {/* Enhanced Header */}
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      {/* ---- Header ------------------------------------------------- */}
+      <div className="max-w-8xl mx-auto w-full p-3 sm:p-4 lg:p-6">
         <Card className="bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 shadow-2xl border-0 overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
           <CardHeader className="pb-4 sm:pb-6 relative z-10">
@@ -303,11 +584,11 @@ export default function MessageList() {
           </CardHeader>
         </Card>
 
-        {/* Enhanced Filters */}
+        {/* ---- Filters ------------------------------------------------ */}
         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col space-y-4">
-              {/* Search Bar */}
+              {/* Search bar */}
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
@@ -328,7 +609,7 @@ export default function MessageList() {
                 )}
               </div>
 
-              {/* Filter Controls */}
+              {/* Filters */}
               <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
                   <div className="flex items-center space-x-2">
@@ -387,371 +668,21 @@ export default function MessageList() {
           </CardContent>
         </Card>
 
-        {/* Messages Layout */}
-        <div className="relative">
-          {/* Desktop Layout */}
-          <div className="hidden lg:grid lg:grid-cols-5 gap-6 h-[calc(100vh-400px)] min-h-[600px]">
-            {/* Messages List - Takes 2/5 of the width */}
-            <Card className="lg:col-span-2 shadow-xl border-0 bg-white/90 backdrop-blur-sm overflow-hidden ">
-              <CardHeader className="pb-3 border-b bg-gradient-to-r from-gray-50 to-gray-100">
-                <h2 className="text-lg font-bold flex items-center space-x-2 text-gray-800">
-                  <Mail className="w-5 h-5 text-green-500" />
-                  <span>Inbox</span>
-                </h2>
-              </CardHeader>
-              <CardContent className="p-0 overflow-y-auto">
-                <div className="overflow-y-auto h-full">
-                  {filteredMessages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                      <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mb-6">
-                        <Mail className="w-10 h-10 text-green-500" />
-                      </div>
-                      <h3 className="text-lg font-semibold mb-2 text-gray-800">
-                        {searchQuery
-                          ? "No matching messages"
-                          : "All caught up!"}
-                      </h3>
-                      <p className="text-gray-600">
-                        {searchQuery
-                          ? "Try adjusting your search terms or filters"
-                          : "You have no messages at the moment"}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-gray-100">
-                      {filteredMessages.map((message: any, index: number) => {
-                        const config = getCategoryConfig(message.message_type);
-                        const Icon = config.icon;
-                        const isSelected =
-                          selectedMessage?.message_id === message.message_id;
-
-                        return (
-                          <div
-                            key={message.message_id}
-                            className={`p-4 cursor-pointer transition-all duration-300 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 border-l-4 group ${
-                              isSelected
-                                ? "bg-gradient-to-r from-green-100 to-emerald-100 border-l-green-500 shadow-md"
-                                : `border-l-transparent ${
-                                    !message.isRead
-                                      ? "bg-gradient-to-r from-yellow-50 to-amber-50"
-                                      : "hover:border-l-green-200"
-                                  }`
-                            }`}
-                            onClick={() =>
-                              handleMessageSelect(
-                                message.message_id,
-                                message.isRead
-                              )
-                            }
-                          >
-                            <div className="flex items-start space-x-3">
-                              <div
-                                className={`w-12 h-12 rounded-xl flex items-center justify-center ${config.bgColor} group-hover:scale-110 transition-transform duration-200`}
-                              >
-                                <Icon
-                                  className={`w-6 h-6 ${config.textColor}`}
-                                />
-                              </div>
-
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center space-x-2">
-                                    {!message.isRead && (
-                                      <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full animate-pulse"></div>
-                                    )}
-                                    <h3
-                                      className={`font-semibold truncate ${
-                                        !message.isRead
-                                          ? "text-gray-900"
-                                          : "text-gray-700"
-                                      }`}
-                                    >
-                                      {message.title}
-                                    </h3>
-                                  </div>
-                                  <span className="text-xs text-gray-500 font-medium">
-                                    {formatTime(message.created_at)}
-                                  </span>
-                                </div>
-
-                                <div className="flex items-center space-x-2 mb-3">
-                                  <Badge
-                                    className={`text-xs ${config.bgColor} ${config.textColor} border-0`}
-                                  >
-                                    {config.label}
-                                  </Badge>
-                                  {message.target_role && (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs"
-                                    >
-                                      {message.target_role}
-                                    </Badge>
-                                  )}
-                                </div>
-
-                                <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-                                  {/* {message.content} */}
-                                  {isValidHttpUrl(message.content) ? (
-                                    <span className="text-green-600 underline">
-                                      [{getFileTypeLabel(message.content)}]
-                                    </span>
-                                  ) : (
-                                    <p className="text-gray-600 mb-4 line-clamp-2">
-                                      {message.content}
-                                    </p>
-                                  )}
-                                </p>
-
-                                <div className="flex items-center justify-between mt-3">
-                                  <span className="text-xs text-gray-500 font-medium">
-                                    {formatDate(message.created_at)}
-                                  </span>
-                                  {message.isRead ? (
-                                    <CheckCircle className="w-4 h-4 text-green-500" />
-                                  ) : (
-                                    <Circle className="w-4 h-4 text-gray-400" />
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Message Detail - Takes 3/5 of the width */}
-            <Card className="lg:col-span-3 shadow-xl border-0 bg-white/90 backdrop-blur-sm">
-              <CardContent className="p-0 h-full">
-                {selectedMessage ? (
-                  <div className="flex flex-col h-full">
-                    <div className="p-6 border-b bg-gradient-to-r from-gray-50 to-gray-100">
-                      <div className="flex items-start justify-between mb-6">
-                        <div className="flex-1">
-                          <h2 className="text-2xl font-bold mb-3 text-gray-900 leading-tight">
-                            {selectedMessage.title}
-                          </h2>
-                          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                            <div className="flex items-center space-x-2">
-                              <Calendar className="w-4 h-4 text-blue-500" />
-                              <span className="font-medium">
-                                {formatDate(selectedMessage.created_at)}
-                              </span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Clock className="w-4 h-4 text-green-500" />
-                              <span className="font-medium">
-                                {formatTime(selectedMessage.created_at)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          {selectedMessage.isRead ? (
-                            <Badge className="bg-green-100 text-green-800 border-green-200 px-3 py-1">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Read
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 px-3 py-1">
-                              <Circle className="w-3 h-3 mr-1" />
-                              Unread
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-3 mb-4">
-                        {(() => {
-                          const config = getCategoryConfig(
-                            selectedMessage.message_type
-                          );
-                          const Icon = config.icon;
-                          return (
-                            <Badge
-                              className={`${config.bgColor} ${config.textColor} px-3 py-1 text-sm border-0`}
-                            >
-                              <Icon className="w-4 h-4 mr-2" />
-                              {config.label}
-                            </Badge>
-                          );
-                        })()}
-                        {selectedMessage.target_role && (
-                          <Badge variant="outline" className="px-3 py-1">
-                            <User className="w-4 h-4 mr-2" />
-                            {selectedMessage.target_role}
-                          </Badge>
-                        )}
-                        {selectedMessage.grade_level && (
-                          <Badge variant="outline" className="px-3 py-1">
-                            <BookOpen className="w-4 h-4 mr-2" />
-                            {selectedMessage.grade_level}
-                          </Badge>
-                        )}
-                        <div className="flex w-56  item-center justify-end">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => setSelectedMessageId(null)}
-                          >
-                            <X />
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            if (selectedMessage) {
-                              deleteMessageMutation.mutate(
-                                selectedMessage.message_id
-                              );
-                            }
-                          }}
-                          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
-                        >
-                          Delete Message
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="flex-1 p-6 overflow-y-auto">
-                      <div className="prose prose-lg max-w-none">
-                        <p className="whitespace-pre-wrap text-gray-800 leading-relaxed text-base">
-                          {/* {selectedMessage.content} */}
-                          {isValidHttpUrl(selectedMessage.content) ? (
-                            renderPreview(selectedMessage.content)
-                          ) : (
-                            <p className="text-gray-700 whitespace-pre-wrap">
-                              {selectedMessage.content}
-                            </p>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-center space-y-6">
-                      <div className="w-24 h-24 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mx-auto">
-                        <MailOpen className="w-12 h-12 text-green-500" />
-                      </div>
-                      <div className="space-y-2">
-                        <h3 className="text-xl font-bold text-gray-800">
-                          Select a message to read
-                        </h3>
-                        <p className="text-gray-600 max-w-md">
-                          Choose any message from your inbox to view its full
-                          content and details
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+        {/* ---- Main content (list + detail) --------------------------- */}
+        <div className="flex-1 flex overflow-hidden mt-4">
+          {/* Desktop: side‑by‑side list + detail */}
+          <div className="hidden lg:grid lg:grid-cols-5 gap-6 h-full w-full">
+            {renderMessageList()}
+            {renderMessageDetail()}
           </div>
 
-          {/* Mobile/Tablet Layout */}
-          <div className="lg:hidden">
-            {(!showMobileDetail || !selectedMessage) && (
-              <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm h-[calc(100vh-300px)] min-h-[500px]">
-                <CardHeader className="pb-3 border-b bg-gradient-to-r from-gray-50 to-gray-100">
-                  <h2 className="text-lg font-bold flex items-center space-x-2 text-gray-800">
-                    <Mail className="w-5 h-5 text-blue-500" />
-                    <span>Messages ({filteredMessages.length})</span>
-                  </h2>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="overflow-y-auto h-full">
-                    {filteredMessages.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                        <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center mb-6">
-                          <Mail className="w-10 h-10 text-green-500" />
-                        </div>
-                        <h3 className="text-lg font-semibold mb-2 text-gray-800">
-                          {searchQuery
-                            ? "No matching messages"
-                            : "All caught up!"}
-                        </h3>
-                        <p className="text-gray-600 text-center">
-                          {searchQuery
-                            ? "Try adjusting your search terms or filters"
-                            : "You have no messages at the moment"}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="divide-y divide-gray-100">
-                        {filteredMessages.map((message: any, index: number) => {
-                          const config = getCategoryConfig(
-                            message.message_type
-                          );
-                          const Icon = config.icon;
+          {/* Mobile / Tablet: stacked view */}
+          <div className="lg:hidden flex flex-col h-full w-full">
+            {/* Mobile list */}
+            {!showMobileDetail && renderMessageList()}
 
-                          return (
-                            <div
-                              key={message.message_id}
-                              className={`p-4 cursor-pointer transition-all duration-200 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 active:scale-[0.98] ${
-                                !message.isRead
-                                  ? "bg-gradient-to-r from-yellow-50 to-amber-50"
-                                  : ""
-                              }`}
-                              onClick={() =>
-                                handleMessageSelect(
-                                  message.message_id,
-                                  message.isRead
-                                )
-                              }
-                            >
-                              <div className="flex items-start space-x-3">
-                                <div
-                                  className={`w-12 h-12 rounded-xl flex items-center justify-center ${config.bgColor} flex-shrink-0`}
-                                >
-                                  <Icon
-                                    className={`w-6 h-6 ${config.textColor}`}
-                                  />
-                                </div>
-
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-start justify-between mb-2">
-                                    <div className="flex items-center space-x-2 flex-1">
-                                      {!message.isRead && (
-                                        <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex-shrink-0"></div>
-                                      )}
-                                      <h3
-                                        className={`font-semibold text-sm sm:text-base truncate ${
-                                          message.isRead
-                                            ? "text-gray-800"
-                                            : "text-gray-600"
-                                        }`}
-                                      >
-                                        {message.title}
-                                      </h3>
-                                    </div>
-                                    <p className="text-xs text-gray-600">
-                                      {formatDate(message.created_at)}
-                                    </p>
-                                  </div>
-                                  <p className="text-sm text-gray-600 line-clamp-2">
-                                    {message.content}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Mobile detail */}
+            {showMobileDetail && selectedMessage && renderMessageDetail()}
           </div>
         </div>
       </div>
@@ -759,6 +690,8 @@ export default function MessageList() {
   );
 }
 
+/* --------------------------------------------------------------- */
+/* ---------- Preview component (unchanged) ----------------------- */
 const renderPreview = (url: string) => {
   const extension = url.split(".").pop()?.toLowerCase();
 
@@ -796,7 +729,7 @@ const renderPreview = (url: string) => {
     );
   }
 
-  // Default fallback
+  // Default fallback – just a link
   return (
     <a
       href={url}
