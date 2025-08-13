@@ -46,6 +46,11 @@ import {
 import { cn } from "@/lib/utils";
 import { useDebounce } from "use-debounce";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import roles from "@/constants/roles";
+
+const allowedRoles = roles.filter((r) =>
+  ["Teacher", "Student", "Parent"].includes(r.name)
+);
 
 export default function RegistrationPage() {
   const router = useRouter();
@@ -74,7 +79,7 @@ export default function RegistrationPage() {
       username: "",
       password: "",
       email: "",
-      role: undefined,
+      role_id: undefined,
       gender: undefined,
       first_name: "",
       last_name: "",
@@ -86,7 +91,7 @@ export default function RegistrationPage() {
   const watchedEmail = watch("email");
   const [debouncedUsername] = useDebounce(watchedUsername, 500);
   const [debouncedEmail] = useDebounce(watchedEmail, 500);
-  const selectedRole = watch("role");
+  const selectedRole = watch("role_id");
 
   // Email availability check
   const {
@@ -153,15 +158,17 @@ export default function RegistrationPage() {
   }, [schoolCode, schoolDetails?.schoolImage, setSchoolDetails, router]);
 
   // Query: fetch classes
+  const studentRoleId = roles.find((r) => r.name === "Student")?.role_id;
+
   const { data: fetchedClasses = [], isLoading: isLoadingClasses } = useQuery({
     queryKey: ["classes", schoolId],
-    enabled: selectedRole === "Student" && !!schoolId,
+    enabled: selectedRole === studentRoleId && Boolean(schoolId),
     queryFn: async () => {
       const res = await axios.get(`/api/school/get-class-no-auth/${schoolId}`);
-      return res.data.data.classes as {
+      return res.data.data.classes as Array<{
         class_id: string;
         name: string;
-      }[];
+      }>;
     },
   });
 
@@ -169,8 +176,16 @@ export default function RegistrationPage() {
   const registrationMutation = useMutation({
     mutationFn: async (data: RegistrationFormData) => {
       if (!schoolId) throw new Error("School ID missing");
-      const payload = { ...data };
-      if (payload.role === "Teacher") delete payload.class_id;
+
+      const payload = { ...data, role_id: Number(data.role_id) }; // force number
+
+      if (
+        payload.role_id === roles.find((r) => r.name === "Teacher")?.role_id
+      ) {
+        // replace with actual teacher role_id
+        delete payload.class_id;
+      }
+
       return axios.post(
         `/api/auth/register-teacher-student/${schoolId}`,
         payload
@@ -507,50 +522,30 @@ export default function RegistrationPage() {
                     <div className="space-y-2">
                       <Label>Role</Label>
                       <Select
-                        onValueChange={(v) =>
-                          setValue(
-                            "role",
-                            v as "Student" | "Teacher" | "Parent"
-                          )
-                        }
+                        onValueChange={(v) => setValue("role_id", Number(v))}
                       >
-                        <SelectTrigger
-                          className={cn(
-                            errors.role &&
-                              "border-destructive focus:ring-destructive"
-                          )}
-                          style={{ width: "100%" }}
-                        >
-                          <SelectValue placeholder="Select your role" />
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
                         </SelectTrigger>
-                        <SelectContent className="w-full">
-                          <SelectItem value="Student">
-                            <div className="flex items-center gap-2">
-                              <GraduationCap className="h-4 w-4" />
-                              Student
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Teacher">
-                            <div className="flex items-center gap-2">
-                              <Users className="h-4 w-4" />
-                              Teacher
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Parent">
-                            <div className="flex items-center gap-2">
-                              <UserPlus className="h-4 w-4" />
-                              Parent
-                            </div>
-                          </SelectItem>
+                        <SelectContent>
+                          {allowedRoles.map((role) => (
+                            <SelectItem
+                              key={role.role_id}
+                              value={String(role.role_id)} // Shadcn needs string here
+                            >
+                              {role.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
-                      {errors.role && (
+
+                      {errors.role_id && (
                         <motion.p
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           className="text-sm font-medium text-destructive"
                         >
-                          {errors.role.message}
+                          {errors.role_id.message}
                         </motion.p>
                       )}
                     </div>
@@ -599,7 +594,7 @@ export default function RegistrationPage() {
                   </div>
 
                   {/* Class (Student only) */}
-                  {selectedRole === "Student" && (
+                  {selectedRole === studentRoleId && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
