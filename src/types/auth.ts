@@ -2,7 +2,9 @@ export interface DecodedToken {
   user_id: string;
   school_id: string;
   school_code: string;
-  role: "Student" | "Teacher" | "Admin" | "Parent";
+  role: string;
+  role_ids: number[];
+  role_names: string[];
   first_name: string;
   last_name: string;
   username: string;

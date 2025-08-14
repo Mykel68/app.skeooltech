@@ -54,7 +54,9 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
         setUser({
           userId: decoded.user_id,
           username: decoded.username,
-          role: decoded.role,
+          role: decoded.role_names[0],
+          role_ids: decoded.role_ids,
+          role_names: decoded.role_names,
           schoolId: decoded.school_id,
           firstName: decoded.first_name,
           lastName: decoded.last_name,
@@ -65,7 +67,8 @@ export function LoginForm({ schoolCode }: { schoolCode: string }) {
           schoolCode: decoded.school_code,
         });
 
-        const { role, is_approved } = decoded;
+        const { is_approved } = decoded;
+        const { role } = useUserStore.getState();
 
         let destination;
 

@@ -24,6 +24,8 @@ interface UserState {
   userId: string | null;
   username: string | null;
   role: string | null;
+  role_ids: number[] | null; // make sure these are here
+  role_names: string[] | null; // make sure these are here
   schoolId: string | null;
   firstName: string | null;
   lastName: string | null;
@@ -37,24 +39,7 @@ interface UserState {
   class_id?: string | null;
   class_name?: string | null;
   class_grade_level?: string | null;
-  setUser: (user: {
-    userId?: string;
-    username?: string;
-    role?: string;
-    schoolId?: string;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    schoolName?: string;
-    schoolImage?: string;
-    is_approved?: boolean;
-    schoolCode?: string;
-    session_id?: string;
-    term_id?: string;
-    class_id?: string;
-    class_name?: string;
-    class_grade_level?: string;
-  }) => void;
+  setUser: (user: Partial<UserState>) => void; // <-- lets you pass only the fields you want
   clearUser: () => void;
 }
 
@@ -64,6 +49,8 @@ export const useUserStore = create<UserState>()(
       userId: null,
       username: null,
       role: null,
+      role_ids: null,
+      role_names: null,
       schoolId: null,
       firstName: null,
       lastName: null,
@@ -87,6 +74,8 @@ export const useUserStore = create<UserState>()(
           userId: null,
           username: null,
           role: null,
+          role_ids: null,
+          role_names: null,
           schoolId: null,
           firstName: null,
           lastName: null,
