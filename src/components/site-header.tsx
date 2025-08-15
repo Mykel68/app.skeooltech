@@ -48,9 +48,9 @@ export function SiteHeader() {
               <SelectValue placeholder="Select role" />
             </SelectTrigger>
             <SelectContent>
-              {[role, ...roleNames.filter((r) => r !== role)].map((r) => (
-                <SelectItem key={r} value={r}>
-                  {r.charAt(0).toUpperCase() + r.slice(1).toLowerCase()}
+              {[role, ...roleNames.filter((r) => r !== role)].map((r: any) => (
+                <SelectItem key={r} value={r!}>
+                  {r.charAt(0).toUpperCase() + r.slice(1).toLowerCase()} Portal
                 </SelectItem>
               ))}
             </SelectContent>
