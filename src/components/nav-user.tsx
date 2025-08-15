@@ -24,7 +24,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { logout } from "@/utils/logout";
+import { useLogout } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 
@@ -40,18 +40,13 @@ export function NavUser({
   const router = useRouter();
   const { isMobile } = useSidebar();
   const storeUser = useUserStore();
-  const role = useUserStore((s) => s.role);
+  const logout = useLogout();
 
   // Get initials for fallback
   const fallbackInitials =
     `${storeUser.firstName?.[0] ?? ""}${
       storeUser.lastName?.[0] ?? ""
     }`.toUpperCase() || "??";
-
-  const handleLogout = () => {
-    logout();
-    router.push("/");
-  };
 
   return (
     <SidebarMenu>
@@ -129,7 +124,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuItem onClick={logout}>
               <IconLogout />
               Log out
             </DropdownMenuItem>
