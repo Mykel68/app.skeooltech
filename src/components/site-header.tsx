@@ -2,21 +2,28 @@
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useUserStore } from "@/store/userStore";
 
 export function SiteHeader() {
   const role = useUserStore((s) => s.role);
+  const roleNames = useUserStore((s) => s.role_names) || [];
+  const setRole = useUserStore((s) => s.setRole);
   const firstName = useUserStore((s) => s.firstName);
   const lastName = useUserStore((s) => s.lastName);
   const className = useUserStore((s) => s.class_name);
   const email = useUserStore((s) => s.email);
 
-  // Helper to get nicely capitalized role
   const formattedRole = role
     ? `${role.charAt(0).toUpperCase()}${role.slice(1).toLowerCase()}`
     : "Portal";
 
-  // Optional: Role-based emoji
   const roleEmoji =
     role?.toLowerCase() === "student"
       ? "🎓"
@@ -32,10 +39,25 @@ export function SiteHeader() {
       <SidebarTrigger className="-ml-1" />
       <Separator orientation="vertical" className="mx-4 h-6" />
 
-      {/* LEFT: Portal Name / Brand */}
+      {/* LEFT: Role Switcher */}
       <div className="flex items-center gap-2 font-bold text-emerald-700 text-lg">
         <span>{roleEmoji}</span>
-        <span>{formattedRole} Portal</span>
+        {roleNames.length > 1 ? (
+          <Select value={role || ""} onValueChange={(val) => setRole(val)}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Select role" />
+            </SelectTrigger>
+            <SelectContent>
+              {[role, ...roleNames.filter((r) => r !== role)].map((r) => (
+                <SelectItem key={r} value={r}>
+                  {r.charAt(0).toUpperCase() + r.slice(1).toLowerCase()}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <span>{formattedRole} Portal</span>
+        )}
       </div>
 
       <div className="flex-1" />

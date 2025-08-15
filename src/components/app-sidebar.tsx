@@ -20,6 +20,7 @@ import { useUserStore } from "@/store/userStore";
 import {
   studentNav,
   teacherNav,
+  classTeacherNav,
   studentDocuments,
   teacherDocuments,
   parentNav,
@@ -57,6 +58,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       ? teacherNav
       : role === "Parent"
       ? parentNav
+      : role === "Class Teacher"
+      ? classTeacherNav
       : [];
 
   const documents =
@@ -66,6 +69,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       ? teacherDocuments
       : role === "Parent"
       ? parentDocuments
+      : role === "Class Teacher"
+      ? teacherDocuments
       : [];
 
   useEffect(() => {

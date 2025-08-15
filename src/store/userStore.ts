@@ -40,6 +40,7 @@ interface UserState {
   class_name?: string | null;
   class_grade_level?: string | null;
   setUser: (user: Partial<UserState>) => void; // <-- lets you pass only the fields you want
+  setRole: (newRole: string) => void;
   clearUser: () => void;
 }
 
@@ -67,6 +68,10 @@ export const useUserStore = create<UserState>()(
       setUser: (user) => {
         console.log("[UserStore] Updating user store:", user);
         set({ ...user });
+      },
+      setRole: (newRole) => {
+        console.log("[UserStore] Switching role to:", newRole);
+        set({ role: newRole });
       },
       clearUser: () => {
         console.log("[UserStore] Clearing user store");

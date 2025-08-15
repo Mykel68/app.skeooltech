@@ -12,18 +12,33 @@ export default function StudentLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // const router = useRouter();
+  // const user = useUserStore();
+  // const role = user?.role;
+
+  // useEffect(() => {
+  //   if (role && role !== "Student") {
+  //     router.replace("/home"); // use `replace` to avoid adding to history
+  //   }
+  // }, [role, router]);
+
+  // // Optionally, you can prevent rendering while checking:
+  // if (!role || role !== "Student") return null;
+
   const router = useRouter();
-  const user = useUserStore();
-  const role = user?.role;
+  const { role_names } = useUserStore();
+
+  const hasRoleAccess = role_names?.includes("Student");
 
   useEffect(() => {
-    if (role && role !== "Student") {
-      router.replace("/home"); // use `replace` to avoid adding to history
+    if (!hasRoleAccess) {
+      router.replace("/home"); // Redirect if they don’t have the role
     }
-  }, [role, router]);
+  }, [hasRoleAccess, router]);
 
-  // Optionally, you can prevent rendering while checking:
-  if (!role || role !== "Student") return null;
+  if (!hasRoleAccess) {
+    return null; // prevent flicker
+  }
 
   return (
     <SidebarProvider

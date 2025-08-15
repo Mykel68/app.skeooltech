@@ -7,30 +7,15 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
-export default function TeacherLayout({
+export default function ClassTeacherLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // const router = useRouter();
-  // const user = useUserStore();
-  // const role = user?.role;
-
-  // useEffect(() => {
-  //   if (role && role !== "Teacher") {
-  //     router.replace("/dashboard"); // avoid back button returning to restricted area
-  //   }
-  // }, [role, router]);
-
-  // // Wait until we confirm the user role to avoid flickering
-  // if (!role || role !== "Teacher") {
-  //   router.replace("/");
-  // }
-
   const router = useRouter();
   const { role_names } = useUserStore();
 
-  const hasRoleAccess = role_names?.includes("Teacher");
+  const hasRoleAccess = role_names?.includes("Class Teacher");
 
   useEffect(() => {
     if (!hasRoleAccess) {
