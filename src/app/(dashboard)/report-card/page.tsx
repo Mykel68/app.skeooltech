@@ -56,7 +56,7 @@ interface Attendance {
 }
 
 interface Student {
-  student_id: string;
+  admission_number: string;
   first_name: string;
   last_name: string;
 }
@@ -98,7 +98,7 @@ const ReportCardPage = () => {
   useEffect(() => {
     if (mockStudentData) {
       if (!studentId) {
-        setStudentId(mockStudentData.student.student_id);
+        setStudentId(mockStudentData.student.admission_number);
       }
       if (!selectedSession && mockStudentData.sessions.length > 0) {
         setSelectedSession(mockStudentData.sessions[0].session.name);
@@ -295,7 +295,7 @@ const ReportCardPage = () => {
                   { label: "Grade Level", value: currentClass.grade_level },
                   {
                     label: "Student ID",
-                    value: mockStudentData.student.student_id,
+                    value: mockStudentData.student.admission_number,
                   },
                 ].map((item, idx) => (
                   <div key={idx} className="flex flex-col space-y-1">
