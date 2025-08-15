@@ -89,56 +89,26 @@ export default function AttendancePage() {
       const res = await axios.get(
         `/api/class-teacher/atttendance/${schoolId}/${sessionId}/${termId}/${teacherId}`
       );
-      const fetched = res.data.data.data;
 
+      console.log("res", res.data.data.data);
+
+      const { classDetails, total_school_days, students } = res.data.data.data;
+
+      // Initialize attendance records
       const initialAttendance: Record<string, number> = {};
-      for (const student of fetched.students) {
+      for (const student of students) {
         if (student.present_days !== undefined) {
           initialAttendance[student.user_id] = student.present_days;
         }
       }
-      setAttendanceRecords(initialAttendance);
-      setTotalSchoolDays(fetched.total_school_days);
 
-      return fetched;
+      setAttendanceRecords(initialAttendance);
+      setTotalSchoolDays(total_school_days);
+
+      console.log("data", data);
+      return { classDetails, total_school_days, students };
     },
     enabled: !!schoolId && !!sessionId && !!termId && !!teacherId,
-  });
-
-  // Fetch daily attendance for selected date
-  const { data: dailyData, isLoading: isDailyLoading } = useQuery({
-    queryKey: [
-      "daily-attendance",
-      schoolId,
-      sessionId,
-      termId,
-      data?.classDetails.class.class_id,
-      selectedDate,
-    ],
-    queryFn: async () => {
-      if (!data?.classDetails.class.class_id) return null;
-
-      const res = await axios.get(
-        `/api/attendance/daily/${schoolId}/${sessionId}/${termId}/${data.classDetails.class.class_id}/${selectedDate}`
-      );
-
-      const attendanceArray = res.data.data?.attendance || [];
-
-      const initialDaily: Record<string, boolean> = {};
-      data.students.forEach((student) => {
-        const record = attendanceArray.find(
-          (entry: any) => entry.student_id === student.user_id
-        );
-        initialDaily[student.user_id] = record?.present ?? false;
-      });
-
-      setDailyAttendance(initialDaily);
-
-      return initialDaily;
-    },
-
-    enabled:
-      !!isDailyMode && !!data?.classDetails.class.class_id && !!selectedDate,
   });
 
   // Daily attendance submission
