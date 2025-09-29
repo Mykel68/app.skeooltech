@@ -32,13 +32,13 @@ export default function Home() {
         >
           <div className="">
             {/* Logo placeholder */}
-            <div className="flex items-center justify-center mb-4 ">
+            <div className="flex items-center justify-center mb-2 ">
               <Image
-                src="/images/logo.png"
+                src="/images/logo-main.png"
                 alt="Logo"
-                width={400}
-                height={400}
-                className="h-16 w-16 object-cover object-center"
+                width={1000}
+                height={1000}
+                className="h-20 w-20 object-cover object-center"
               />
             </div>
 
